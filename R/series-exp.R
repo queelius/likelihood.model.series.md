@@ -18,6 +18,14 @@ rseries.exp = function(n,rate)
     data.frame(S=S,K=K,t=t)
 }
 
+#' log-likelihood function of masked data
+#' for a series system with exponentially distributed lifetimes.
+#'
+#' @param rate rate parameter
+#' @param masked.data masked data
+#'
+#' @return log-likelihood of masked data wrt rate parameter
+#' @export
 loglike.series.exp = function(rate,masked.data)
 {
     m = ncol(masked.data)-2
@@ -29,20 +37,72 @@ loglike.series.exp = function(rate,masked.data)
     s - sum(masked.data$S) * sum(rate)
 }
 
+#' maximum likelihood estimator of the
+#' parameters of a series system with
+#' components that have exponentially
+#' distributed lifetimes given a
+#' sample of masked data.
+#'
+#' @param masked.data masked data
+#'
+#' @return mle of rate parameter
+#' @export
 series.exp.mle = function(masked.data)
 {
     # closed-form solution exists, see paper
     1
 }
 
-series.exp.cov = function(masked.data)
+#' information matrix of the rate parameter
+#' of the series system with exponentially
+#' distributed component lifetimes. this is
+#' the expected info. if observed info is
+#' desired, then just evaluate the hessian
+#' of the log-likelihood function at the
+#' mle.
+#'
+#' @param n masked data sample size
+#' @param rate true rate (or mle)
+#'
+#' @return expected info
+#' @export
+series.exp.info = function(n,rate)
 {
-    # first, estimate mle using series.exp.mle
-    # then, either use the expected info or the
-    # observed info. observed info is just
-    #   -hessian(loglike.series.exp(rate.mle,masked.data))
-    # a nice feature of the observed info is we
-    # allow the joint distribution of C and alpha
-    # to be a function of the masked.data.
     1
+}
+
+#' sampling distribution of the mle is
+#' a multivariate normal with mean
+#' given by the true rate parameterfor a series system
+#' with exponentially distributed component
+#' lifetimes, given a sample of masked data.
+#'
+#' @param n sample size
+#' @param rate true rate parameter (or mle)
+#'
+#' @return multivariate normal of the mle's sampling distribution
+#' @export
+series.exp.mle.cov = function(n,rate)
+{
+    series.exp.info(n,rate)^(-1)
+}
+
+#' bootstrap of the mle's sampling distribution
+#'
+#' @param masked.data sample of masked data
+#' @param r replicates
+#'
+#' @return mle and bootstrap estimate of its covariance matrix
+#' @export
+rseries.exp.mle.cov.bootstrap = function(masked.data,r)
+{
+    n = nrow(masked.data)
+    rate.mle = series.exp.mle(masked.data)
+    rate.bs = NULL
+    for (i in 1:r)
+    {
+        d = rmasked.data(n,rate.mle)
+        rate.bs = rbind(rate.bs,series.exp.mle(d))
+    }
+    list(mle=rate.mle,Sigma=cov(rate.bs))
 }

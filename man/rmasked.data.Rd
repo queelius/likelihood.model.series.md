@@ -2,7 +2,7 @@
 % Please edit documentation in R/masked.data.R
 \name{rmasked.data}
 \alias{rmasked.data}
-\title{rmask}
+\title{Generate masked data from series system data}
 \usage{
 rmasked.data(data, w = NULL, alpha = NULL)
 }

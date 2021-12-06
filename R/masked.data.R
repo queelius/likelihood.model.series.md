@@ -1,6 +1,4 @@
 
-#' rmask
-#'
 #' Generate masked data from series system data
 #'
 #' @param data a data frame, first column failure time, second column failed component, remaining columns component lifetimes.
