@@ -1,9 +1,17 @@
-rmask = function(t,alpha,w)
+rmask = function(t,w=NULL,alpha=NULL)
 {
+  n = nrow(t)
   m = ncol(t)
   K = apply(t,1,which.min)
   S = apply(t,1,min)
   C = matrix(nrow=n,ncol=m,F)
+
+  if (is.null(alpha))
+    alpha = rep(1,n)
+
+  if (is.null(w))
+    w = rep(m,n)
+
   test = runif(n) < alpha
 
   for (i in 1:n)
