@@ -1,7 +1,9 @@
 
 #' Generate masked data from series system data
 #'
-#' @param data a data frame, first column failure time, second column failed component, remaining columns component lifetimes.
+#' @param data a data frame with column 's' system failure time,
+#'                               column 'k' failed component, and
+#'                               column 't' vector of component lifetimes.
 #' @param w a vector of sizes for candidate sets
 #' @param alpha a vector of probabilities
 #'
