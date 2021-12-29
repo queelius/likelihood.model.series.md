@@ -15,18 +15,14 @@
 #' masked.data = rseries.exp(n=10,theta=c(1,2,3))
 #' # get system failure times only
 #' lifetimes = masked.data$s
-rseries.masked.exp = function(n,theta)
+rexp_system_data = function(n,theta,phi=which.min)
 {
-    m = length(theta)
-    t = matrix(stats::rexp(n*m,rate=theta),ncol=m,byrow=T)
-    df = data.frame(s=apply(t,1,min),
-                    k=apply(t,1,which.min))
-    df$t = t
-
-    class(df) = c("masked.data",class(df))
-    attr(df,nodes) = length(theta)
-    attr(df,latent) = c("k","t")
-    df
+    stopifnot(is.numeric(theta))
+    data <- system_data(matrix(
+        stats::rexp(n*length(theta),rate=theta),ncol=m,byrow=T),
+        phi)
+    attr(data,"node_lifetime") <- c("exponential")
+    data
 }
 
 #' @brief deseries.node.exp probability mass
@@ -42,17 +38,15 @@ rseries.masked.exp = function(n,theta)
 #' @param t
 #' @return probability that the failed
 #'         component is k at time t.
-#'
 #' @export
-#'
-dseries.node.exp = function(theta,t)
+dexp_series_failed_node_pdf = function(theta,t)
 {
     stopifnot(is.numeric(theta))
-    function(k)
+    new_parametric_pdf(function(k)
     {
         ifelse(is.wholenumber(k) & k > 0 & k <= length(theta),
                theta[k] / sum(theta), 0)
-    }
+    },length(theta),1L)
 }
 
 #' @brief log-likelihood function of masked data for a series system
@@ -64,14 +58,20 @@ dseries.node.exp = function(theta,t)
 #'             l : R^m -> R
 #'                 theta |-> log-likelihood(theta | masked.data)
 #' @export
-llseries.masked.exp <- function(masked.data)
+loglike_exp_series_masked_data_m0 <- function(masked_data)
 {
-    function(theta)
+    stopifnot(!is.null(masked_data$c))
+    stopifnot(!is.null(masked_data$s))
+    stopifnot("num_nodes" %in% names(attributes(masked_data)))
+
+    m <- masked_data$num_nodes
+    new_parametric_func(function(theta)
     {
+        theta <- as.matrix(theta,nrow=m,ncol=1)
         sum(log(apply(
-            masked.data$c,1,function(r) { sum(theta[r]) }))) -
-            sum(masked.data$s) * sum(theta)
-    }
+            masked_data$c,1,function(r) { sum(theta[r]) }))) -
+            sum(masked_data$s) * sum(theta)
+    },m,1L)
 }
 
 #' likelihood function of masked data
@@ -84,9 +84,11 @@ llseries.masked.exp <- function(masked.data)
 #'                 theta |-> likelihood(theta | masked.data)
 
 #' @export
-lseries.exp <- function(masked.data)
+like_exp_series_masked_data_m0 <- function(masked_data)
 {
-    exp(llseries.exp(masked.data))
+    m <- masked_data$num_nodes
+    ll <- loglike_exp_series_masked_data_m0(masked_data)
+    new_parametric_func(function(theta) exp(ll(theta)),m,1)
 }
 
 #' maximum likelihood estimator of the
@@ -181,3 +183,114 @@ rseries.exp.mle.cov.bootstrap = function(masked.data,r)
     }
     list(mle=rate.mle,Sigma=cov(rate.bs))
 }
+
+
+
+
+
+
+mse = function(theta,n) { length(theta)*sum(theta)/n }
+
+
+info <- function(l,n)
+{
+    l1 = l[1]
+    l2 = l[2]
+    l3 = l[3]
+
+    A = matrix(c(1/(l1+l2) + 1/(l1+l3), 1/(l1+l2), 1/(l1+l3),
+                 1/(l1+l2), 1/(l1+l2) + 1/(l2+l3), 1/(l2+l3),
+                 1/(l1+l3), 1/(l2+l3), 1/(l1+l3) + 1/(l2+l3)),byrow=T,nrow=3)
+    n/(2.0*(l1+l2+l3))*A
+}
+
+
+loglike <- function(masked_data)
+{
+    m <- masked_data$num_nodes
+    function(theta)
+    {
+        sum(log(apply(
+            masked_data$c,1,function(r) { sum(theta[r]) }))) -
+            sum(masked_data$s) * sum(theta)
+    }
+}
+
+rmasked_data <- function(n,theta,w)
+{
+    m <- length(theta)
+    t <- matrix(stats::rexp(n*m,rate=theta),ncol=m,byrow=T)
+    k <- integer(length=n)
+    s <- numeric(length=n)
+    for (i in 1:n)
+    {
+        k[i] <- which.min(t[i,])
+        s[i] <- t[i,k[i]]
+    }
+
+    c <- matrix(nrow = n, ncol = m, F)
+
+    if (is.null(w)) {
+        w <- rep(m, n)
+    }
+    w <- c(w, rep(w[length(w)], n - length(w)))
+
+    for (i in 1:n)
+    {
+        c[i, k[i]] <- T
+        c[i, sample((1:m)[-k[i]], size = w[i] - 1, replace = F)] <- T
+    }
+    data <- data.frame(s=s,k=k,t=t,w=w)
+    data$c <- c
+    data
+}
+
+
+
+
+
+n=1000
+theta.star=c(1,3,5)
+
+
+
+data=rmasked_data(n,theta.star,2)
+ll=loglike(data)
+theta.mle=optim(c(1,1,1),function(theta) { -ll(theta) })$par
+theta.mle
+
+H.mle=hessian(func=function(theta) { -ll(theta) },x=theta.mle)
+#I.mle=info(theta.mle,n)
+
+cov.mle=inv(H.mle)
+cov.mle
+
+cov.star=inv(info(theta.star,n))
+cov.star
+
+#delta=theta.mle - theta.star
+
+mse.mle = sum(diag(cov.mle))
+mse.a = mse(theta.mle,n)
+mse.star = mse(theta.star,n)
+
+mse.mle
+mse.star
+mse.a
+
+
+
+#### sufficient statistics
+
+d = rmasked_data(10,theta.star,2)
+loglike_ss = function(masked_data)
+{
+    n = nrow(masked_data)
+    m = ncol(masked_data$c)
+    freq = d %>% group_by(c) %>% count
+
+    #t(apply(freq$c,1,function(r) { (1:m)[r]}))
+
+}
+
+loglike_ss(data)

@@ -18,14 +18,6 @@ phi <- structure(list(
     }
 ))
 
-
-
-
-is_series_data(data)
-{
-    structures["series"] ==
-}
-
 #' system_data maps matrices of component lifetime
 #' samples to data for a system with the specified
 #' structure function phi.

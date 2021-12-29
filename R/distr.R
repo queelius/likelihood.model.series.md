@@ -54,7 +54,7 @@ domain_dim <- function(f) {
     ifelse(is_parametric(f),length(formals(f))-1, length(formals(f)))
 }
 
-new_univariate_pdf <- function(pdf, r, c) {
+new_parametric_pdf <- function(pdf, r, c) {
   stopifnot(is.function(f))
 
   structure(
@@ -69,7 +69,7 @@ new_univariate_pdf <- function(pdf, r, c) {
   )
 }
 
-new_univariate_cdf <- function(cdf, r, c) {
+new_parametric_cdf <- function(cdf, r, c) {
   stopifnot(is.function(f))
 
   structure(
