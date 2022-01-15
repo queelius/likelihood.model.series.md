@@ -1,50 +1,74 @@
-
-#' Generate masked data from series system data
+#' Write masked data data frame object to a CSV file, optionally writing
+#' an associated metadata json file where the metadata is the contents of
+#' the attributes of the data frame object.
 #'
-#' @param data a data frame with column 's' system failure time,
-#'                               column 'k' failed component, and
-#'                               column 't' vector of component lifetimes.
-#' @param w a vector of sizes for candidate sets
-#' @param alpha a vector of probabilities
+#' @param md a masked data frame
+#' @param filename filename for csv
+#' @param write.meta write a separate
 #'
-#' @return masked data
 #' @export
 #'
 #' @examples
-#' n = 100
-#' t = rseries.exp(n,c(1,2,3))
-#' w = rep(2,n)
-#' alpha = rep(.9,n)
-#' data = rmasked.data(t,w,alpha)
-rmasked.data = function(data,w=NULL,alpha=NULL)
+#' n <- 100
+#' w <- rep(2,n)
+#' md <- rmd.exp.series.m0(n,theta,w)
+#' md.write(md,"data.csv")
+#' md.test <- md.read.from.json("data.json")
+#' assert(md == md.test)
+md.write <- function(md, filename, write.meta=T)
 {
-  m = ncol(data)-2
-  t = data[,2:m]
-  n = nrow(t)
-  K = data$K
-  S = data$S
-  C = matrix(nrow=n,ncol=m,F)
+    library(jsonlite)
+    library(tidyverse)
 
-  if (is.null(alpha))
-    alpha = rep(1,n)
-
-  if (is.null(w))
-    w = rep(m,n)
-
-  test = stats::runif(n) < alpha
-
-  for (i in 1:n)
-  {
-    if (test[i])
+    write_csv(md, filename)
+    if (write.meta)
     {
-      C[i,K[i]] = T
-      C[i,sample((1:m)[-K[i]],size=w[i]-1,replace=F)] = T
-    }
-    else
-      C[i,sample((1:m)[-K[i]],size=w[i],replace=F)] = T
-  }
+        metadata <- attributes(md)
+        metadata[["dataset"]] <- c(basename(filename))
+        metadata[["row.names"]] <- NULL
+        metadata[["names"]] <- NULL
+        metadata[["class"]] <- NULL
 
-  df = data.frame(S,alpha,C)
-  names(df) = c("S","alpha",paste("C",sep="_",1:m))
-  df
+        meta.out <- paste(tools::file_path_sans_ext(filename),"json",sep=".")
+        write_json(metadata, meta.out, pretty=T)
+    }
+}
+
+md.read.from.json <- function(filename)
+{
+    library(tidyverse)
+    library(jsonlite)
+    meta <- read_json(filename)
+    dataset <- meta[["dataset"]]
+
+    mds <- list()
+    for (data in dataset)
+    {
+        data.path <- file.path(dirname(filename),data)
+        md <- read_csv(data.path,col_types=list(k="i",w="i"))
+        meta.tmp <- meta
+        meta.tmp[["dataset"]] <- c(data)
+        attributes(md) <- c(attributes(md),meta.tmp)
+        mds[[data]] <- md
+    }
+    mds
+}
+
+md.candidates.matrix <- function(md)
+{
+    c <- select(md, starts_with("c."))
+    if (ncol(c) == 0) NA
+    else              as.matrix(c)
+}
+
+md.node.times.matrix <- function(md)
+{
+    t <- select(md, starts_with("t."))
+    if (ncol(t) == 0) NA
+    else              as.matrix(t)
+}
+
+md.nnodes <- function(md)
+{
+    ncol(md.candidates.matrix(md))
 }

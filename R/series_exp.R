@@ -15,14 +15,39 @@
 #' masked.data = rseries.exp(n=10,theta=c(1,2,3))
 #' # get system failure times only
 #' lifetimes = masked.data$s
-rexp_system_data = function(n,theta,phi=which.min)
+# preconditions: n >= 0,
+#                theta[j] > 0 for all j
+#                w[j] > 0 for all j
+rmd.exp.series.m0 <- function(n,theta,w)
 {
-    stopifnot(is.numeric(theta))
-    data <- system_data(matrix(
-        stats::rexp(n*length(theta),rate=theta),ncol=m,byrow=T),
-        phi)
-    attr(data,"node_lifetime") <- c("exponential")
-    data
+    m <- length(theta)
+
+    md <- tibble(s = apply(t,1,min),
+                 k = apply(t,1,which.min),
+                 w = w)
+
+    t <- as_tibble(matrix(stats::rexp(n*m,rate=theta), ncol=m, byrow=T))
+    names(t) <- paste("t",1:m,sep=".")
+
+    c <- as_tibble(t(apply(md,1,function(r)
+    {
+        x = rep(F,m)
+        x[c(r["k"],sample((1:m)[-r["k"]], size=r["w"]-1, replace=F))] <- T
+        x
+    })))
+    names(c) <- paste("c",1:m,sep=".")
+
+    nodes <- list()
+    for (j in 1:m)
+        nodes[[j]] <- list("family" = "exponential",
+                           "index"  = theta[j])
+
+    attr(md,"sim") <- list("theta" = theta,
+                           "nodes" = nodes,
+                           "data"  = list("model" = "m0"))
+    attr(md,"masked") <- c("k",paste("t",1:m,sep="."))
+
+    md %>% bind_cols(t) %>% bind_cols(c)
 }
 
 #' @brief deseries.node.exp probability mass
