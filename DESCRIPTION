@@ -4,7 +4,7 @@ Version: 0.0.0.9000
 Authors@R: 
     person("Alexander", "Towell", , "lex@metafunctor.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6443-9897"))
-Description: What the package does (one paragraph).
+Description: Set of functions for working with masked data, estimating series systems from masked data, and making predictions from masked data.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -13,8 +13,11 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
-    stats,
+    dplyr,
     extraDistr,
     jsonlite,
-    tidyverse
-
+    matlib,
+    numDeriv,
+    readr,
+    stats,
+    tibble

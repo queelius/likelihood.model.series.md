@@ -1,53 +1,53 @@
-#' @brief rexp.series.m0 generates the joint distribution
-#'        of a series system with exponentially distributed
-#'        components according to model m0
+#' Generates masked data for a series system with exponentially distributed
+#' nodes and candidate sets according to candidate_model.
 #'
-#' preconditions: n >= 0,
-#'                theta[j] > 0 for all j
-#'                w[j] > 0 for all j
+#' @param n Integer. The sample size (each row is an observation).
+#' @param theta Numeric vector. The j-th component has a failure rate theta_j.
+#' @param w Integer vector. For the ith observation, generate w_j candidates.
+#' @param candidate_model the candidate model, defaults to md_candidate_m0.
 #'
-#' @param n sample size (each row is an observation)
-#' @param theta the j-th component has a failure rate theta[j]
-#'
-#' @return data frame of n observations, (s,k,t1,...,tm,c1,...,cm)
-#'         where k's and t's and c's are a covariate or predictor
-#'         of theta.
+#' @return masked data, a data frame of n observations, (s,k,t1,...,tm,c1,...,cm)
+#'         where k, t, and c are covariates (or predictors) of s,k,t1,...,tm.
+#' @importFrom dplyr %>%
 #' @export
 #'
 #' @examples
-#' # generate 10 samples
-#' masked.data = rseries.exp(n=10,theta=c(1,2,3))
-#' # get system failure times only
-#' lifetimes = masked.data$s
-md_exp_series_m0 <- function(n,rate,w)
+#' md <- md_exp_series(
+#'     n=10,
+#'     theta=c(1,2,3),
+#'     w=rep(2,10),
+#'     candidate_model=md_candidate_m1)
+md_exp_series <- function(n,theta,w,candidate_model=md_candidate_m0)
 {
-    m <- length(rate)
+    m <- length(theta)
 
-    t <- as_tibble(matrix(stats::rexp(n*m,rate=rate), ncol=m, byrow=T))
+    t <- tibble::as_tibble(matrix(stats::rexp(n*m,rate=theta), ncol=m, byrow=T))
     names(t) <- paste("t",1:m,sep=".")
 
-    md <- tibble(s = apply(t,1,min),
+    md <- tibble::tibble(s = apply(t,1,min),
                  k = apply(t,1,which.min),
                  w = w)
-    md <- md_rcandidates_m0(md)
-    md <- bind_cols(md,t)
+    md <- candidate_model(md)
+    md <- dplyr::bind_cols(md,t)
 
     # set up attribute properties
     nodes <- list()
     for (j in 1:m)
-        nodes[[j]] <- list("family" = "exponential",
-                           "index"  = rate[j])
-
-    attr(md,"sim") <- list("theta" = rate,
-                           "nodes" = nodes,
-                           "model" = "m0")
+        nodes[[j]] <- list(
+            "family" = "exponential",
+            "index" = theta[j])
+    attr(md,"sim") <- list(
+        "family" = "exponential_series",
+        "index" = theta,
+        "nodes" = nodes,
+        "candidate_model" = toString(match.call()[5]))
     attr(md,"masked") <- c("k",paste("t",1:m,sep="."))
 
     md
 }
 
-#' @brief log-likelihood function of masked data for a series system
-#'        with exponentially distributed lifetimes.
+#' log-likelihood function of masked data for a series system
+#' with exponentially distributed lifetimes.
 #'
 #' @param md masked data for candidate model m0
 #'
@@ -67,10 +67,18 @@ md_loglike_exp_series_m0 <- function(md)
     }
 }
 
+#' score function of masked data for a series system
+#' with exponentially distributed lifetimes.
+#'
+#' @param md masked data for candidate model m0
+#'
+#' @return score function of type R^m -> R
+#' @importFrom dplyr %>%
+#' @export
 md_score_exp_series_m0 <- function(md)
 {
     md$C <- md_candidates_as_matrix(md)
-    freq = md %>% group_by(C) %>% count
+    freq = md %>% dplyr::group_by(C) %>% dplyr::count
     sum.t = -sum(md$s)
     p = ncol(md$C)
 
@@ -79,7 +87,7 @@ md_score_exp_series_m0 <- function(md)
         v <- matrix(rep(sum.t,p),nrow=p)
         for (j in 1:p)
         {
-            f = freq %>% filter(C[[j]] == T)
+            f = freq %>% dplyr::filter(C[[j]] == T)
             for (i in 1:nrow(f))
             {
                 S <- sum(rate[f$C[i,]])
@@ -90,10 +98,20 @@ md_score_exp_series_m0 <- function(md)
     }
 }
 
+#' Expected information matrix for rate parameter
+#' with respect to masked data of a series system
+#' with exponentially distributed lifetimes and
+#' candidate model m0.
+#'
+#' @param md masked data for candidate model m0
+#'
+#' @return expected information function of type R^m -> R^(m x m)
+#' @importFrom dplyr %>%
+#' @export
 md_info_exp_series_m0 <- function(md)
 {
     md$C <- md_candidates_as_matrix(md)
-    freq <- md %>% group_by(C) %>% count
+    freq <- md %>% dplyr::group_by(C) %>% dplyr::count
     p = ncol(md$C)
 
     function(rate)
@@ -104,7 +122,7 @@ md_info_exp_series_m0 <- function(md)
             for (k in 1:p)
             {
                 info.mat[j,k] <- 0.0
-                f = freq %>% filter(C[[j]] == T, C[[k]] == T)
+                f = freq %>% dplyr::filter(md$C[[j]] == T, md$C[[k]] == T)
                 for (i in 1:nrow(f))
                 {
                     S <- sum(rate[f$C[i,]])
@@ -116,17 +134,6 @@ md_info_exp_series_m0 <- function(md)
     }
 }
 
-md_fisher_scoring <- function(theta0,info,score,eps=1e-2)
-{
-    repeat
-    {
-        theta1 <- theta0 + inv(info(theta0)) %*% score(theta0)
-        if (max(abs(theta1-theta0)) < eps)
-            return(theta1)
-        theta0 <- theta1
-    }
-}
-
 #' maximum likelihood estimator of the
 #' parameters of a series system with
 #' components that have exponentially
@@ -134,24 +141,26 @@ md_fisher_scoring <- function(theta0,info,score,eps=1e-2)
 #' sample of masked data.
 #'
 #' @param md masked data
-#' @param rate0 initial guess for MLE
+#' @param theta0 initial guess for MLE
+#' @param eps stopping condition
 #'
-#' @return mle of theta given masked data
+#' @return mle of theta given the observed masked data md
 #' @export
-md_mle_exp_series_m0 = function(md,rate0=NULL)
+md_mle_exp_series_m0 = function(md,theta0=NULL,eps=1e-5)
 {
-    if (is.null(rate0))
-        rate0 <- rep(1.,md_num_nodes(md))
+    if (is.null(theta0))
+        theta0 <- rep(1.,md_num_nodes(md))
 
-    md_fisher_scoring(rate0,
-                      md_info_series_m0(md),
-                      md_score_series_m0(md))
+    md_fisher_scoring(theta0,
+                      md_info_exp_series_m0(md),
+                      md_score_exp_series_m0(md),
+                      eps)
 }
 
-#' information matrix of the rate parameter
+#' Observed information matrix of the rate parameter
 #' of the series system with exponentially
 #' distributed component lifetimes given
-#' masked data m0.
+#' masked data with candidate sets according to model m0.
 #'
 #' @param md masked data
 #'
@@ -162,7 +171,7 @@ md_observed_info_exp_series_m0 = function(md)
     l = md_loglike_exp_series_m0(md)
     function(rate)
     {
-        hessian(func=l,x=rate)
+        numDeriv::hessian(func=l,x=rate)
     }
 }
 

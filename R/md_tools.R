@@ -9,7 +9,7 @@
 #' @export
 md_write_csv <- function(md, filename, write.metadata=T)
 {
-    write_csv(md, filename)
+    readr::write_csv(md, filename)
     if (write.metadata)
     {
         metadata <- attributes(md)
@@ -19,7 +19,7 @@ md_write_csv <- function(md, filename, write.metadata=T)
         metadata[["class"]] <- NULL
 
         metadata.out <- paste(tools::file_path_sans_ext(filename),"json",sep=".")
-        write_json(metadata, metadata.out, pretty=T)
+        jsonlite::write_json(metadata, metadata.out, pretty=T)
     }
 }
 
@@ -39,14 +39,14 @@ md_write_csv <- function(md, filename, write.metadata=T)
 #' @export
 md_read_json <- function(filename)
 {
-    metadata <- read_json(filename)
+    metadata <- jsonlite::read_json(filename)
     dataset <- metadata[["dataset"]]
 
     mds <- list()
     for (data in dataset)
     {
         data.path <- file.path(dirname(filename),data)
-        md <- read_csv(data.path,col_types=list(k="i",w="i"))
+        md <- readr::read_csv(data.path,col_types=list(k="i",w="i"))
         tmp <- metadata
         tmp[["dataset"]] <- c(data)
         attributes(md) <- c(attributes(md),tmp)
@@ -64,7 +64,7 @@ md_read_json <- function(filename)
 #' @export
 md_candidates_as_matrix <- function(md)
 {
-    c <- select(md, starts_with("c."))
+    c <- dplyr::select(md, dplyr::starts_with("c."))
     if (ncol(c) == 0)
         NA
     else
@@ -80,7 +80,7 @@ md_candidates_as_matrix <- function(md)
 #' @export
 md_node_times_as_matrix <- function(md)
 {
-    t <- select(md, starts_with("t."))
+    t <- dplyr::select(md, dplyr::starts_with("t."))
     if (ncol(t) == 0)
         NA
     else
@@ -96,5 +96,25 @@ md_node_times_as_matrix <- function(md)
 #' @export
 md_num_nodes <- function(md)
 {
-    ncol(md_candidates_matrix(md))
+    ncol(md_candidates_as_matrix(md))
+}
+
+#' Fisher scoring algorithm.
+#'
+#' @param theta0 initial guess of theta with p components
+#' @param info information matrix function of type R^p -> R^(p x p)
+#' @param score score function of type R^p -> R^p
+#' @param eps stopping condition
+#'
+#' @return MLE estimate of theta
+#' @export
+md_fisher_scoring <- function(theta0,info,score,eps=1e-5)
+{
+    repeat
+    {
+        theta1 <- theta0 + matlib::inv(info(theta0)) %*% score(theta0)
+        if (max(abs(theta1-theta0)) < eps)
+            return(theta1)
+        theta0 <- theta1
+    }
 }

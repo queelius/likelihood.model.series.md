@@ -1,30 +1,42 @@
 #' joint distribution of S,K,T1,...,Tm where
 #'
-#'     Tj ~ lomax(theta_j*)
-#'     S = min{T1,...,Tm}
-#'     K = argmin_k {Tk : k=1,...,m}
+#'     tj ~ lomax(theta_j*)
+#'     s = min{T1,...,Tm}
+#'     k = argmin_k {Tk : k=1,...,m}
 #'
-#' @param n Numeric. Number of observations.
-#' @param lambda Numberic vector. The j-th component has lambda=lambda_j
-#' @param kappa Numberic vector. The j-th component has kappa=kappa_j
+#' @param n Integer. Number of observations.
+#' @param lambda Numeric vector.
+#' @param kappa Numeric vector. The jth node is parameterized by theta_j := (lambda_j,kappa_j).
+#' @param w Integer vector. For the ith observation, generate w_j candidates.
+#' @param candidate_model the candidate model, defaults to md_candidate_m0
 #'
-#' @return matrix of n x length(lambda) component lifetimes
+#' @return masked data
 #' @export
 #'
 #' @examples
-#' # generate 10 samples (10 x 3 matrix of component lifetimes)
-#' t = rseries.lomax(n=10,lambda=c(1,2,3),kappa=c(4,5,6))
-md_lomax_series_m0 = function(n,lambda,kappa,w)
+#' md <- md_lomax_series(
+#'     n=10,
+#'     lambda=c(1,2,3),
+#'     kappa=c(4,5,6),
+#'     w=rep(2,10))
+md_lomax_series = function(n,lambda,kappa,w,candidate_model=md_candidate_m0)
 {
     m = length(lambda)
-    t <- as_tibble(matrix(extraDistr::rlomax(n*m,lambda=lambda,kappa=kappa), ncol=m, byrow=T))
+    t <- tibble::as_tibble(matrix(
+        extraDistr::rlomax(
+            n*m,
+            lambda=lambda,
+            kappa=kappa),
+        ncol=m,
+        byrow=T))
     names(t) <- paste("t",1:m,sep=".")
 
-    md <- tibble(s = apply(t,1,min),
-                 k = apply(t,1,which.min),
-                 w = w)
-    md <- md_candidates_m0(md)
-    md <- bind_cols(md,t)
+    md <- tibble::tibble(
+        s = apply(t,1,min),
+        k = apply(t,1,which.min),
+        w = w)
+    md <- candidate_model(md)
+    md <- dplyr::bind_cols(md,t)
 
     # set up attribute properties
     nodes <- list()
@@ -32,9 +44,11 @@ md_lomax_series_m0 = function(n,lambda,kappa,w)
         nodes[[j]] <- list("family" = "lomax",
                            "index"  = c(lambda[j],kappa[j]))
 
-    attr(md,"sim") <- list("theta" = list(lambda=lambda,kappa=kapp),
-                           "nodes" = nodes,
-                           "model" = "m0")
+    attr(md,"sim") <- list(
+        "family" = "lomax_series",
+        "index" = list(lambda=lambda,kappa=kappa),
+        "nodes" = nodes,
+        "candidate_model" = toString(match.call()[6]))
     attr(md,"masked") <- c("k",paste("t",1:m,sep="."))
 
     md
