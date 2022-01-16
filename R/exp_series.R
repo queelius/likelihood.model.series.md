@@ -135,16 +135,16 @@ md_fisher_scoring <- function(theta0,info,score,eps=1e-2)
 #' sample of masked data.
 #'
 #' @param md masked data
-#' @param theta0 initial guess for MLE
+#' @param rate0 initial guess for MLE
 #'
 #' @return mle of theta given masked data
 #' @export
-md_mle_exp_series_m0 = function(md,theta0=NULL)
+md_mle_exp_series_m0 = function(md,rate0=NULL)
 {
-    if (is.null(theta0))
-        theta0 <- rep(1.,md_num_nodes(md))
+    if (is.null(rate0))
+        rate0 <- rep(1.,md_num_nodes(md))
 
-    md_fisher_scoring(theta0,
+    md_fisher_scoring(rate0,
                       md_info_series_m0(md),
                       md_score_series_m0(md))
 }
