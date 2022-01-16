@@ -126,8 +126,6 @@ md_fisher_scoring <- function(theta0,info,score,eps=1e-2)
     }
 }
 
-
-
 #' maximum likelihood estimator of the
 #' parameters of a series system with
 #' components that have exponentially
