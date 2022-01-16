@@ -7,19 +7,8 @@
 #' @param write.metadata write a separate
 #'
 #' @export
-#'
-#' @examples
-#' n <- 100
-#' w <- rep(2,n)
-#' md <- rmd.exp.series.m0(n,theta,w)
-#' md.write(md,"data.csv")
-#' md.test <- md.read.from.json("data.json")
-#' assert(md == md.test)
 md_write_csv <- function(md, filename, write.metadata=T)
 {
-    library(jsonlite)
-    library(tidyverse)
-
     write_csv(md, filename)
     if (write.metadata)
     {
@@ -34,40 +23,77 @@ md_write_csv <- function(md, filename, write.metadata=T)
     }
 }
 
+#' Read masked data from a JSON file.
+#' If the JSON file has a 'dataset' field,
+#' then each member of this field is assumed
+#' to refer to a CSV file to read a masked
+#' data sample from.
+#'
+#' Any metadata in the JSON
+#' file is inserted into the attributes
+#' of the masked data samples.
+#'
+#' @param filename filename for csv
+#' @return list of masked data objects
+#'
+#' @export
 md_read_json <- function(filename)
 {
-    library(tidyverse)
-    library(jsonlite)
-    meta <- read_json(filename)
-    dataset <- meta[["dataset"]]
+    metadata <- read_json(filename)
+    dataset <- metadata[["dataset"]]
 
     mds <- list()
     for (data in dataset)
     {
         data.path <- file.path(dirname(filename),data)
         md <- read_csv(data.path,col_types=list(k="i",w="i"))
-        meta.tmp <- meta
-        meta.tmp[["dataset"]] <- c(data)
-        attributes(md) <- c(attributes(md),meta.tmp)
+        tmp <- metadata
+        tmp[["dataset"]] <- c(data)
+        attributes(md) <- c(attributes(md),tmp)
         mds[[data]] <- md
     }
     mds
 }
 
+#' Convert the columns corresponding to the
+#' candidate matrix to a matrix object.
+#'
+#' @param md masked data
+#' @return Candidate sets represented as a Boolean matrix
+#'
+#' @export
 md_candidates_as_matrix <- function(md)
 {
     c <- select(md, starts_with("c."))
-    if (ncol(c) == 0) NA
-    else              as.matrix(c)
+    if (ncol(c) == 0)
+        NA
+    else
+        as.matrix(c)
 }
 
+#' Convert the columns corresponding to the
+#' node times matrix to a matrix object.
+#'
+#' @param md masked data
+#' @return Node times represented as a real matrix
+#'
+#' @export
 md_node_times_as_matrix <- function(md)
 {
     t <- select(md, starts_with("t."))
-    if (ncol(t) == 0) NA
-    else              as.matrix(t)
+    if (ncol(t) == 0)
+        NA
+    else
+        as.matrix(t)
 }
 
+#' Retrieve the number of nodes implicitly
+#' defined by the masked data input 'md'.
+#'
+#' @param md masked data
+#' @return number of nodes in the series system
+#'
+#' @export
 md_num_nodes <- function(md)
 {
     ncol(md_candidates_matrix(md))
