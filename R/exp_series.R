@@ -2,6 +2,10 @@
 #'        of a series system with exponentially distributed
 #'        components according to model m0
 #'
+#' preconditions: n >= 0,
+#'                theta[j] > 0 for all j
+#'                w[j] > 0 for all j
+#'
 #' @param n sample size (each row is an observation)
 #' @param theta the j-th component has a failure rate theta[j]
 #'
@@ -15,9 +19,6 @@
 #' masked.data = rseries.exp(n=10,theta=c(1,2,3))
 #' # get system failure times only
 #' lifetimes = masked.data$s
-# preconditions: n >= 0,
-#                theta[j] > 0 for all j
-#                w[j] > 0 for all j
 md_exp_series_m0 <- function(n,rate,w)
 {
     m <- length(rate)
