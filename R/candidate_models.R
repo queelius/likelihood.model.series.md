@@ -7,7 +7,7 @@
 #'
 #' @examples
 #' data = rcandidates.m0(md)
-rcandidates.m0 = function(md)
+md_candidates_m0 = function(md)
 {
     c <- as_tibble(t(apply(md,1,function(r)
     {
@@ -30,10 +30,9 @@ rcandidates.m0 = function(md)
 #'
 #' @examples
 #' md <- rcandidates.m1(md)
-rcandidates.m1 = function(md)
+md_candidates_m1 = function(md)
 {
     md$test <- stats::runif(n) < md$alpha
-
     c <- as_tibble(t(apply(md,1,function(r)
     {
         x = rep(F,m)

@@ -15,7 +15,7 @@
 #' md.write(md,"data.csv")
 #' md.test <- md.read.from.json("data.json")
 #' assert(md == md.test)
-md.write <- function(md, filename, write.metadata=T)
+md_write_csv <- function(md, filename, write.metadata=T)
 {
     library(jsonlite)
     library(tidyverse)
@@ -34,7 +34,7 @@ md.write <- function(md, filename, write.metadata=T)
     }
 }
 
-md.read.from.json <- function(filename)
+md_read_json <- function(filename)
 {
     library(tidyverse)
     library(jsonlite)
@@ -54,21 +54,21 @@ md.read.from.json <- function(filename)
     mds
 }
 
-md.candidates.matrix <- function(md)
+md_candidates_as_matrix <- function(md)
 {
     c <- select(md, starts_with("c."))
     if (ncol(c) == 0) NA
     else              as.matrix(c)
 }
 
-md.node.times.matrix <- function(md)
+md_node_times_as_matrix <- function(md)
 {
     t <- select(md, starts_with("t."))
     if (ncol(t) == 0) NA
     else              as.matrix(t)
 }
 
-md.nnodes <- function(md)
+md_num_nodes <- function(md)
 {
-    ncol(md.candidates.matrix(md))
+    ncol(md_candidates_matrix(md))
 }
