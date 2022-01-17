@@ -4,7 +4,14 @@
 \alias{md_lomax_series}
 \title{joint distribution of S,K,T1,...,Tm where}
 \usage{
-md_lomax_series(n, lambda, kappa, w, candidate_model = md_candidate_m0)
+md_lomax_series(
+  n,
+  lambda,
+  kappa,
+  w,
+  candidate_model = md_candidate_m0,
+  metadata = T
+)
 }
 \arguments{
 \item{n}{Integer. Number of observations.}
@@ -16,6 +23,9 @@ md_lomax_series(n, lambda, kappa, w, candidate_model = md_candidate_m0)
 \item{w}{Integer vector. For the ith observation, generate w_j candidates.}
 
 \item{candidate_model}{the candidate model, defaults to md_candidate_m0}
+
+\item{metadata}{Boolean. If TRUE writes meta-data for series system to
+attributes of masked data.}
 }
 \value{
 masked data
@@ -27,9 +37,5 @@ k = argmin_k \{Tk : k=1,...,m\}
 }
 }
 \examples{
-md <- md_lomax_series(
-    n=10,
-    lambda=c(1,2,3),
-    kappa=c(4,5,6),
-    w=rep(2,10))
+md_lomax_series(n=10,lambda=c(1,2,3),kappa=c(4,5,6),w=rep(2,10))
 }

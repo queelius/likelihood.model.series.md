@@ -68,7 +68,10 @@ md_candidates_as_matrix <- function(md)
     if (ncol(c) == 0)
         NA
     else
+    {
+        names(c) <- NULL
         as.matrix(c)
+    }
 }
 
 #' Convert the columns corresponding to the
@@ -84,7 +87,10 @@ md_node_times_as_matrix <- function(md)
     if (ncol(t) == 0)
         NA
     else
+    {
+        names(t) <- NULL
         as.matrix(t)
+    }
 }
 
 #' Retrieve the number of nodes implicitly
@@ -96,7 +102,10 @@ md_node_times_as_matrix <- function(md)
 #' @export
 md_num_nodes <- function(md)
 {
-    ncol(md_candidates_as_matrix(md))
+    if (!is.null(attr(md,"m")))
+        as.integer(attr(md,"m"))
+    else
+        ncol(md_candidates_as_matrix(md))
 }
 
 #' Fisher scoring algorithm.
@@ -118,3 +127,32 @@ md_fisher_scoring <- function(theta0,info,score,eps=1e-5)
         theta0 <- theta1
     }
 }
+
+#' Test whether \code{x} is masked data
+#'
+#' An object is considered to be masked data if
+#' it is a type of data frame (e.g., tibble)
+#' and it has at least two columns for candidate
+#' sets named \code{c.1} and \code{c.2} and a column for
+#' system failure time named \code{s}.
+#'
+#' @param x object to test
+#' @export
+md_is_masked_data <- function(x)
+{
+    is.data.frame(x) && all(c("c.1","c.2","s") %in% colnames(x))
+}
+
+#' Retrieve the function arguments.
+#' @param ... bleh
+md_func_args <- function(...)
+{
+    call <- evalq(match.call(expand.dots = F), parent.frame(1))
+    formals <- evalq(formals(), parent.frame(1))
+
+    for(i in setdiff(names(formals), names(call)))
+        call[i] <- list( formals[[i]] )
+
+    match.call(sys.function(sys.parent()), call)
+}
+

@@ -21,3 +21,6 @@ Imports:
     readr,
     stats,
     tibble
+Depends: 
+    R (>= 2.10)
+LazyData: true

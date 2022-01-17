@@ -2,19 +2,25 @@
 % Please edit documentation in R/candidate_models.R
 \name{md_candidate_m0}
 \alias{md_candidate_m0}
-\title{Decorates masked data object md with candidate sets according to
-candidate model m0.}
+\title{Candidate model m0}
 \usage{
-md_candidate_m0(md)
+md_candidate_m0(md, m)
 }
 \arguments{
 \item{md}{masked data, data frame object with column 'k' for failed component
 and column 'w' for corresponding candidate set size.}
+
+\item{m}{number of nodes in the series system}
 }
 \value{
 masked data with candidate sets that model m0
 }
 \description{
-Decorates masked data object md with candidate sets according to
-candidate model m0.
+Decorates masked data object \code{md} with candidate sets according to candidate
+model m0.
+}
+\details{
+Specifically, the candidate sets are generated according to the alpha-masked
+model, where C_i contains k_i and w_i-1 nodes randomly selected without
+replacement from {1,...,m} - {k_i}.
 }
