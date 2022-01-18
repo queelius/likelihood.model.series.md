@@ -1,17 +1,20 @@
-#' joint distribution of S,K,T1,...,Tm where
+#' Generates masked data for a series system with lomax distributed
+#' nodes and candidate sets according to candidate_model.
 #'
-#'     tj ~ lomax(theta_j*)
-#'     s = min{T1,...,Tm}
-#'     k = argmin_k {Tk : k=1,...,m}
-#'
-#' @param n Integer. Number of observations.
+#' @param n Integer. The sample size (each row is an observation).
 #' @param lambda Numeric vector.
 #' @param kappa Numeric vector. The jth node is parameterized by theta_j := (lambda_j,kappa_j).
 #' @param w Integer vector. For the ith observation, generate w_j candidates.
-#' @param candidate_model the candidate model, defaults to md_candidate_m0
+#' @param candidate_model Function that accepts masked data as an argument.
+#'                        The candidate model, defaults to md_candidate_m0.
+#'                        If set to NULL, then do not generate a candidate set.
+#'                        md_mle_exp_series will treat such masked data as
+#'                        a sample that includes every node as candidates.
 #' @param metadata Boolean. If TRUE writes meta-data for series system to
-#'                 attributes of masked data.
-#' @return masked data
+#'                 attributes of masked data (tbl_md).
+#' @return masked data, a data frame of n observations, (s,k,t1,...,tm,c1,...,cm)
+#'         where k, t, and c are covariates (or predictors) of s,k,t1,...,tm.
+#' @importFrom dplyr %>%
 #' @export
 #'
 #' @examples
@@ -19,22 +22,8 @@
 md_lomax_series = function(n,lambda,kappa,w,candidate_model=md_candidate_m0,metadata=T)
 {
     m = length(lambda)
-    t <- tibble::as_tibble(matrix(
-        extraDistr::rlomax(
-            n*m,
-            lambda=lambda,
-            kappa=kappa),
-        ncol=m,
-        byrow=T))
-    names(t) <- paste("t",1:m,sep=".")
-
-    md <- tibble::tibble(
-        s = apply(t,1,min),
-        k = apply(t,1,which.min),
-        w = w)
-    md <- dplyr::bind_cols(md,t)
-    if (!is.null(candidate_model))
-        md <- candidate_model(md,m)
+    t <- matrix(extraDistr::rlomax(n*m,lambda=lambda,kappa=kappa),ncol=m,byrow=T)
+    md <- md_series_data(t,w,candidate_model)
 
     if (metadata)
     {
@@ -54,4 +43,54 @@ md_lomax_series = function(n,lambda,kappa,w,candidate_model=md_candidate_m0,meta
         attr(md,"n") <- n
     }
     md
+}
+
+#' Kernel log-likelihood for masked data m0 for lomax series system.
+#'
+#' The log of the kernel of the likelihood function for masked data
+#' for a series system with lomax distributed lifetimes
+#' and candidate sets that model m0.
+#'
+#' This is the unoptimized version, which serves as a ground-truth
+#' for testing a more efficient implementation.
+#'
+#' @param md masked data for candidate model m0
+#' @export
+md_kloglike_lomax_series_m0_ref <- function(md)
+{
+    C <- md_candidates_as_matrix(md)
+    m <- md_num_nodes(md)
+    function(theta)
+    {
+        lambda = theta[1:m]
+        kappa <- theta[(m+1):length(theta)]
+        s <- 0.0
+        for (i in 1:nrow(md))
+        {
+            for (k in C[i,])
+                s <- s + log(lambda[k] * kappa[k] / (1 + lambda[k]))
+            for (j in 1:m)
+                s <- s - kappa[j] * log(1+lambda[j]*md$s[i])
+        }
+        s
+    }
+}
+
+
+#' Observed information matrix of the rate parameter
+#' of the series system with exponentially
+#' distributed component lifetimes given
+#' masked data with candidate sets according to model m0.
+#'
+#' @param md masked data
+#'
+#' @return observed info
+#' @export
+md_info_lomax_series_m0 = function(md)
+{
+    l = md_loglike_lomax_series_m0(md)
+    function(theta)
+    {
+        -numDeriv::hessian(func=l,x=theta)
+    }
 }

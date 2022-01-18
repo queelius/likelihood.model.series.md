@@ -50,6 +50,8 @@ md_read_json <- function(filename)
         tmp <- metadata
         tmp[["dataset"]] <- c(data)
         attributes(md) <- c(attributes(md),tmp)
+        class(md) <- c("tbl_md",class(md))
+
         mds[[data]] <- md
     }
     mds
@@ -108,26 +110,6 @@ md_num_nodes <- function(md)
         ncol(md_candidates_as_matrix(md))
 }
 
-#' Fisher scoring algorithm.
-#'
-#' @param theta0 initial guess of theta with p components
-#' @param info information matrix function of type R^p -> R^(p x p)
-#' @param score score function of type R^p -> R^p
-#' @param eps stopping condition
-#'
-#' @return MLE estimate of theta
-#' @export
-md_fisher_scoring <- function(theta0,info,score,eps=1e-5)
-{
-    repeat
-    {
-        theta1 <- theta0 + matlib::inv(info(theta0)) %*% score(theta0)
-        if (max(abs(theta1-theta0)) < eps)
-            return(theta1)
-        theta0 <- theta1
-    }
-}
-
 #' Test whether \code{x} is masked data
 #'
 #' An object is considered to be masked data if
@@ -144,7 +126,7 @@ md_is_masked_data <- function(x)
 }
 
 #' Retrieve the function arguments.
-#' @param ... bleh
+#' @param ... ?
 md_func_args <- function(...)
 {
     call <- evalq(match.call(expand.dots = F), parent.frame(1))
@@ -156,3 +138,75 @@ md_func_args <- function(...)
     match.call(sys.function(sys.parent()), call)
 }
 
+#' Generates masked data for a series system with the given node failure times
+#' \code{t}, candidate set model \code{candidate_model}, and candidate
+#' set sizes \code{w}.
+#'
+#' @param t matrix of node failure times
+#' @param w Integer vector. For the ith observation, generate w_j candidates.
+#' @param candidate_model Function that accepts masked data as an argument.
+#'                        The candidate model, defaults to md_candidate_m0.
+#'                        If set to NULL, then do not generate a candidate set.
+#'                        md_mle_exp_series will treat such masked data as
+#'                        a sample that includes every node as candidates.
+#' @return masked data, a data frame of n observations, (s,k,t1,...,tm,c1,...,cm)
+#'         where k, t, and c are covariates (or predictors) of s,k,t1,...,tm.
+#' @importFrom dplyr %>%
+#' @export
+md_series_data <- function(t,w,candidate_model=md_candidate_m0)
+{
+    m <- ncol(t)
+    t <- tibble::as_tibble(t)
+    names(t) <- paste("t",1:m,sep=".")
+
+    md <- tibble::tibble(
+        s = apply(t,1,min),
+        k = apply(t,1,which.min),
+        w = w)
+    md <- dplyr::bind_cols(md,t)
+    if (!is.null(candidate_model))
+        md <- candidate_model(md,m)
+
+    class(md) <- c("tbl_md",class(md))
+    md
+}
+
+#' Candidate matrix to stringified vector of integers
+#'
+#' @param md masked data
+#' @export
+md_candidates_to_strings <- function(md)
+{
+    stopifnot(md_is_masked_data(md))
+
+    C <- md_candidates_as_matrix(md)
+    m <- md_num_nodes(md)
+
+    cand_str <- character(nrow(md))
+    for (i in 1:nrow(md))
+        cand_str[i] <- toString((1:m)[C[i,]])
+
+    cand_str
+}
+
+#' Print method for masked data (tbl_md).
+#'
+#' @param x masked data to print
+#' @param pprint Boolean, show candidates as a string column
+#' @param drop_latent Boolean, drop the latent random variables
+#' @importFrom dplyr %>%
+#' @export
+print.tbl_md <- function(x,pprint=F,drop_latent=F)
+{
+    if (drop_latent)
+        x <- x %>% dplyr::select(-c("k")) %>%
+                   dplyr::select(-dplyr::starts_with("t.")) %>%
+                   dplyr::select(-attr(x,"latent"))
+
+    if (pprint)
+        x <- x %>% dplyr::mutate("C" = md_candidates_to_strings(x)) %>%
+                   dplyr::select(-dplyr::starts_with("c."))
+
+    class(x) <- class(x)[class(x) != "tbl_md"]
+    print(x)
+}

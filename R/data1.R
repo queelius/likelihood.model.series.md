@@ -16,5 +16,5 @@
 #'   \item{c.3}{Boolean observable variable, TRUE indicates node 3 is in candidate set}
 #'   ...
 #' }
-#' @source \url{http://github.com/queelius/masked.data/R/example-data.R}
+#' @source \url{https://github.com/queelius/masked.data/blob/master/data-raw/data1.R}
 "data1"

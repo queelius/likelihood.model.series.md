@@ -1,6 +1,6 @@
 {
   "sim": {
-    "family": ["md_exp_series"],
+    "family": ["masked.data::md_exp_series"],
     "index": [3, 4, 5],
     "nodes": [
       {

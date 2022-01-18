@@ -1,0 +1,33 @@
+{
+  "sim": {
+    "family": ["masked.data::md_exp_series"],
+    "index": [3, 5, 4, 6, 7],
+    "nodes": [
+      {
+        "family": ["exponential"],
+        "index": [3]
+      },
+      {
+        "family": ["exponential"],
+        "index": [5]
+      },
+      {
+        "family": ["exponential"],
+        "index": [4]
+      },
+      {
+        "family": ["exponential"],
+        "index": [6]
+      },
+      {
+        "family": ["exponential"],
+        "index": [7]
+      }
+    ],
+    "candidate_model": ["md_candidate_m0"]
+  },
+  "masked": ["k", "t.1", "t.2", "t.3", "t.4", "t.5"],
+  "m": [5],
+  "n": [100000],
+  "dataset": ["data2.csv"]
+}

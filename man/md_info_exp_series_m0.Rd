@@ -13,7 +13,7 @@ md_info_exp_series_m0(md)
 \item{md}{masked data for candidate model m0}
 }
 \value{
-expected information function of type R^m -> R^(m x m)
+observed information matrix of type R^m -> R^(m x m)
 }
 \description{
 Expected information matrix for rate parameter

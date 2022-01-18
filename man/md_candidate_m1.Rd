@@ -4,14 +4,16 @@
 \alias{md_candidate_m1}
 \title{Candidate model m1}
 \usage{
-md_candidate_m1(md, m)
+md_candidate_m1(md, m, with_seed = NULL)
 }
 \arguments{
 \item{md}{masked data, a data frame object with column 'k' for failed component,
 column 'w' for corresponding candidate set size, and column 'alpha' for
 corresponding alpha probabilities}
 
-\item{m}{number of nodes in the series system}
+\item{m}{Integer, number of nodes in the series system}
+
+\item{with_seed}{Integer, seeds PRNG to facilitate reproducible data/research}
 }
 \value{
 alpha-masked data with candidate sets that model m1

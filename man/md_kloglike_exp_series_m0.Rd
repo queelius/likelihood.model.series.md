@@ -2,15 +2,16 @@
 % Please edit documentation in R/exp_series.R
 \name{md_kloglike_exp_series_m0}
 \alias{md_kloglike_exp_series_m0}
-\title{Kernel log-likelihood for masked data m0 for exponential series system.}
+\title{Kernel log-likelihood for masked data m0 for exponential series system
+using sufficient statistics.}
 \usage{
 md_kloglike_exp_series_m0(md)
 }
 \description{
 The log of the kernel of the likelihood function for masked data
 for a series system with exponentially distributed lifetimes
-and candidate sets that model m0.
+and candidate sets that model m0 using sufficient statistics.
 }
 \details{
-This is an optimization of \link[masked.data]{md_kloglike_exp_series_m0_ref}.
+This is an optimization of \link[masked.data]{md_kloglike_exp_series_m0_slow}.
 }

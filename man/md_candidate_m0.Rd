@@ -10,7 +10,7 @@ md_candidate_m0(md, m)
 \item{md}{masked data, data frame object with column 'k' for failed component
 and column 'w' for corresponding candidate set size.}
 
-\item{m}{number of nodes in the series system}
+\item{m}{Integer, number of nodes in the series system}
 }
 \value{
 masked data with candidate sets that model m0

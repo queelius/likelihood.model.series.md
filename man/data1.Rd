@@ -20,7 +20,7 @@ A data frame with 1000 rows and 9 variables:
 }
 }
 \source{
-\url{http://github.com/queelius/masked.data/R/example-data.R}
+\url{https://github.com/queelius/masked.data/blob/master/data-raw/data1.R}
 }
 \usage{
 data1

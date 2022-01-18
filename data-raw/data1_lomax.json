@@ -1,0 +1,28 @@
+{
+  "sim": {
+    "family": ["masked.data::md_lomax_series"],
+    "index": {
+      "lambda": [3, 4, 5],
+      "kappa": [2, 3, 4]
+    },
+    "nodes": [
+      {
+        "family": ["lomax"],
+        "index": [3, 2]
+      },
+      {
+        "family": ["lomax"],
+        "index": [4, 3]
+      },
+      {
+        "family": ["lomax"],
+        "index": [5, 4]
+      }
+    ],
+    "candidate_model": ["md_candidate_m0"]
+  },
+  "masked": ["k", "t.1", "t.2", "t.3"],
+  "m": [3],
+  "n": [10000],
+  "dataset": ["data1_lomax.csv"]
+}

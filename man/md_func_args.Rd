@@ -7,7 +7,7 @@
 md_func_args(...)
 }
 \arguments{
-\item{...}{bleh}
+\item{...}{?}
 }
 \description{
 Retrieve the function arguments.

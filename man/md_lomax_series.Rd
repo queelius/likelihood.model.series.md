@@ -2,7 +2,8 @@
 % Please edit documentation in R/lomax_series.R
 \name{md_lomax_series}
 \alias{md_lomax_series}
-\title{joint distribution of S,K,T1,...,Tm where}
+\title{Generates masked data for a series system with lomax distributed
+nodes and candidate sets according to candidate_model.}
 \usage{
 md_lomax_series(
   n,
@@ -14,7 +15,7 @@ md_lomax_series(
 )
 }
 \arguments{
-\item{n}{Integer. Number of observations.}
+\item{n}{Integer. The sample size (each row is an observation).}
 
 \item{lambda}{Numeric vector.}
 
@@ -22,19 +23,22 @@ md_lomax_series(
 
 \item{w}{Integer vector. For the ith observation, generate w_j candidates.}
 
-\item{candidate_model}{the candidate model, defaults to md_candidate_m0}
+\item{candidate_model}{Function that accepts masked data as an argument.
+The candidate model, defaults to md_candidate_m0.
+If set to NULL, then do not generate a candidate set.
+md_mle_exp_series will treat such masked data as
+a sample that includes every node as candidates.}
 
 \item{metadata}{Boolean. If TRUE writes meta-data for series system to
-attributes of masked data.}
+attributes of masked data (tbl_md).}
 }
 \value{
-masked data
+masked data, a data frame of n observations, (s,k,t1,...,tm,c1,...,cm)
+where k, t, and c are covariates (or predictors) of s,k,t1,...,tm.
 }
 \description{
-\preformatted{tj ~ lomax(theta_j*)
-s = min\{T1,...,Tm\}
-k = argmin_k \{Tk : k=1,...,m\}
-}
+Generates masked data for a series system with lomax distributed
+nodes and candidate sets according to candidate_model.
 }
 \examples{
 md_lomax_series(n=10,lambda=c(1,2,3),kappa=c(4,5,6),w=rep(2,10))
