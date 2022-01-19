@@ -62,15 +62,22 @@ md_kloglike_lomax_series_m0_ref <- function(md)
     m <- md_num_nodes(md)
     function(theta)
     {
-        lambda = theta[1:m]
+        lambda <- theta[1:m]
         kappa <- theta[(m+1):length(theta)]
+
         s <- 0.0
-        for (i in 1:nrow(md))
+        for (i in 1:nrow(C))
         {
-            for (k in C[i,])
-                s <- s + log(lambda[k] * kappa[k] / (1 + lambda[k]))
+            tmp <- 0
+            for (k in (1:m)[C[i,]])
+            {
+                tmp <- tmp + log(lambda[k] * kappa[k] / (1 + lambda[k]))
+            }
+            s <- s + log(tmp)
             for (j in 1:m)
+            {
                 s <- s - kappa[j] * log(1+lambda[j]*md$s[i])
+            }
         }
         s
     }

@@ -2,9 +2,10 @@
 % Please edit documentation in R/mle_tools.R
 \name{md_fisher_scoring_loglike}
 \alias{md_fisher_scoring_loglike}
-\title{Fisher scoring algorithm using the log-likelihood function (or more ideally, kernel)}
+\title{Fisher scoring algorithm using the log-likelihood (or kernel log-like)
+function.}
 \usage{
-md_fisher_scoring_loglike(theta0, loglike, eps = 1e-05)
+md_fisher_scoring_loglike(theta0, loglike, eps = 1e-05, gamma = 1)
 }
 \arguments{
 \item{theta0}{initial guess of theta with p components}
@@ -17,5 +18,6 @@ md_fisher_scoring_loglike(theta0, loglike, eps = 1e-05)
 MLE estimate of theta
 }
 \description{
-Fisher scoring algorithm using the log-likelihood function (or more ideally, kernel)
+Fisher scoring algorithm using the log-likelihood (or kernel log-like)
+function.
 }

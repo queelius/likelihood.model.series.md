@@ -4,7 +4,14 @@
 \alias{md_fisher_scoring}
 \title{Fisher scoring algorithm.}
 \usage{
-md_fisher_scoring(theta0, info, score, eps = 1e-05, max_iterations = 10000L)
+md_fisher_scoring(
+  theta0,
+  info,
+  score,
+  eps = 1e-05,
+  max_iterations = 10000L,
+  gamma = 1
+)
 }
 \arguments{
 \item{theta0}{initial guess of theta with \eqn{p} components}

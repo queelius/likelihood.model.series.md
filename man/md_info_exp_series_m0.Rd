@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_series.R
 \name{md_info_exp_series_m0}
 \alias{md_info_exp_series_m0}
-\title{Expected information matrix for rate parameter
+\title{Information matrix (observed) for rate parameter
 with respect to masked data of a series system
 with exponentially distributed lifetimes and
 candidate model m0.}
@@ -16,7 +16,7 @@ md_info_exp_series_m0(md)
 observed information matrix of type R^m -> R^(m x m)
 }
 \description{
-Expected information matrix for rate parameter
+Information matrix (observed) for rate parameter
 with respect to masked data of a series system
 with exponentially distributed lifetimes and
 candidate model m0.

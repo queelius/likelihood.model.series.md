@@ -125,19 +125,6 @@ md_is_masked_data <- function(x)
     is.data.frame(x) && all(c("c.1","c.2","s") %in% colnames(x))
 }
 
-#' Retrieve the function arguments.
-#' @param ... ?
-md_func_args <- function(...)
-{
-    call <- evalq(match.call(expand.dots = F), parent.frame(1))
-    formals <- evalq(formals(), parent.frame(1))
-
-    for(i in setdiff(names(formals), names(call)))
-        call[i] <- list( formals[[i]] )
-
-    match.call(sys.function(sys.parent()), call)
-}
-
 #' Generates masked data for a series system with the given node failure times
 #' \code{t}, candidate set model \code{candidate_model}, and candidate
 #' set sizes \code{w}.
@@ -196,7 +183,7 @@ md_candidates_to_strings <- function(md)
 #' @param drop_latent Boolean, drop the latent random variables
 #' @importFrom dplyr %>%
 #' @export
-print.tbl_md <- function(x,pprint=F,drop_latent=F)
+print.tbl_md <- function(x,pprint=F,drop_latent=F,...)
 {
     if (drop_latent)
         x <- x %>% dplyr::select(-c("k")) %>%
@@ -208,5 +195,5 @@ print.tbl_md <- function(x,pprint=F,drop_latent=F)
                    dplyr::select(-dplyr::starts_with("c."))
 
     class(x) <- class(x)[class(x) != "tbl_md"]
-    print(x)
+    print(x,...)
 }

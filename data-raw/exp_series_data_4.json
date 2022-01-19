@@ -1,0 +1,25 @@
+{
+  "sim": {
+    "family": ["masked.data::md_exp_series"],
+    "index": [1, 1, 1],
+    "nodes": [
+      {
+        "family": ["exponential"],
+        "index": [1]
+      },
+      {
+        "family": ["exponential"],
+        "index": [1]
+      },
+      {
+        "family": ["exponential"],
+        "index": [1]
+      }
+    ],
+    "candidate_model": ["md_candidate_m0"]
+  },
+  "masked": ["k", "t.1", "t.2", "t.3"],
+  "m": [3],
+  "n": [10000],
+  "dataset": ["exp_series_data_4.csv"]
+}

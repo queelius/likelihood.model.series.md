@@ -4,7 +4,7 @@
 \alias{print.tbl_md}
 \title{Print method for masked data (tbl_md).}
 \usage{
-\method{print}{tbl_md}(x, pprint = F, drop_latent = F)
+\method{print}{tbl_md}(x, pprint = F, drop_latent = F, ...)
 }
 \arguments{
 \item{x}{masked data to print}

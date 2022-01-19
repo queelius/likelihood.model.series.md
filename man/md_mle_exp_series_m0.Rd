@@ -2,13 +2,12 @@
 % Please edit documentation in R/exp_series.R
 \name{md_mle_exp_series_m0}
 \alias{md_mle_exp_series_m0}
-\title{maximum likelihood estimator of the
-parameters of a series system with
-components that have exponentially
-distributed lifetimes given a
-sample of masked data.}
+\title{Maximum likelihood estimator of the parameters of a series
+system with nodes that have exponentially distributed
+lifetimes given a sample of masked data according to
+candidate model m0.}
 \usage{
-md_mle_exp_series_m0(md, theta0 = NULL, eps = 1e-05)
+md_mle_exp_series_m0(md, theta0 = NULL, eps = 1e-05, max_iterations = 10000L)
 }
 \arguments{
 \item{md}{masked data}
@@ -16,14 +15,15 @@ md_mle_exp_series_m0(md, theta0 = NULL, eps = 1e-05)
 \item{theta0}{initial guess for MLE}
 
 \item{eps}{stopping condition}
+
+\item{max_iterations}{stop if iterations reaches max_iterations.}
 }
 \value{
-mle of theta given the observed masked data md
+MLE estimate
 }
 \description{
-maximum likelihood estimator of the
-parameters of a series system with
-components that have exponentially
-distributed lifetimes given a
-sample of masked data.
+Maximum likelihood estimator of the parameters of a series
+system with nodes that have exponentially distributed
+lifetimes given a sample of masked data according to
+candidate model m0.
 }

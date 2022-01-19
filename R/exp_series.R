@@ -94,7 +94,6 @@ md_kloglike_exp_series_m0 <- function(md)
     }
 }
 
-
 #' score function of masked data for a series system
 #' with exponentially distributed lifetimes.
 #'
@@ -160,27 +159,40 @@ md_info_exp_series_m0 <- function(md)
     }
 }
 
-#' maximum likelihood estimator of the
-#' parameters of a series system with
-#' components that have exponentially
-#' distributed lifetimes given a
-#' sample of masked data.
+#' Maximum likelihood estimator of the parameters of a series
+#' system with nodes that have exponentially distributed
+#' lifetimes given a sample of masked data according to
+#' candidate model m0.
 #'
 #' @param md masked data
 #' @param theta0 initial guess for MLE
 #' @param eps stopping condition
+#' @param max_iterations stop if iterations reaches max_iterations.
 #'
-#' @return mle of theta given the observed masked data md
+#' @return MLE estimate
 #' @export
-md_mle_exp_series_m0 = function(md,theta0=NULL,eps=1e-5)
+md_mle_exp_series_m0 = function(md,theta0=NULL,eps=1e-5,max_iterations=10000L)
 {
     if (is.null(theta0))
         theta0 <- rep(3.0,md_num_nodes(md))
 
-    md_fisher_scoring(theta0,
-                      md_info_exp_series_m0(md),
-                      md_score_exp_series_m0(md),
-                      eps)
+    res <- md_fisher_scoring(
+        theta0,
+        md_info_exp_series_m0(md),
+        md_score_exp_series_m0(md),
+        eps,
+        max_iterations)
+
+    structure(list(
+        theta.hat=res$theta.hat,
+        iterations=res$iterations,
+        max_iterations=max_iterations,
+        stop_condition=ifelse(res$iterations==res$max_iterations,"max_iterations","eps"),
+        eps=eps,
+        max_kloglike=md_kloglike_exp_series_m0(md)(res$theta.hat),
+        info=md_info_exp_series_m0(md)(res$theta.hat)),
+        class=c("md_mle_exp_series_m0_estimate","md_estimate"),
+        attributes=list("candidate_model" = "m0"))
 }
 
 
