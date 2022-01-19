@@ -7,6 +7,9 @@ an estimator.}
 \usage{
 point(x, ...)
 }
+\arguments{
+\item{x}{The object to obtain the point estimate of}
+}
 \description{
 Generic method for obtaining the point estimate of
 an estimator.

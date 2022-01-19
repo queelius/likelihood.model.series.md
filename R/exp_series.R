@@ -2,17 +2,18 @@
 #' nodes and candidate sets according to candidate_model.
 #'
 #' @param n Integer. The sample size (each row is an observation).
-#' @param theta Numeric vector. The jth component has a failure rate theta_j.
-#' @param w Integer vector. For the ith observation, generate w_j candidates.
+#' @param theta Numeric vector. The jth component has a failure rate \code{theta[j]}.
+#' @param w Integer vector. For the ith observation, generate \code{w[j]} candidates.
 #' @param candidate_model Function that accepts masked data as an argument.
-#'                        The candidate model, defaults to md_candidate_m0.
-#'                        If set to NULL, then do not generate a candidate set.
-#'                        md_mle_exp_series will treat such masked data as
+#'                        The candidate model, defaults to \code{md_candidate_m0}.
+#'                        If set to \code{NULL}, then do not generate a candidate set.
+#'                        \code{md_mle_exp_series} will treat such masked data as
 #'                        a sample that includes every node as candidates.
-#' @param metadata Boolean. If TRUE writes meta-data for series system to
+#' @param metadata Boolean. If \code{TRUE} writes meta-data for series system to
 #'                 attributes of masked data.
-#' @return masked data, a data frame of n observations, (s,k,t1,...,tm,c1,...,cm)
-#'         where k, t, and c are covariates (or predictors) of s,k,t1,...,tm.
+#' @return masked data, a data frame of n observations, \code{(s,k,t1,...,tm,c1,...,cm)}
+#'         where \code{k}, \code{t}, and \code{c} are covariates (or predictors) of
+#'         \code{s,k,t1,...,tm}.
 #' @importFrom dplyr %>%
 #' @export
 #'
@@ -55,7 +56,7 @@ md_exp_series <- function(n,theta,w,candidate_model=md_candidate_m0,metadata=T)
 #'
 #' @param md masked data for candidate model m0
 #' @export
-md_kloglike_exp_series_m0_ref <- function(md)
+md_kloglike_exp_series_m0_slow <- function(md)
 {
     C <- md_candidates_as_matrix(md)
     function(rate)
@@ -76,7 +77,9 @@ md_kloglike_exp_series_m0_ref <- function(md)
 #' for a series system with exponentially distributed lifetimes
 #' and candidate sets that model m0 using sufficient statistics.
 #'
-#' This is an optimization of \link[masked.data]{md_kloglike_exp_series_m0_slow}.
+#' This is an optimization of \code{\link[masked.data]{md_kloglike_exp_series_m0_slow}}.
+#'
+#' @param md masked data
 #' @importFrom dplyr %>%
 #' @export
 md_kloglike_exp_series_m0 <- function(md)

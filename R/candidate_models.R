@@ -44,11 +44,8 @@ md_candidate_m0 = function(md,m)
 #' @return alpha-masked data with candidate sets that model m1
 #' @importFrom dplyr %>%
 #' @export
-md_candidate_m1 = function(md,m,with_seed=NULL)
+md_candidate_m1 = function(md,m)
 {
-    if (!is.null(with_seed))
-        set_seed(with_seed)
-
     m <- md_num_nodes(md)
     md$test <- stats::runif(nrow(md)) < md$alpha
     c <- tibble::as_tibble(t(apply(md,1,function(r)

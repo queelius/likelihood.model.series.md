@@ -7,11 +7,14 @@ using sufficient statistics.}
 \usage{
 md_kloglike_exp_series_m0(md)
 }
+\arguments{
+\item{md}{masked data}
+}
 \description{
 The log of the kernel of the likelihood function for masked data
 for a series system with exponentially distributed lifetimes
 and candidate sets that model m0 using sufficient statistics.
 }
 \details{
-This is an optimization of \link[masked.data]{md_kloglike_exp_series_m0_slow}.
+This is an optimization of \code{\link[masked.data]{md_kloglike_exp_series_m0_slow}}.
 }

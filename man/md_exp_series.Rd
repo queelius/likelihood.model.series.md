@@ -10,22 +10,23 @@ md_exp_series(n, theta, w, candidate_model = md_candidate_m0, metadata = T)
 \arguments{
 \item{n}{Integer. The sample size (each row is an observation).}
 
-\item{theta}{Numeric vector. The jth component has a failure rate theta_j.}
+\item{theta}{Numeric vector. The jth component has a failure rate \code{theta[j]}.}
 
-\item{w}{Integer vector. For the ith observation, generate w_j candidates.}
+\item{w}{Integer vector. For the ith observation, generate \code{w[j]} candidates.}
 
 \item{candidate_model}{Function that accepts masked data as an argument.
-The candidate model, defaults to md_candidate_m0.
-If set to NULL, then do not generate a candidate set.
-md_mle_exp_series will treat such masked data as
+The candidate model, defaults to \code{md_candidate_m0}.
+If set to \code{NULL}, then do not generate a candidate set.
+\code{md_mle_exp_series} will treat such masked data as
 a sample that includes every node as candidates.}
 
-\item{metadata}{Boolean. If TRUE writes meta-data for series system to
+\item{metadata}{Boolean. If \code{TRUE} writes meta-data for series system to
 attributes of masked data.}
 }
 \value{
-masked data, a data frame of n observations, (s,k,t1,...,tm,c1,...,cm)
-where k, t, and c are covariates (or predictors) of s,k,t1,...,tm.
+masked data, a data frame of n observations, \code{(s,k,t1,...,tm,c1,...,cm)}
+where \code{k}, \code{t}, and \code{c} are covariates (or predictors) of
+\code{s,k,t1,...,tm}.
 }
 \description{
 Generates masked data for a series system with exponentially distributed

@@ -3,20 +3,22 @@
 #' Sampling distribution of the MLE is a multivariate normal with mean
 #' given by the true parameter value and, asymptotically, a covariance
 #' given by the inverse of the Fisher information matrix.
+#'
+#' @param estimate the variance-covariance matrix of the estimator to obtain
+#'
 #' @export
 vcov.md_estimate <- function(estimate)
 {
     matlib::inv(estimate$info)
 }
 
-#' Method to obtain the confidence intervals of
-#' the parameter values of a masked data
-#' estimator, \code{md_estimate}.
+#' Method to obtain the confidence intervals of the parameter values of a
+#' masked data estimator, \code{md_estimate}.
 #'
 #' @param level Confidence level, defaults to 0.95 (alpha=.05)
 #'
 #' @export
-confint.md_estimate <- function(estimate, level=0.95)
+confint.md_estimate <- function(estimate, parm=NULL, level=0.95)
 {
     V <- vcov(estimate)
     theta.hat <- point(estimate)
@@ -37,6 +39,8 @@ confint.md_estimate <- function(estimate, level=0.95)
 #' Generic method for obtaining the point estimate of
 #' an estimator.
 #'
+#' @param x The object to obtain the point estimate of
+#'
 #' @export
 point <- function(x, ...)
 {
@@ -45,6 +49,8 @@ point <- function(x, ...)
 
 #' Method to obtain the point estimate of
 #' a masked data estimator, \code{md_estimate}.
+#'
+#' @param estimate The object to obtain the point estimate of
 #'
 #' @export
 point.md_estimate <- function(estimate)

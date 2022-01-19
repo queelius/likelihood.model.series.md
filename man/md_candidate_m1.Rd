@@ -4,7 +4,7 @@
 \alias{md_candidate_m1}
 \title{Candidate model m1}
 \usage{
-md_candidate_m1(md, m, with_seed = NULL)
+md_candidate_m1(md, m)
 }
 \arguments{
 \item{md}{masked data, a data frame object with column 'k' for failed component,

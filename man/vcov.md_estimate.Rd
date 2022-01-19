@@ -6,6 +6,9 @@
 \usage{
 \method{vcov}{md_estimate}(estimate)
 }
+\arguments{
+\item{estimate}{the variance-covariance matrix of the estimator to obtain}
+}
 \description{
 Sampling distribution of the MLE is a multivariate normal with mean
 given by the true parameter value and, asymptotically, a covariance

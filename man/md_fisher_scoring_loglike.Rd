@@ -5,7 +5,13 @@
 \title{Fisher scoring algorithm using the log-likelihood (or kernel log-like)
 function.}
 \usage{
-md_fisher_scoring_loglike(theta0, loglike, eps = 1e-05, gamma = 1)
+md_fisher_scoring_loglike(
+  theta0,
+  loglike,
+  eps = 1e-05,
+  max_iterations = 10000L,
+  gamma = 0.1
+)
 }
 \arguments{
 \item{theta0}{initial guess of theta with p components}

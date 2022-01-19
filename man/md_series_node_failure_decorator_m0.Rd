@@ -13,7 +13,7 @@ md_series_node_failure_decorator_m0(md, h)
 }
 \description{
 Under model m0, we do not know which node caused the failure,
-assuming |C| > 1, but if we have an estimate of the node
+assuming \code{|C| > 1}, but if we have an estimate of the node
 hazard functions (e.g., an estimate of theta from masked data),
 then we can estimate the probability of node failure.
 }
