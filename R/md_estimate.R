@@ -9,7 +9,7 @@
 #' @export
 vcov.md_estimate <- function(estimate)
 {
-    matlib::inv(estimate$info)
+    matlib::inv(fisher_info(estimate))
 }
 
 #' Method to obtain the confidence intervals of the parameter values of a
@@ -53,7 +53,37 @@ point <- function(x, ...)
 #' @param estimate The object to obtain the point estimate of
 #'
 #' @export
-point.md_estimate <- function(estimate)
+point.md_estimate <- function(estimate, ...)
 {
     estimate$theta.hat
+}
+
+#' Generic method for obtaining the fisher information
+#' matrix of an estimator, if supported.
+#'
+#' @param x The object to obtain the fisher information of
+#'
+#' @export
+fisher_info <- function(x, ...)
+{
+    UseMethod("fisher_info",x)
+}
+
+#' Method to obtain the fisher infromation matrix of an md_estimate.
+#'
+#' @param estimate The object to obtain the fisher information of
+#'
+#' @export
+fisher_info.md_estimate <- function(estimate, ...)
+{
+    estimate$info
+}
+
+#' @export
+sampler.md_estimate <- function(estimate,...)
+{
+    sampler(
+        make_normal(
+            point(estimate),
+            vcov(estimate)))
 }

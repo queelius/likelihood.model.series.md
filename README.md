@@ -34,5 +34,11 @@ This is a basic example which shows you how to solve a common problem:
 
 1.  might be interesting to predict system lifetime based on candidate
     covariates.
+
 2.  might be interesting to predict node lifetimes based on candidate
     covariates and system lifetime
+
+3.  extract sampler and other related stuff, like random variables (not
+    series variations) into a algebraic_random_elements R package.
+
+4.  compare info/cov with bootstrap version

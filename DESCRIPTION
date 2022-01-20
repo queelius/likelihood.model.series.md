@@ -22,7 +22,8 @@ Imports:
     numDeriv,
     readr,
     stats,
-    tibble
+    tibble,
+    mvtnorm
 Depends: 
     R (>= 2.10)
 LazyData: true
