@@ -1,8 +1,8 @@
 ---
-title: "Examples: Using the masked.data package"
+title: "Using the masked.data package"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{example-use}
+  %\VignetteIndexEntry{Using the masked.data package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,8 +14,336 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(masked.data)
+# Introduction
+
+`masked.data` is an R package developed with the intention of providing a framework for estimating the parameters of latent node lifetimes from *masked data*.
+Presently, we only provide support for series systems with node lifetimes in the `exponential`, `lomax`, `weibull`, and `pareto` parametric families.
+
+Install the library with:
+``` r
+devtools::install_github("queelius/masked.data")
 ```
+
+Once install, you may load the library and other dependencies with:
+
+```{r setup,message=F}
+# load the masked data library
+library(masked.data)
+
+# load other dependencies
+library(purrr)
+library(dplyr)
+library(ggplot2)
+library(tibble)
+```
+
+# Masked data
+
+Masked data is given by an i.i.d. sample of system lifetime data and
+a candidate set which contains the component that caused the system failure.
+It may also be viewed as a predictor of the system lifetime, but we
+we use the candidate sets in the sample to estimate component lifetimes.
+
+`masked.data` contains several simulated masked data sets.
+For example, a series system with $10$ exponentially distributed nodes
+is stored in `exp_series_data_3`:
+
+```{r}
+print(exp_series_data_3,drop_latent=T,pprint=T)
+```
+
+## Candidate model $m_0$
+
+In model $m_0$, the $j$-th observation in the masked data has
+a candidate set $C_j$ that contains the failed component, in addition
+to a random selection (without replacement) of $w_j-1$ additional components.
+
+## Candidate model $m_1$: $\alpha$-masked candidates
+
+In model $m_1$, the $j$-th observation in the masked data has a candidate set
+$C_j$ described by the following:
+
+1. $C_j$ contains the failed node with probability $\alpha_j$.
+   Additionally, it contains a random selection (without replacement) of $w_j-1$
+   non-failed nodes.
+
+2. $C_j$ contains a random selection (without replacement) of $w_j$ non-failed nodes
+   with probability $1-\alpha_j$.
+   
+# Exponential series system
+
+The most straightforward series system to estimate is the series system with exponentially distributed node lifetimes.
+
+Suppose an exponential series system with $m$ nodes is parameterized by $\theta = (3,4,5)'$.
+Then, the $j$-th node has an exponentially distributed lifetime with a failure rate $\theta_j$.
+
+The candidate model $M_0$ for masked data (of size $n=1000$) for this exponential
+series system, with $w=2$ candidates for each observation, is given by:
+
+```{r}
+n <- 1000
+theta <- c(3,4,5)
+m <- length(theta)
+w <- rep(2,n)
+# todo: rename to md_exp_series_data_m0
+md <- md_exp_series(n,theta,w,md_candidate_m0)
+print(md,pprint=T,drop_latent=T)
+```
+
+## Log-likelihood of $\theta$ given masked data
+
+```{r}
+# kernel of log-likelihood
+kloglik <- md_kloglike_exp_series_m0(md)
+```
+
+The log-likelihood function contains the maximum amount of information
+about parameter $\theta$ given the sample of masked data `md`.
+
+Suppose we do not know that $\theta = (3,4,5)'$.
+With the log-likelihood, we may estimate $\theta$ with $\hat\theta$ by solving
+$$
+    \hat\theta = \operatorname{argmax}_{\theta} \operatorname{kloglik}(\theta),
+$$
+i.e., finding the point that *maximizes* the log-likelihood on
+the observed sample `md`.
+This is known as *maximum likelihood estimation*.
+
+
+
+
+We typically solve for the MLE by solving
+$$
+    \nabla \operatorname{kloglik}(\theta) |_{\theta=\hat\theta} = 0.
+$$
+
+We use the iterative method known as the Fisher scoring algorithm to solve this,
+$$
+    \theta^{(n+1)} = \theta^n + I^{-1}(\theta^n) \nabla \operatorname{kloglik}(\theta^n),
+$$
+where $I$ is the information matrix (or observed information matrix).
+
+We efficiently implement this algorithm with `md_mle_exp_series_m0`:
+```{r}
+mle <- md_mle_exp_series_m0(md) 
+(theta.hat <- point(mle))
+```
+
+The `point` method takes an estimator object and obtains its
+point estimate.
+We see that $\hat\theta = (`r round(theta.hat,digits=3)`)$.
+
+If we let the third argument in the log-likelhood function be fixed
+at $\hat\theta_3 = `r round(theta.hat[3],digits=3)`$, then we may \emph{profile} the
+log-likelihood function over the first two parameters:
+
+```{r,message=F}
+prof <- function(theta1) { kloglik(c(theta1,theta.hat[2],theta.hat[3])) }
+data <- tibble(x=seq(theta.hat[1]-3,theta.hat[1]+3,.05))
+data$y <- numeric(nrow(data))
+for (i in 1:nrow(data))
+    data$y[i] <- prof(data$x[i])
+data %>% ggplot(aes(x=x,y=y)) + geom_line() +
+    geom_point(aes(x=theta.hat[1],prof(theta.hat[1])))
+```
+
+The estimate $\hat\theta$ and $\theta$ have a Euclidean distance of
+`r sqrt(sum((point(mle)-theta)^2))`.
+Due to sampling variability, different runs of the experiment
+will result in different outcomes, i.e., $\hat\theta$ has a
+sampling distribution.
+
+## Variance-covariance matrix
+The estimator $\hat\theta$ as a function of a random sample
+of masked data has a sampling distribution.
+Theoretically, $\hat\theta$ converges in distribution
+to the multivariate normal with a mean $\theta$ and a
+variance-covariance given the the inverse of the
+observed Fisher matrix,
+$$
+    J(\theta) = -\nabla^2 \operatorname{loglik}(\theta).
+$$
+Since $J$ is a function of a random sample, it is a random
+matrix.
+
+However, when the nodes are exponentially distributed, we may
+take the expectation
+$$
+    I(\theta) = -E(\nabla^2 \operatorname{loglik}(\theta)),
+$$
+and derive a closed-form solution.
+
+Taking its inverse for the variance-covariance matrix, for
+a $3$-out-of-$3$ exponential series system, this results in
+$$
+V(\theta) =
+    \frac{\lambda_1+\lambda_2+\lambda_3}{n}
+    \begin{pmatrix}
+        \lambda_1+l2+l3 & -\lambda_3                    & -\lambda_2,
+        -\lambda_3      & \lambda_1+\lambda_2+\lambda_3 & -\lambda_1,
+        -\lambda_2      & -\lambda_1                    & \lambda_1+\lambda_2+\lambda_3
+    \end{pmatrix}.
+$$
+
+Asymptotically, the MLE $\hat\theta$ is the UMVUE, i.e.,
+it is unbiased and obtains the minimum sampling variance.
+An estimate of the variance-covariance $V$ may be obtained with:
+```{r}
+(V.hat <- vcov(mle))
+```
+
+### Bootstrap: sample mean and sample variance-covariance
+If we know the generative model, $\theta$ may be estimated $M$
+times, $\hat\theta^{(1)},\ldots,\hat\theta^{(M)}$, and then 
+the sample mean and sample covariance are estimates of $\theta$ and $V$, respectively.
+
+```{r, cache=T, eval=F}
+M <- 500
+theta.hats <- matrix(nrow=M,ncol=m)
+for (i in 1:M)
+    theta.hats[i,] <- as.vector(point(
+        md_mle_exp_series_m0(md_exp_series(n,theta,w,md_candidate_m0))))
+
+data.frame(theta1=c(theta[1],mean(theta.hats[,1])),
+           theta2=c(theta[2],mean(theta.hats[,2])),
+           theta3=c(theta[3],mean(theta.hats[,3])),
+           row.names=c("true value", "mle"))
+
+cov(theta.hats)
+vcov(mle)
+```
+
+
+
+## Bias, MSE, and confidence intervals
+We would like to measure the accuracy and precision of $\hat\theta$ is.
+In statistical literature, the bias
+$$
+    \operatorname{b}(\hat\theta) = E(\hat\theta) - \theta
+$$
+is a measure of accuracy and variance is a measure of precision.
+
+The mean squared error, denoted by $\operatorname{MSE}$, is a measure of
+estimator error that incorporates both the bias and the variance,
+$$
+    \operatorname{MSE}(\hat\theta) = \operatorname{trace}(V) + \operatorname{b}^2(\hat\theta).
+$$
+
+Since $\hat\theta$ is asymptotically unbiased and minimum variance,
+$$
+    \lim_{n \to \infty} \operatorname{MSE}(\hat\theta) = \operatorname{trace}(V).
+$$
+
+Thus, for sufficiently large samples, $\operatorname{MSE}(\hat\theta)$ is approximately given by the `trace`
+of the estimated variance-covariance matrix:
+```{r}
+(mse <- sum(diag(V.hat)))
+```
+
+Mean squared error as a function of sample size $n$:
+
+```{r, fig.width=6,fig.height=6,eval=F}
+Ns <- seq(1000, nrow(exp_series_data_3), 1000)
+mses.vcov <- numeric(length=length(Ns))
+mses <- numeric(length=length(Ns))
+
+for (i in 1:length(Ns))
+{
+    mses.vcov[i] <- sum(diag(vcov(md_mle_exp_series_m0(exp_series_data_3[1:Ns[i],]))))
+    mses[i] <- mean((point(md_mle_exp_series_m0(exp_series_data_3[1:Ns[i],])) - theta)^2)
+}
+
+tibble(mse=mses,mses.vcov=mses.vcov,n=Ns) %>% ggplot() +
+    geom_line(aes(x=n,y=mses,color="sample MSE")) + 
+    geom_line(aes(x=n,y=mses.vcov,color="asymptotic theory")) +
+    scale_color_manual(name="Legend",values=c("sample MSE"="blue", "asymptotic theory"="red"))
+```
+
+
+
+A primary statistic is the *confidence interval*.
+A $(1-\alpha)100\%$ confidence interval for $\theta_j$ may be estimated with $\hat\theta_j \pm z_{1-\alpha/2} \sqrt{\hat{V}_{j j}}$.
+We provide a method for doing this calculation:
+```{r}
+as_tibble(confint(mle)) %>% mutate(length=.[[2]]-.[[1]])
+```
+
+How does this compare to the confidence intervals given that all candidate sets in the sample have size $w=1$?
+```{r}
+as_tibble(confint(md_mle_exp_series_m0(
+    md_exp_series(n=n,
+                  theta=theta,
+                  w=rep(1,n),
+                  candidate_model=md_candidate_m0)))) %>%
+    mutate(length=.[[2]]-.[[1]])
+```
+
+We see that the lengths of the confidence intervals are significantly shorter.
+
+If all (or a large portion) of the candidate sets are of size $w=m$ for an $m$-out-of-$m$ system,
+then the estimator we have described is not consistent.
+
+However, what if some of candidate sets are of size $w=3$ and others are, say, of size $w=2$?
+```{r}
+as_tibble(confint(md_mle_exp_series_m0(
+    md_exp_series(n=n,
+                  theta=theta,
+                  w=c(rep(3,n/2),rep(2,n/2)),
+                  candidate_model=md_candidate_m0)))) %>%
+    mutate(length=.[[2]]-.[[1]])
+```
+
+We may compare this to the case when all the candidate sets are of size $w=2$ but we only have half the
+sample size, $n/2$:
+```{r}
+as_tibble(confint(md_mle_exp_series_m0(
+    md_exp_series(n=n/2,
+                  theta=theta,
+                  w=rep(2,n/2),
+                  candidate_model=md_candidate_m0)))) %>%
+    mutate(length=.[[2]]-.[[1]])
+```
+
+Empirically, this supports the argument that even observations that do have "candidate"
+sets that include all nodes conveys information about the parameters, but if the proportion
+of such complete candidate sets is too large, then the estimator is inconsistent.
+
+## Estimating node failures from a sample
+Another characteristic we may wish to estimate is the probability that a particular node in an observation
+caused the system failure.
+
+We wish to use as much information as possible to do this estimation.
+We consider three cases:
+
+1. We have masked data `md` with candidate sets and system failure times and seek
+   to estimate the node failure probabilities of observations in this data.
+   This case provides the most accurate estimates of the node probability failures,
+   as have both system failure times and candidate sets as predictors of the node
+   failure.
+
+2. We have a new observation of a system failure time and an estimate of $\theta$
+   from `md`. In this case, we cannot condition on candidate sets, since the
+   observation does not include that information. However, we do have a system
+   failure time.
+   
+3. We have an estimate of $\theta$ from `md` but wish to predict the node
+   failure of a system that has failed, but we do not know when it failed.
+
+
+```{r,eval=F}
+h <- NULL
+md <- md %>% md_series_node_failure_decorator()
+print(md,pprint=T,drop_latent=T)
+```
+
+## Lomax series systems
+
+```{r}
+print(lomax_series_data_1,pprint=T,drop_latent=T)
+```
+
+
+TODO: fix likelihood, the output seems decidedly wrong, but not sure what's wrong with it.
+
 
 
