@@ -77,6 +77,12 @@ The most straightforward series system to estimate is the series system with exp
 Suppose an exponential series system with $m$ nodes is parameterized by $\theta = (3,4,5)'$.
 Then, the $j$-th node has an exponentially distributed lifetime with a failure rate $\theta_j$.
 
+## Candidate model $m_0$
+
+In what follows, we consider the case of a series system with exponentially distributed
+node lifetimes under candidate model $m_0$, as described earlier.
+Later, we consider model $m_1$, the $\alpha$-masked candidate model.
+
 The candidate model $M_0$ for masked data (of size $n=1000$) for this exponential
 series system, with $w=2$ candidates for each observation, is given by:
 
@@ -90,7 +96,7 @@ md <- md_exp_series(n,theta,w,md_candidate_m0)
 print(md,pprint=T,drop_latent=T)
 ```
 
-## Log-likelihood of $\theta$ given masked data
+### Log-likelihood of $\theta$ given masked data
 
 ```{r}
 # kernel of log-likelihood
@@ -109,9 +115,6 @@ i.e., finding the point that *maximizes* the log-likelihood on
 the observed sample `md`.
 This is known as *maximum likelihood estimation*.
 
-
-
-
 We typically solve for the MLE by solving
 $$
     \nabla \operatorname{kloglik}(\theta) |_{\theta=\hat\theta} = 0.
@@ -126,7 +129,11 @@ where $I$ is the information matrix (or observed information matrix).
 We efficiently implement this algorithm with `md_mle_exp_series_m0`:
 ```{r}
 mle <- md_mle_exp_series_m0(md) 
-(theta.hat <- point(mle))
+```
+
+```{r}
+theta.hat <- point(mle)
+print(round(theta.hat,digits=3))
 ```
 
 The `point` method takes an estimator object and obtains its
@@ -134,7 +141,7 @@ point estimate.
 We see that $\hat\theta = (`r round(theta.hat,digits=3)`)$.
 
 If we let the third argument in the log-likelhood function be fixed
-at $\hat\theta_3 = `r round(theta.hat[3],digits=3)`$, then we may \emph{profile} the
+at $\hat\theta_3 = `r round(theta.hat[3],digits=3)`$, then we may profile the
 log-likelihood function over the first two parameters:
 
 ```{r,message=F}
@@ -147,15 +154,19 @@ data %>% ggplot(aes(x=x,y=y)) + geom_line() +
     geom_point(aes(x=theta.hat[1],prof(theta.hat[1])))
 ```
 
-The estimate $\hat\theta$ and $\theta$ have a Euclidean distance of
-`r sqrt(sum((point(mle)-theta)^2))`.
 Due to sampling variability, different runs of the experiment
 will result in different outcomes, i.e., $\hat\theta$ has a
 sampling distribution.
+We see that $\hat\theta \neq \theta$, but it is reasonably
+close.
+We may measure this sampling variability using the variance-covariance
+matrix, bias, mean squared error (MSE), and confidence intervals.
 
-## Variance-covariance matrix
+### Variance-covariance matrix
 The estimator $\hat\theta$ as a function of a random sample
 of masked data has a sampling distribution.
+
+#### Information matrix
 Theoretically, $\hat\theta$ converges in distribution
 to the multivariate normal with a mean $\theta$ and a
 variance-covariance given the the inverse of the
@@ -173,26 +184,26 @@ $$
 $$
 and derive a closed-form solution.
 
-Taking its inverse for the variance-covariance matrix, for
-a $3$-out-of-$3$ exponential series system, this results in
+The inverse of the information matrix $I$ (or $J$) computes the variance-covariance matrix.
+For $3$-out-of-$3$ exponential series system, this results in
 $$
 V(\theta) =
     \frac{\lambda_1+\lambda_2+\lambda_3}{n}
     \begin{pmatrix}
-        \lambda_1+l2+l3 & -\lambda_3                    & -\lambda_2,
-        -\lambda_3      & \lambda_1+\lambda_2+\lambda_3 & -\lambda_1,
-        -\lambda_2      & -\lambda_1                    & \lambda_1+\lambda_2+\lambda_3
+        \lambda_1+\lambda_2+\lambda_3 & -\lambda_3                    & -\lambda_2\\
+        -\lambda_3                    & \lambda_1+\lambda_2+\lambda_3 & -\lambda_1\\
+        -\lambda_2                    & -\lambda_1                    & \lambda_1+\lambda_2+\lambda_3
     \end{pmatrix}.
 $$
 
-Asymptotically, the MLE $\hat\theta$ is the UMVUE, i.e.,
+Asymptotically, $\hat\theta$ is the UMVUE, i.e.,
 it is unbiased and obtains the minimum sampling variance.
 An estimate of the variance-covariance $V$ may be obtained with:
 ```{r}
 (V.hat <- vcov(mle))
 ```
 
-### Bootstrap: sample mean and sample variance-covariance
+#### Bootstrap: sample mean and sample variance-covariance
 If we know the generative model, $\theta$ may be estimated $M$
 times, $\hat\theta^{(1)},\ldots,\hat\theta^{(M)}$, and then 
 the sample mean and sample covariance are estimates of $\theta$ and $V$, respectively.
@@ -214,8 +225,7 @@ vcov(mle)
 ```
 
 
-
-## Bias, MSE, and confidence intervals
+### Bias, MSE, and confidence intervals
 We would like to measure the accuracy and precision of $\hat\theta$ is.
 In statistical literature, the bias
 $$
@@ -242,21 +252,21 @@ of the estimated variance-covariance matrix:
 
 Mean squared error as a function of sample size $n$:
 
-```{r, fig.width=6,fig.height=6,eval=F}
-Ns <- seq(1000, nrow(exp_series_data_3), 1000)
+```{r, fig.width=5,fig.height=5}
+Ns <- seq(100, nrow(exp_series_data_1), 100)
 mses.vcov <- numeric(length=length(Ns))
 mses <- numeric(length=length(Ns))
 
 for (i in 1:length(Ns))
 {
-    mses.vcov[i] <- sum(diag(vcov(md_mle_exp_series_m0(exp_series_data_3[1:Ns[i],]))))
-    mses[i] <- mean((point(md_mle_exp_series_m0(exp_series_data_3[1:Ns[i],])) - theta)^2)
+    mses.vcov[i] <- sum(diag(vcov(md_mle_exp_series_m0(exp_series_data_1[1:Ns[i],]))))
+    mses[i] <- mean((point(md_mle_exp_series_m0(exp_series_data_1[1:Ns[i],])) - theta)^2)
 }
 
 tibble(mse=mses,mses.vcov=mses.vcov,n=Ns) %>% ggplot() +
-    geom_line(aes(x=n,y=mses,color="sample MSE")) + 
-    geom_line(aes(x=n,y=mses.vcov,color="asymptotic theory")) +
-    scale_color_manual(name="Legend",values=c("sample MSE"="blue", "asymptotic theory"="red"))
+    geom_line(aes(x=n,y=mses,color="sample")) + 
+    geom_line(aes(x=n,y=mses.vcov,color="theory")) +
+    scale_color_manual(name="Legend",values=c("sample"="blue", "theory"="red"))
 ```
 
 
@@ -283,32 +293,7 @@ We see that the lengths of the confidence intervals are significantly shorter.
 If all (or a large portion) of the candidate sets are of size $w=m$ for an $m$-out-of-$m$ system,
 then the estimator we have described is not consistent.
 
-However, what if some of candidate sets are of size $w=3$ and others are, say, of size $w=2$?
-```{r}
-as_tibble(confint(md_mle_exp_series_m0(
-    md_exp_series(n=n,
-                  theta=theta,
-                  w=c(rep(3,n/2),rep(2,n/2)),
-                  candidate_model=md_candidate_m0)))) %>%
-    mutate(length=.[[2]]-.[[1]])
-```
-
-We may compare this to the case when all the candidate sets are of size $w=2$ but we only have half the
-sample size, $n/2$:
-```{r}
-as_tibble(confint(md_mle_exp_series_m0(
-    md_exp_series(n=n/2,
-                  theta=theta,
-                  w=rep(2,n/2),
-                  candidate_model=md_candidate_m0)))) %>%
-    mutate(length=.[[2]]-.[[1]])
-```
-
-Empirically, this supports the argument that even observations that do have "candidate"
-sets that include all nodes conveys information about the parameters, but if the proportion
-of such complete candidate sets is too large, then the estimator is inconsistent.
-
-## Estimating node failures from a sample
+### Estimating node failures from a sample
 Another characteristic we may wish to estimate is the probability that a particular node in an observation
 caused the system failure.
 
@@ -330,20 +315,88 @@ We consider three cases:
    failure of a system that has failed, but we do not know when it failed.
 
 
-```{r,eval=F}
-h <- NULL
-md <- md %>% md_series_node_failure_decorator()
-print(md,pprint=T,drop_latent=T)
+```{r}
+fk <- md_exp_series_node_failure_m0(theta.hat)
+md %>% select(-c("w",starts_with("t."))) %>%
+    md_series_node_failure_decorator_m0(fk)
 ```
 
-## Lomax series systems
+This output looks reasonable.
+We notice that every row over the columns `k.1`, `k.2`, and `k.3`
+given a specific candidate set are the same.
+This is as expected, since in the case of the exponential series,
+the node failure rates are not a function of time (due to the
+memoryless property).
+
+If we already had an estimate of $\theta$ and we sought to predict
+the failed nodes from only system lifetime data, we would just let
+the candidate sets contain all of the nodes.
+
+### Estimating system lifetime intervals from candidate sets
+
+Suppose we do not know the system failure time, but have masked
+data with candidate sets and we have already estimated the parameters
+of the series system.
+
+Then, we can predict system failure times given these candidate sets.
+Observe that
+$$
+    f_{S|C}(s|c) = f_{S,C} / f_C(c)
+$$
+which simplifies to thinking about the series system as being over
+the subset of nodes in $c$.
+Thus,
+$$
+    S|c = \min\{T_j | j \in c\}.
+$$
+
+We provide an interval estimate for $S|c$, e.g., the shortest interval that
+includes the system failure time with, say, $90\%$ probability.
+In the case of the exponential series system, this is just
+$$
+    (0,F^{-1}_{S|c}(0.95)).
+$$
+
+We consider a larger and more complicated data set for this next example, `exp_series_data_3`.
+Type `?exp_series_data_3` to learn more about it.
+It has a true parameter value of $\theta = (3,5,4,6,7,2,8,9,10,11)'$.
+We decorate its masked data with these upper and lower bounds and compare the result with the known system
+lifetimes, column `s`:
+
+```{r}
+(theta.large.hat <- point(md_mle_exp_series_m0(exp_series_data_3)))
+q.hat <- md_exp_series_system_failure_interval_m0(theta.large.hat,.85)
+(data <- exp_series_data_3 %>% md_series_system_failure_decorator_m0(q.hat) %>%
+    select(-c("w","k",starts_with("t."),starts_with("c."))) %>%
+    mutate(contains = s >= s.lower && s <= s.upper))
+```
+
+We can compute the proportion that contain the system lifetime with:
+```{r}
+mean(data$contains)
+```
+
+We were expecting something closer to $0.85$, but instead we obtained a result of around $0.95$.
+TODO: investigate
+
+## Candidate model $m_1$
+
+Here, we derive similar results for the $\alpha$-masked model.
+
+TODO: finish this section, but provide fewer examples and details.
+
+# Lomax series systems
 
 ```{r}
 print(lomax_series_data_1,pprint=T,drop_latent=T)
 ```
 
-
-TODO: fix likelihood, the output seems decidedly wrong, but not sure what's wrong with it.
+TODO: fix likelihood function, the output seems wron -- the algorithms I've tried
+either do not converge to a solution, or converge to the wrong solution.
+TODO: plot the surface of the profile of the log-likelihood, like I did for exponential. If it seems to be large in
+the wrong area (given that we roughly know what the MLE should be), find out why. If it just looks highly non-linear,
+then look into random restarts and other iterative methods, although starting near the true parameter value in
+the search should largely avoid the problem. If I can't figure it out, move to Weibull instead.
 
 
 

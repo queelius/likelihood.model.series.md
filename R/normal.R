@@ -1,6 +1,7 @@
 #' Construct (multivariate or univariate) normal distribution object.
 #'
-#' @param theta parameter index
+#' @param mu mean
+#' @param sigma variance-covariance matrix
 #'
 #' @export
 make_normal <- function(
@@ -16,12 +17,12 @@ make_normal <- function(
 #' Retrieve the variance-covariance matrix (or scalar)
 #' of a \code{normal} object.
 #'
-#' @param normal object to retrieve the variance-covariance matrix from
+#' @param object The \code{normal} object to retrieve the variance-covariance matrix from
 #'
 #' @export
-vcov.normal <- function(normal,...)
+vcov.normal <- function(object, ...)
 {
-    normal$sigma
+    object$sigma
 }
 
 #' Method for obtaining the parameters of a \code{normal} object.
@@ -39,7 +40,7 @@ params.normal <- function(x, ...)
 #' @param x The object to sample from
 #'
 #' @export
-sampler.normal <- function(x,...)
+sampler.normal <- function(x, ...)
 {
     function(n=1)
     {

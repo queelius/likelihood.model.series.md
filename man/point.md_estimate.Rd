@@ -5,10 +5,10 @@
 \title{Method to obtain the point estimate of
 a masked data estimator, \code{md_estimate}.}
 \usage{
-\method{point}{md_estimate}(estimate, ...)
+\method{point}{md_estimate}(x, ...)
 }
 \arguments{
-\item{estimate}{The object to obtain the point estimate of}
+\item{x}{The \code{md_estimate} object to obtain the point estimate of}
 }
 \description{
 Method to obtain the point estimate of

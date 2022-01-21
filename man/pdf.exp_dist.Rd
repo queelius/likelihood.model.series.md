@@ -4,10 +4,10 @@
 \alias{pdf.exp_dist}
 \title{Method to obtain the pdf of an \code{exp_dist} object.}
 \usage{
-\method{pdf}{exp_dist}(exp_dist, ...)
+\method{pdf}{exp_dist}(x, ...)
 }
 \arguments{
-\item{exp_dist}{The object to obtain the pdf of}
+\item{x}{The object to obtain the pdf of}
 }
 \description{
 Note that since \code{exp_series} is also exponentially distributed,

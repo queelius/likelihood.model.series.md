@@ -7,10 +7,10 @@
 md_candidate_m0(md, m)
 }
 \arguments{
-\item{md}{masked data, data frame object with column 'k' for failed component
-and column 'w' for corresponding candidate set size.}
+\item{md}{masked data, data frame object with column \code{k} for failed component
+and column \code{w} for corresponding candidate set size.}
 
-\item{m}{Integer, number of nodes in the series system}
+\item{m}{number of nodes in the series system}
 }
 \value{
 masked data with candidate sets that model m0
@@ -21,6 +21,6 @@ model m0.
 }
 \details{
 Specifically, the candidate sets are generated according to the alpha-masked
-model, where C_i contains k_i and w_i-1 nodes randomly selected without
-replacement from {1,...,m} - {k_i}.
+model, where \code{C[i,]} contains \code{k[i]} and \code{w[i-1]} nodes randomly selected without
+replacement from \code{{1,...,m} - {k[i]}}.
 }

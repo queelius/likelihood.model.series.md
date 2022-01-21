@@ -4,10 +4,10 @@
 \alias{vcov.md_estimate}
 \title{Compute the covariance matrix from the given masked data estimate.}
 \usage{
-\method{vcov}{md_estimate}(estimate)
+\method{vcov}{md_estimate}(object, ...)
 }
 \arguments{
-\item{estimate}{the variance-covariance matrix of the estimator to obtain}
+\item{object}{The variance-covariance matrix of the estimator to obtain}
 }
 \description{
 Sampling distribution of the MLE is a multivariate normal with mean

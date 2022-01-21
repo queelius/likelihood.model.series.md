@@ -2,13 +2,13 @@
 % Please edit documentation in R/md_estimate.R
 \name{fisher_info.md_estimate}
 \alias{fisher_info.md_estimate}
-\title{Method to obtain the fisher infromation matrix of an md_estimate.}
+\title{Method to obtain the fisher information matrix of an \code{md_estimate}.}
 \usage{
-\method{fisher_info}{md_estimate}(estimate, ...)
+\method{fisher_info}{md_estimate}(x, ...)
 }
 \arguments{
-\item{estimate}{The object to obtain the fisher information of}
+\item{x}{The \code{md_estimate} object to obtain the fisher information of}
 }
 \description{
-Method to obtain the fisher infromation matrix of an md_estimate.
+Method to obtain the fisher information matrix of an \code{md_estimate}.
 }

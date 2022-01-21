@@ -4,24 +4,26 @@
 #' given by the true parameter value and, asymptotically, a covariance
 #' given by the inverse of the Fisher information matrix.
 #'
-#' @param estimate the variance-covariance matrix of the estimator to obtain
+#' @param object The variance-covariance matrix of the estimator to obtain
 #'
 #' @export
-vcov.md_estimate <- function(estimate)
+vcov.md_estimate <- function(object, ...)
 {
-    matlib::inv(fisher_info(estimate))
+    matlib::inv(fisher_info(object))
 }
 
 #' Method to obtain the confidence intervals of the parameter values of a
 #' masked data estimator, \code{md_estimate}.
 #'
+#' @param object The \code{md_estimate} object to compute the confidence intervals for
+#' @param parm Unused
 #' @param level Confidence level, defaults to 0.95 (alpha=.05)
 #'
 #' @export
-confint.md_estimate <- function(estimate, parm=NULL, level=0.95)
+confint.md_estimate <- function(object, parm=NULL, level=0.95, ...)
 {
-    V <- vcov(estimate)
-    theta.hat <- point(estimate)
+    V <- vcov(object)
+    theta.hat <- point(object)
     p <- length(theta.hat)
     q <- stats::qnorm(level)
 
@@ -50,12 +52,12 @@ point <- function(x, ...)
 #' Method to obtain the point estimate of
 #' a masked data estimator, \code{md_estimate}.
 #'
-#' @param estimate The object to obtain the point estimate of
+#' @param x The \code{md_estimate} object to obtain the point estimate of
 #'
 #' @export
-point.md_estimate <- function(estimate, ...)
+point.md_estimate <- function(x, ...)
 {
-    estimate$theta.hat
+    x$theta.hat
 }
 
 #' Generic method for obtaining the fisher information
@@ -69,21 +71,24 @@ fisher_info <- function(x, ...)
     UseMethod("fisher_info",x)
 }
 
-#' Method to obtain the fisher infromation matrix of an md_estimate.
+#' Method to obtain the fisher information matrix of an \code{md_estimate}.
 #'
-#' @param estimate The object to obtain the fisher information of
+#' @param x The \code{md_estimate} object to obtain the fisher information of
 #'
 #' @export
-fisher_info.md_estimate <- function(estimate, ...)
+fisher_info.md_estimate <- function(x, ...)
 {
-    estimate$info
+    x$info
 }
 
+#' Method to obtain the sampler for an \code{md_estimate} object.
+#'
+#' @param x The \code{md_estimate} object to create a sampling procedure from
 #' @export
-sampler.md_estimate <- function(estimate,...)
+sampler.md_estimate <- function(x, ...)
 {
     sampler(
         make_normal(
-            point(estimate),
-            vcov(estimate)))
+            point(x),
+            vcov(x)))
 }

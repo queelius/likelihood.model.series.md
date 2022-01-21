@@ -3,14 +3,14 @@
 \name{hazard.exp_dist}
 \alias{hazard.exp_dist}
 \title{Method to obtain the hazard function of
-an \code{exp_series} object.}
+an \code{exp_dist} object.}
 \usage{
-\method{hazard}{exp_dist}(exp_dist, ...)
+\method{hazard}{exp_dist}(x, ...)
 }
 \arguments{
-\item{exp_series}{The object to obtain the hazard function of}
+\item{x}{The \code{exp_dist} object to obtain the hazard function of}
 }
 \description{
 Method to obtain the hazard function of
-an \code{exp_series} object.
+an \code{exp_dist} object.
 }

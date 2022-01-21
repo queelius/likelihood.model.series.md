@@ -115,14 +115,13 @@ md_num_nodes <- function(md)
 #' An object is considered to be masked data if
 #' it is a type of data frame (e.g., tibble)
 #' and it has at least two columns for candidate
-#' sets named \code{c.1} and \code{c.2} and a column for
-#' system failure time named \code{s}.
+#' sets named \code{c.1} and \code{c.2}.
 #'
 #' @param x object to test
 #' @export
 md_is_masked_data <- function(x)
 {
-    is.data.frame(x) && all(c("c.1","c.2","s") %in% colnames(x))
+    is.data.frame(x) && all(c("c.1","c.2") %in% colnames(x))
 }
 
 #' Generates masked data for a series system with the given node failure times
@@ -164,12 +163,12 @@ md_series_data <- function(t,w,candidate_model=md_candidate_m0)
 #' @export
 md_candidates_to_strings <- function(md)
 {
-    stopifnot(md_is_masked_data(md))
+    cand_str <- character(nrow(md))
+    if (!md_is_masked_data(md))
+        return(cand_str)
 
     C <- md_candidates_as_matrix(md)
     m <- md_num_nodes(md)
-
-    cand_str <- character(nrow(md))
     for (i in 1:nrow(md))
         cand_str[i] <- toString((1:m)[C[i,]])
 

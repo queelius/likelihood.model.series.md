@@ -55,7 +55,7 @@ for (i in 1:n)
 data %>% ggplot(aes(x=x,y=y)) + geom_line() + geom_point(aes(x=mle[1],profile1(mle[1])),color="blue") +
     geom_text(label=paste("(",toString(round(mle,2)),")",sep=""),aes(x=mle[1],y=100+profile1(mle[1])))
 
-mle_text <- paste("𝜃 = (",toString(round(mle,2)),")'",sep="")
+mle_text <- paste("theta = (",toString(round(mle,2)),")'",sep="")
 data %>% ggplot(aes(x=x,y=y)) + geom_line() + geom_point(aes(x=mle[1],profile1(mle[1])),color="blue") +
     annotate("text",label=mle_text,x=mle[1],y=100+profile1(mle[1]))
 

@@ -7,7 +7,9 @@
 make_normal(mu, sigma = diag(length(mu)))
 }
 \arguments{
-\item{theta}{parameter index}
+\item{mu}{mean}
+
+\item{sigma}{variance-covariance matrix}
 }
 \description{
 Construct (multivariate or univariate) normal distribution object.

@@ -12,8 +12,6 @@ column 'w' for corresponding candidate set size, and column 'alpha' for
 corresponding alpha probabilities}
 
 \item{m}{Integer, number of nodes in the series system}
-
-\item{with_seed}{Integer, seeds PRNG to facilitate reproducible data/research}
 }
 \value{
 alpha-masked data with candidate sets that model m1
@@ -24,8 +22,9 @@ model m1.
 }
 \details{
 Specifically, the candidate sets are generated according to the alpha-masked
-model, where with probability alpha_i, C_i contains k_i and w_i-1 nodes
-randomly selected without replacement from {1,...,m} - {k_i} and with
-probability 1-alpha_i, C_i contains w_i nodes randomly selected without
-replacement from {1,...,m} \ { k_i }.
+model, where with probability \code{alpha[i]}, \code{C[i,]} contains \code{k[i]}
+and \code{w[i-1]} nodes randomly selected without replacement from
+\code{{1,...,m} - { k[i]}} and with probability \code{1-alpha[i]},
+\code{C[i,]} contains \code{w[i]} nodes randomly selected without
+replacement from \code{{1,...,m} - { k[i] }}.
 }

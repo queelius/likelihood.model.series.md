@@ -5,9 +5,13 @@
 \title{Method to obtain the confidence intervals of the parameter values of a
 masked data estimator, \code{md_estimate}.}
 \usage{
-\method{confint}{md_estimate}(estimate, parm = NULL, level = 0.95)
+\method{confint}{md_estimate}(object, parm = NULL, level = 0.95, ...)
 }
 \arguments{
+\item{object}{The \code{md_estimate} object to compute the confidence intervals for}
+
+\item{parm}{Unused}
+
 \item{level}{Confidence level, defaults to 0.95 (alpha=.05)}
 }
 \description{

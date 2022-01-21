@@ -9,17 +9,6 @@ params <- function(x, ...)
     UseMethod("params",x)
 }
 
-#' Generic method for obtaining the pdf of a
-#' random variable.
-#'
-#' @param x The object to obtain the pdf of
-#'
-#' @export
-pdf <- function(x, ...)
-{
-    UseMethod("pdf",x)
-}
-
 #' Generic method for obtaining the hazard function of
 #' a random variable.
 #'
@@ -31,14 +20,26 @@ hazard <- function(x, ...)
     UseMethod("hazard",x)
 }
 
+#' Generic method for obtaining the pdf function of
+#' a random variable.
+#'
+#' @param x The object to obtain the hazard function of
+#'
+#' @export
+pdf <- function(x, ...)
+{
+    UseMethod("pdf",x)
+}
+
+
 #' Method for obtaining the number of nodes in an object.
 #'
 #' @param series The object to obtain the number of nodes of
 #'
 #' @export
-num_nodes <- function(x)
+num_nodes <- function(series)
 {
-    x$num_nodes
+    series$num_nodes
 }
 
 #' Generic method for sampling from distribution objects.
@@ -46,7 +47,7 @@ num_nodes <- function(x)
 #' @param x The object to sample from.
 #'
 #' @export
-sampler <- function(x,...)
+sampler <- function(x, ...)
 {
     UseMethod("sampler",x)
 }

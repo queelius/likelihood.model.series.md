@@ -26,28 +26,28 @@ make_exp_dist <- function(rate)
 
 #' Method for obtaining the variance-covariance of a \code{exp_series} object.
 #'
-#' @param exp_dist The object to obtain the variance of
+#' @param object The \code{exp_series}The object to obtain the variance of
 #'
 #' @export
-vcov.exp_series <- function(exp_series)
+vcov.exp_series <- function(object, ...)
 {
-    diag(1/exp_series$theta)^2
+    diag(1/object$theta)^2
 }
 
 #' Method for obtaining the variance of a \code{exp_dist} object.
 #'
-#' @param exp_dist The object to obtain the variance of
+#' @param object The \code{exp_dist} object to obtain the variance of
 #'
 #' @export
-vcov.exp_dist <- function(exp_dist)
+vcov.exp_dist <- function(object, ...)
 {
-    1/exp_dist$theta^2
+    1/object$theta^2
 }
 
 #' Method for obtaining the parameters of
 #' a \code{series} distribution object.
 #'
-#' @param x The object to obtain the parameters of
+#' @param x The \code{series} object to obtain the parameters of
 #'
 #' @export
 params.series <- function(x, ...)
@@ -56,14 +56,14 @@ params.series <- function(x, ...)
 }
 
 #' Method to obtain the hazard function of
-#' an \code{exp_series} object.
+#' an \code{exp_dist} object.
 #'
-#' @param exp_series The object to obtain the hazard function of
+#' @param x The \code{exp_dist} object to obtain the hazard function of
 #'
 #' @export
-hazard.exp_dist <- function(exp_dist, ...)
+hazard.exp_dist <- function(x, ...)
 {
-    theta <- params(exp_dist)
+    theta <- params(x)
     function(t,...)
     {
         ifelse(t <= 0,0,sum(theta))
@@ -75,12 +75,12 @@ hazard.exp_dist <- function(exp_dist, ...)
 #' Note that since \code{exp_series} is also exponentially distributed,
 #' this works for that too.
 #'
-#' @param exp_dist The object to obtain the pdf of
+#' @param x The object to obtain the pdf of
 #'
 #' @export
-pdf.exp_dist <- function(exp_dist, ...)
+pdf.exp_dist <- function(x, ...)
 {
-    theta <- params(exp_dist)
+    theta <- params(x)
     function(t,...)
     {
         ifelse(t <= 0,0,sum(theta))
@@ -89,13 +89,13 @@ pdf.exp_dist <- function(exp_dist, ...)
 
 #' Method to sample from an \code{exp_dist} object.
 #'
-#' @param x The object to sample from.
+#' @param x The \code{exp_dist} object to sample from.
 #'
 #' @export
 sampler.exp_dist <- function(x,...)
 {
-    function(n=1)
+    function(n=1,...)
     {
-        stats::rexp(params(x))
+        stats::rexp(n,params(x),...)
     }
 }

@@ -4,10 +4,10 @@
 \alias{vcov.exp_dist}
 \title{Method for obtaining the variance of a \code{exp_dist} object.}
 \usage{
-\method{vcov}{exp_dist}(exp_dist)
+\method{vcov}{exp_dist}(object, ...)
 }
 \arguments{
-\item{exp_dist}{The object to obtain the variance of}
+\item{object}{The \code{exp_dist} object to obtain the variance of}
 }
 \description{
 Method for obtaining the variance of a \code{exp_dist} object.

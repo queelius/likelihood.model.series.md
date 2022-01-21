@@ -2,15 +2,15 @@
 % Please edit documentation in R/dist_tools.R
 \name{pdf}
 \alias{pdf}
-\title{Generic method for obtaining the pdf of a
-random variable.}
+\title{Generic method for obtaining the pdf function of
+a random variable.}
 \usage{
 pdf(x, ...)
 }
 \arguments{
-\item{x}{The object to obtain the pdf of}
+\item{x}{The object to obtain the hazard function of}
 }
 \description{
-Generic method for obtaining the pdf of a
-random variable.
+Generic method for obtaining the pdf function of
+a random variable.
 }

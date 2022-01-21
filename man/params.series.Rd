@@ -8,7 +8,7 @@ a \code{series} distribution object.}
 \method{params}{series}(x, ...)
 }
 \arguments{
-\item{x}{The object to obtain the parameters of}
+\item{x}{The \code{series} object to obtain the parameters of}
 }
 \description{
 Method for obtaining the parameters of

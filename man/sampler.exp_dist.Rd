@@ -7,7 +7,7 @@
 \method{sampler}{exp_dist}(x, ...)
 }
 \arguments{
-\item{x}{The object to sample from.}
+\item{x}{The \code{exp_dist} object to sample from.}
 }
 \description{
 Method to sample from an \code{exp_dist} object.

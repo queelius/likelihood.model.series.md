@@ -45,39 +45,12 @@ md_exp_series <- function(n,theta,w,candidate_model=md_candidate_m0,metadata=T)
     md
 }
 
-#' Kernel log-likelihood for masked data m0 for exponential series system.
-#'
-#' The log of the kernel of the likelihood function for masked data
-#' for a series system with exponentially distributed lifetimes
-#' and candidate sets that model m0.
-#'
-#' This is the unoptimized version, which serves as a ground-truth
-#' for testing a more efficient implementation.
-#'
-#' @param md masked data for candidate model m0
-#' @export
-md_kloglike_exp_series_m0_slow <- function(md)
-{
-    C <- md_candidates_as_matrix(md)
-    function(rate)
-    {
-        s <- 0.0
-        for (i in 1:nrow(C))
-        {
-            s <- s + log(sum(rate[C[i,]]))
-        }
-        s - sum(md$s) * sum(rate)
-    }
-}
-
 #' Kernel log-likelihood for masked data m0 for exponential series system
 #' using sufficient statistics.
 #'
 #' The log of the kernel of the likelihood function for masked data
 #' for a series system with exponentially distributed lifetimes
 #' and candidate sets that model m0 using sufficient statistics.
-#'
-#' This is an optimization of \code{\link[masked.data]{md_kloglike_exp_series_m0_slow}}.
 #'
 #' @param md masked data
 #' @importFrom dplyr %>%
@@ -177,7 +150,7 @@ md_info_exp_series_m0 <- function(md)
 md_mle_exp_series_m0 = function(md,theta0=NULL,eps=1e-5,max_iterations=10000L)
 {
     if (is.null(theta0))
-        theta0 <- rep(3.0,md_num_nodes(md))
+        theta0 <- rep(1.,md_num_nodes(md))
 
     res <- md_fisher_scoring(
         theta0,
@@ -190,12 +163,52 @@ md_mle_exp_series_m0 = function(md,theta0=NULL,eps=1e-5,max_iterations=10000L)
         theta.hat=res$theta.hat,
         iterations=res$iterations,
         max_iterations=max_iterations,
-        stop_condition=ifelse(res$iterations==res$max_iterations,"max_iterations","eps"),
         eps=eps,
-        max_kloglike=md_kloglike_exp_series_m0(md)(res$theta.hat),
         info=md_info_exp_series_m0(md)(res$theta.hat)),
-        class=c("md_mle_exp_series_m0_estimate","md_estimate"),
+        class=c("md_estimate"),
         attributes=list("candidate_model" = "m0"))
 }
 
+#' Constructs a pdf object for the conditional node failure
+#' in an exponential series system according to candidate model
+#' m0, \code{f(k|c,s)} = h_k(s)/h(s) I(k in c)}.
+#'
+#' This simplifies to \code{f(k|c) = theta[k] / sum(theta[j],j in c)} for
+#' the exponential series system.
+#'
+#' @param theta parameter value of \code{exp_series}
+#' @export
+md_exp_series_node_failure_m0 <- function(theta)
+{
+    if (is.matrix(theta))
+        theta <- as.vector(theta)
 
+    theta <- unlist(theta)
+    m <- length(theta)
+    function(k,c,s)
+    {
+        if (s <= 0 || !(k %in% (1:m)[c]))
+            0
+        else
+            theta[k] / sum(theta[c])
+    }
+}
+
+
+#' Constructs the shortest interval for the system lifetime
+#' given a candidate set under model m0 with a probability \code{p}
+#' that the interval contains the system failure.
+#'
+#' @param theta parameter value of \code{exp_series}
+#' @param p probability that system failure time is in the computed interval
+#' @export
+md_exp_series_system_failure_interval_m0 <- function(theta,p)
+{
+    if (is.matrix(theta))
+        theta <- as.vector(theta)
+    theta <- unlist(theta)
+    function(c)
+    {
+        c(0,qexp(p,sum(theta[c])))
+    }
+}

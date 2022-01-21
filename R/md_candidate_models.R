@@ -4,12 +4,12 @@
 #' model m0.
 #'
 #' Specifically, the candidate sets are generated according to the alpha-masked
-#' model, where C_i contains k_i and w_i-1 nodes randomly selected without
-#' replacement from {1,...,m} - {k_i}.
+#' model, where \code{C[i,]} contains \code{k[i]} and \code{w[i-1]} nodes randomly selected without
+#' replacement from \code{{1,...,m} - {k[i]}}.
 #'
-#' @param md masked data, data frame object with column 'k' for failed component
-#' and column 'w' for corresponding candidate set size.
-#' @param m Integer, number of nodes in the series system
+#' @param md masked data, data frame object with column \code{k} for failed component
+#' and column \code{w} for corresponding candidate set size.
+#' @param m number of nodes in the series system
 #' @return masked data with candidate sets that model m0
 #' @importFrom dplyr %>%
 #' @export
@@ -31,16 +31,16 @@ md_candidate_m0 = function(md,m)
 #' model m1.
 #'
 #' Specifically, the candidate sets are generated according to the alpha-masked
-#' model, where with probability alpha_i, C_i contains k_i and w_i-1 nodes
-#' randomly selected without replacement from {1,...,m} - {k_i} and with
-#' probability 1-alpha_i, C_i contains w_i nodes randomly selected without
-#' replacement from {1,...,m} \ { k_i }.
+#' model, where with probability \code{alpha[i]}, \code{C[i,]} contains \code{k[i]}
+#' and \code{w[i-1]} nodes randomly selected without replacement from
+#' \code{{1,...,m} - { k[i]}} and with probability \code{1-alpha[i]},
+#' \code{C[i,]} contains \code{w[i]} nodes randomly selected without
+#' replacement from \code{{1,...,m} - { k[i] }}.
 #'
 #' @param md masked data, a data frame object with column 'k' for failed component,
 #' column 'w' for corresponding candidate set size, and column 'alpha' for
 #' corresponding alpha probabilities
 #' @param m Integer, number of nodes in the series system
-#' @param with_seed Integer, seeds PRNG to facilitate reproducible data/research
 #' @return alpha-masked data with candidate sets that model m1
 #' @importFrom dplyr %>%
 #' @export

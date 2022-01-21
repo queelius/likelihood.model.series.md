@@ -4,7 +4,7 @@
 #' where the system is parameterized by \code{theta=c(3,5,4,6,7,2,8,9,10,11)} and
 #' candidate model is m0.
 #'
-#' Candidate set sizes are randomly drawn from \code{{2,3,4,5,6,7,8,9}}.
+#' Candidate set sizes are randomly drawn from {2,3,4,5,6,7,8,9}.
 #'
 #' @format A data frame with 100000 rows and 23 variables:
 #' \describe{

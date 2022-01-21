@@ -4,10 +4,10 @@
 \alias{vcov.exp_series}
 \title{Method for obtaining the variance-covariance of a \code{exp_series} object.}
 \usage{
-\method{vcov}{exp_series}(exp_series)
+\method{vcov}{exp_series}(object, ...)
 }
 \arguments{
-\item{exp_dist}{The object to obtain the variance of}
+\item{object}{The \code{exp_series}The object to obtain the variance of}
 }
 \description{
 Method for obtaining the variance-covariance of a \code{exp_series} object.

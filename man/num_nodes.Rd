@@ -4,7 +4,7 @@
 \alias{num_nodes}
 \title{Method for obtaining the number of nodes in an object.}
 \usage{
-num_nodes(x)
+num_nodes(series)
 }
 \arguments{
 \item{series}{The object to obtain the number of nodes of}

@@ -13,6 +13,5 @@ md_is_masked_data(x)
 An object is considered to be masked data if
 it is a type of data frame (e.g., tibble)
 and it has at least two columns for candidate
-sets named \code{c.1} and \code{c.2} and a column for
-system failure time named \code{s}.
+sets named \code{c.1} and \code{c.2}.
 }
