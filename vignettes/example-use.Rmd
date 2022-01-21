@@ -1,10 +1,11 @@
 ---
-title: "Using the masked.data package"
-output: rmarkdown::html_vignette
+title: "The masked.data package"
+output: pdf_document
+#output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Using the masked.data package}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{The masked.data package}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r, include = FALSE}
@@ -16,41 +17,48 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-`masked.data` is an R package developed with the intention of providing a framework for estimating the parameters of latent node lifetimes from *masked data*.
-Presently, we only provide support for series systems with node lifetimes in the `exponential`, `lomax`, `weibull`, and `pareto` parametric families.
+The R package `masked.data` is a framework for estimating the parameters of latent node lifetimes from *masked data*
+in a series system.
+Presently, we only provide support for series systems with node lifetimes in the `exponential` and `lomax` parametric families.
 
 Install the library with:
-``` r
+```r
 devtools::install_github("queelius/masked.data")
 ```
 
-Once install, you may load the library and other dependencies with:
+Once installed, you may load the library with:
 
 ```{r setup,message=F}
 # load the masked data library
 library(masked.data)
-
 # load other dependencies
-library(purrr)
-library(dplyr)
-library(ggplot2)
-library(tibble)
+library(tidyverse)
 ```
 
 # Masked data
 
 Masked data is given by an i.i.d. sample of system lifetime data and
-a candidate set which contains the component that caused the system failure.
-It may also be viewed as a predictor of the system lifetime, but we
-we use the candidate sets in the sample to estimate component lifetimes.
+*plausible* candidate sets that contain the failed node.
 
-`masked.data` contains several simulated masked data sets.
+The `masked.data` R package contains several simulated masked data sets.
 For example, a series system with $10$ exponentially distributed nodes
 is stored in `exp_series_data_3`:
 
 ```{r}
 print(exp_series_data_3,drop_latent=T,pprint=T)
 ```
+
+You can get help on any object in `masked.data` using the built-in help.
+For instance, to get information on the data set `exp_series_data_1`, type
+`?exp_series_data_1` in your R console.
+
+# Statistical model
+
+TODO: Cut-and-paste a lot of the material in statistical model section and distribution derivation section
+into here, but only just enough to be able to derive the log-likelihood. We will also need a few
+key distribution functions and hazard functions for some of the other material.
+
+In this vignette, We consider two candidate set models, $m_0$ and $m_1$.
 
 ## Candidate model $m_0$
 
@@ -69,21 +77,21 @@ $C_j$ described by the following:
 
 2. $C_j$ contains a random selection (without replacement) of $w_j$ non-failed nodes
    with probability $1-\alpha_j$.
-   
+
 # Exponential series system
 
 The most straightforward series system to estimate is the series system with exponentially distributed node lifetimes.
 
+## Candidate model $m_0$
+
 Suppose an exponential series system with $m$ nodes is parameterized by $\theta = (3,4,5)'$.
 Then, the $j$-th node has an exponentially distributed lifetime with a failure rate $\theta_j$.
-
-## Candidate model $m_0$
 
 In what follows, we consider the case of a series system with exponentially distributed
 node lifetimes under candidate model $m_0$, as described earlier.
 Later, we consider model $m_1$, the $\alpha$-masked candidate model.
 
-The candidate model $M_0$ for masked data (of size $n=1000$) for this exponential
+The candidate model $m_0$ for masked data (of size $n=1000$) for this exponential
 series system, with $w=2$ candidates for each observation, is given by:
 
 ```{r}
@@ -96,10 +104,22 @@ md <- md_exp_series(n,theta,w,md_candidate_m0)
 print(md,pprint=T,drop_latent=T)
 ```
 
+In the above, we used the function `md_exp_series`.
+To get more help on it, type `?md_exp_series`.
+
 ### Log-likelihood of $\theta$ given masked data
 
+The log-likelihood function (technically, it is the log of the likelihood kernel) is given by
+$$
+    \operatorname{kloglik}(\theta) =
+    -\left(\sum_{i=1}^{n} s_i\right)\left(\sum_{j=1}^{m}\right) + \sum_{i=1}^{n} \log\left(\sum_{k \in c_i} \lambda_k\right).
+$$
+
+The following log-likelihood constructor, `md_kloglike_exp_series_m0`, is implemented using minimally sufficient
+statistics, which significantly improves the computational efficiency of computing the log-likelihood.
+
+We compute the log-likelihood function as a function of the masked data `md` with:
 ```{r}
-# kernel of log-likelihood
 kloglik <- md_kloglike_exp_series_m0(md)
 ```
 
@@ -126,18 +146,21 @@ $$
 $$
 where $I$ is the information matrix (or observed information matrix).
 
-We efficiently implement this algorithm with `md_mle_exp_series_m0`:
+The function `md_mle_exp_series_m0` is a small wrapper for this function,
+providing `md_fisher_scoring` with the appropriate arguments.
+We find $\hat\theta$ by running the following R code:
 ```{r}
 mle <- md_mle_exp_series_m0(md) 
-```
-
-```{r}
 theta.hat <- point(mle)
 print(round(theta.hat,digits=3))
 ```
 
-The `point` method takes an estimator object and obtains its
-point estimate.
+The function `md_mle_exp_series_m0` returns an `md_estimate` object, which
+has various methods implemented for it, e.g., `confint` (computes the
+estimators confidence interval).
+In the above, we see use of the `point` method, which takes an estimator
+object and obtains its *best* point estimate, or in this case,
+the MLE $\hat\theta$.
 We see that $\hat\theta = (`r round(theta.hat,digits=3)`)$.
 
 If we let the third argument in the log-likelhood function be fixed
@@ -204,29 +227,35 @@ An estimate of the variance-covariance $V$ may be obtained with:
 ```
 
 #### Bootstrap: sample mean and sample variance-covariance
-If we know the generative model, $\theta$ may be estimated $M$
-times, $\hat\theta^{(1)},\ldots,\hat\theta^{(M)}$, and then 
-the sample mean and sample covariance are estimates of $\theta$ and $V$, respectively.
+Another way we may estimate the variance-covariance matrix is
+with parameter Bootstrapping.
 
-```{r, cache=T, eval=F}
-M <- 500
-theta.hats <- matrix(nrow=M,ncol=m)
-for (i in 1:M)
-    theta.hats[i,] <- as.vector(point(
-        md_mle_exp_series_m0(md_exp_series(n,theta,w,md_candidate_m0))))
-
-data.frame(theta1=c(theta[1],mean(theta.hats[,1])),
-           theta2=c(theta[2],mean(theta.hats[,2])),
-           theta3=c(theta[3],mean(theta.hats[,3])),
-           row.names=c("true value", "mle"))
-
-cov(theta.hats)
-vcov(mle)
+Using the MLE $\hat\theta$, we may sample from the masked data model
+with:
+```{r,cache=T}
+B <- 200 # bootstrap replicates
+theta.hat.sim <- matrix(nrow=B,ncol=length(theta.hat))
+for (i in 1:B)
+{
+    theta.hat.sim[i,] <- as.vector(point(md_mle_exp_series_m0(
+        md_exp_series(
+            n=n,
+            theta=theta.hat,
+            w=w,
+            candidate_model=md_candidate_m0))))
+}
 ```
 
+Now that we have Bootstrapped sample of MLEs, $\hat\theta^{(1)},\ldots,\hat\theta^{(B)}$,
+we can compute its sample covariance to estimate $V$:
+```{r}
+(V.bs <- cov(theta.hat.sim))
+```
+
+This estimate of the variance-covariance matrix is similar to the inverse Fisher information matrix.
 
 ### Bias, MSE, and confidence intervals
-We would like to measure the accuracy and precision of $\hat\theta$ is.
+We would like to measure the accuracy and precision of $\hat\theta$.
 In statistical literature, the bias
 $$
     \operatorname{b}(\hat\theta) = E(\hat\theta) - \theta
@@ -290,8 +319,27 @@ as_tibble(confint(md_mle_exp_series_m0(
 
 We see that the lengths of the confidence intervals are significantly shorter.
 
-If all (or a large portion) of the candidate sets are of size $w=m$ for an $m$-out-of-$m$ system,
-then the estimator we have described is not consistent.
+If *no* information is provided about the node failure
+in a series system with $m$ nodes ($w_i=m$ for $i=1,\ldots,n$),
+then the $m_0$ estimator is inconsistent.
+
+### Sampling distribution of $\hat\theta$
+
+We know that $\hat\theta \sim \mathcal{N}(\theta,I^{-1}(\theta))$.
+We can estimate the sampling distribution of $\hat\theta$
+with $\mathcal{N}(\hat\theta,I^{-1}(\hat\theta))$.
+
+This makes it trivial to estimate any other function of
+$\theta$ by sampling from the approximation:
+```{r}
+samp <- sampler(make_normal(point(mle),vcov(mle)))
+mles <- samp(n=1000)
+```
+
+We show a contour plot of the first two components of each point in the MLE sample with:
+```{r}
+ggplot(tibble(x=mles[,1],y=mles[,2]),aes(x=x,y=y)) + geom_point()
+```
 
 ### Estimating node failures from a sample
 Another characteristic we may wish to estimate is the probability that a particular node in an observation
@@ -314,6 +362,23 @@ We consider three cases:
 3. We have an estimate of $\theta$ from `md` but wish to predict the node
    failure of a system that has failed, but we do not know when it failed.
 
+We consider case 1 describe above where we have masked data `md` that includes
+both candidate sets and system failure times.
+
+In this case, we are interested in
+$$
+    f_{K|C,S}(k|c,s,\theta) = \frac{h_k(s)}{\sum_{j \in c} h_j(s)},
+$$
+which in the exponential series case simplifies to
+$$
+    f_{K|C,S}(k|c,s,\theta) = \frac{\lambda_k}{\sum_{j \in c} \lambda_j}.
+$$
+
+We model this probability distribution with `md_exp_series_node_failure_m0`.
+We also provide a decorator function `md_series_node_failure_decorator_m0`
+that accepts masked data as input and an `md_exp_series_node_failure_m0`
+object and returns the masked data with columns for node failure
+probabilities given by `k.1`,...,`k.m`.
 
 ```{r}
 fk <- md_exp_series_node_failure_m0(theta.hat)
@@ -321,16 +386,34 @@ md %>% select(-c("w",starts_with("t."))) %>%
     md_series_node_failure_decorator_m0(fk)
 ```
 
-This output looks reasonable.
 We notice that every row over the columns `k.1`, `k.2`, and `k.3`
 given a specific candidate set are the same.
 This is as expected, since in the case of the exponential series,
-the node failure rates are not a function of time (due to the
-memoryless property).
+the node failure rates $f_{K|C,S}$ are not a function of system
+failure time.
 
 If we already had an estimate of $\theta$ and we sought to predict
 the failed nodes from only system lifetime data, we would just let
 the candidate sets contain all of the nodes.
+
+Also, observe that the node failure probabilities
+$$
+    \hat{k}(\theta) = (\hat{k}_1,\hat{k}_2,\hat{k}_3)'
+$$
+is a random vector whose sampling distribution is a multivariate
+normal
+$$
+    \hat{k}(\theta) \sim \mathcal{N}(k(\theta), V(k(\theta))).
+$$
+
+While these parameters could possibly be derived as functions of $\theta$,
+earlier we discussed how we can simulate draws from $\hat\theta$ and
+applying the statistic of interest.
+
+For instance, once we have a simulated sample
+$\hat{k}^{(1)},\ldots,\hat{k}^{(B)}$, we can operate on this data to
+estimate desired characteristics like confidence intervals for
+$k(\theta)$.
 
 ### Estimating system lifetime intervals from candidate sets
 
@@ -341,7 +424,7 @@ of the series system.
 Then, we can predict system failure times given these candidate sets.
 Observe that
 $$
-    f_{S|C}(s|c) = f_{S,C} / f_C(c)
+    f_{S|C}(s|c,\theta) = f_{S,C}(c,s|\theta) / f_C(c)
 $$
 which simplifies to thinking about the series system as being over
 the subset of nodes in $c$.
@@ -350,12 +433,11 @@ $$
     S|c = \min\{T_j | j \in c\}.
 $$
 
-We provide an interval estimate for $S|c$, e.g., the shortest interval that
-includes the system failure time with, say, $90\%$ probability.
+We provide an estimate of the shortest interval that
+includes the system failure time $S|c$ with, say, $90\%$
+probability.
 In the case of the exponential series system, this is just
-$$
-    (0,F^{-1}_{S|c}(0.95)).
-$$
+$(0,F^{-1}_{S|c}(0.95))$.
 
 We consider a larger and more complicated data set for this next example, `exp_series_data_3`.
 Type `?exp_series_data_3` to learn more about it.
@@ -372,12 +454,13 @@ q.hat <- md_exp_series_system_failure_interval_m0(theta.large.hat,.85)
 ```
 
 We can compute the proportion that contain the system lifetime with:
-```{r}
+```{r,eval=F}
 mean(data$contains)
+#> [1] 0.952
 ```
 
 We were expecting something closer to $0.85$, but instead we obtained a result of around $0.95$.
-TODO: investigate
+TODO: investigate!
 
 ## Candidate model $m_1$
 

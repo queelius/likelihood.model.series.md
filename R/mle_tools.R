@@ -9,8 +9,6 @@
 #' @param eps stopping condition
 #' @param max_iterations maximum number of iterations
 #'
-#' @return MLE estimate of theta
-#' @author Alex Towell
 #' @export
 md_fisher_scoring <- function(theta0,info,score,eps=1e-5,max_iterations=10000L)
 {

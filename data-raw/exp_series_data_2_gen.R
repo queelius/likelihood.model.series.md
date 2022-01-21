@@ -21,5 +21,5 @@ exp_series_data_2 <- masked.data::md_exp_series(
     candidate_model=md_candidate_m0,
     metadata=T)
 
-masked.data::md_write_csv(data2, "data-raw/exp_series_data_2.csv")
+masked.data::md_write_csv(exp_series_data_2, "data-raw/exp_series_data_2.csv")
 usethis::use_data(exp_series_data_2, overwrite = TRUE)

@@ -4,7 +4,7 @@
 \alias{md_exp_series_node_failure_m0}
 \title{Constructs a pdf object for the conditional node failure
 in an exponential series system according to candidate model
-m0, \code{f(k|c,s)} = h_k(s)/h(s) I(k in c)}.}
+m0, \code{f(k|c,s) = h_k(s)/h(s) I(k in c)}.}
 \usage{
 md_exp_series_node_failure_m0(theta)
 }

@@ -17,9 +17,6 @@ md_fisher_scoring(theta0, info, score, eps = 1e-05, max_iterations = 10000L)
 
 \item{max_iterations}{maximum number of iterations}
 }
-\value{
-MLE estimate of theta
-}
 \description{
 Fisher scoring algorithm.
 }
@@ -28,6 +25,3 @@ Fisher scoring algorithm.
 The algorithm is straightforward. Details here.
 }
 
-\author{
-Alex Towell
-}

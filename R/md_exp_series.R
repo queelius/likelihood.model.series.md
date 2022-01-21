@@ -171,7 +171,7 @@ md_mle_exp_series_m0 = function(md,theta0=NULL,eps=1e-5,max_iterations=10000L)
 
 #' Constructs a pdf object for the conditional node failure
 #' in an exponential series system according to candidate model
-#' m0, \code{f(k|c,s)} = h_k(s)/h(s) I(k in c)}.
+#' m0, \code{f(k|c,s) = h_k(s)/h(s) I(k in c)}.
 #'
 #' This simplifies to \code{f(k|c) = theta[k] / sum(theta[j],j in c)} for
 #' the exponential series system.
