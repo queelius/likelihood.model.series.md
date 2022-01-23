@@ -1,6 +1,6 @@
 #' Masked data for a 5-out-of-5 (series) system with exponentially distributed nodes.
 #'
-#' Masked data containing the system lifetime and other attributes of 1000
+#' Masked data containing the system lifetime and other attributes of 100000
 #' series parameterized by \code{theta=c(3,4,5,6,7)} and candidate model m0.
 #'
 #' Candidate set sizes are randomly drawn from \code{{2,3,4}}.

@@ -1,6 +1,6 @@
 # series system with m=5 nodes, each exponentially distributed
 # system parameter value: rate=(3,5,4,6,7)
-# sample size: n=1000
+# sample size: n=100000
 # candidate model m0
 # candidate set sizes are randomly drawn from {2,3,4}
 # starting seed is 12345, so it will always produce the same output

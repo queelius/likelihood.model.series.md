@@ -10,16 +10,18 @@
 #' @param max_iterations maximum number of iterations
 #'
 #' @export
-md_fisher_scoring <- function(theta0,info,score,eps=1e-5,max_iterations=10000L)
+md_fisher_scoring <- function(theta0,info,score,eps=1e-5,max_iterations=250L)
 {
     n <- 1L
     repeat
     {
-        theta1 <- theta0 + matlib::inv(info(theta0)) %*% score(theta0)
+        I <- info(theta0)
+        sigma <- ginv(I)
+        s <- score(theta0)
+        theta1 <- theta0 + sigma %*% s
         if (n == max_iterations || max(abs(theta1-theta0)) < eps)
-            return(list(theta.hat=theta1,iterations=n))
+            return(list(theta.hat=theta1,sigma=sigma,score=s,iterations=n))
         theta0 <- theta1
         n <- n + 1L
     }
 }
-

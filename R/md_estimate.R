@@ -9,7 +9,7 @@
 #' @export
 vcov.md_estimate <- function(object, ...)
 {
-    matlib::inv(fisher_info(object))
+    object$sigma
 }
 
 #' Method to obtain the confidence intervals of the parameter values of a

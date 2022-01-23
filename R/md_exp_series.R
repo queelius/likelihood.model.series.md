@@ -147,7 +147,7 @@ md_info_exp_series_m0 <- function(md)
 #'
 #' @return MLE estimate
 #' @export
-md_mle_exp_series_m0 = function(md,theta0=NULL,eps=1e-5,max_iterations=10000L)
+md_mle_exp_series_m0 = function(md,theta0=NULL,eps=1e-5,max_iterations=250L)
 {
     if (is.null(theta0))
         theta0 <- rep(1.,md_num_nodes(md))
@@ -164,7 +164,9 @@ md_mle_exp_series_m0 = function(md,theta0=NULL,eps=1e-5,max_iterations=10000L)
         iterations=res$iterations,
         max_iterations=max_iterations,
         eps=eps,
-        info=md_info_exp_series_m0(md)(res$theta.hat)),
+        score=res$s,
+        info=res$info,
+        sigma=res$sigma),
         class=c("md_estimate"),
         attributes=list("candidate_model" = "m0"))
 }
