@@ -10,8 +10,26 @@ A data frame with 100000 rows and 23 variables:
 \item{s}{Real observable variable, system lifetime}
 \item{k}{Integer latent variable, the failed node}
 \item{w}{Integer observable variable, number of candidates}
-\item{t.1-t.10}{Real latent variable, lifetimes of the 10 nodes}
-\item{c.1-c.10}{Boolean observable variable, c.j TRUE indicates nodes j is in candidate set}
+\item{t.1}{Real latent variable, lifetime of the 10 nodes}
+\item{t.2}{Real latent variable, lifetimes of the 10 nodes}
+\item{t.3}{Real latent variable, lifetimes of the 10 nodes}
+\item{t.4}{Real latent variable, lifetimes of the 10 nodes}
+\item{t.5}{Real latent variable, lifetimes of the 10 nodes}
+\item{t.6}{Real latent variable, lifetimes of the 10 nodes}
+\item{t.7}{Real latent variable, lifetimes of the 10 nodes}
+\item{t.8}{Real latent variable, lifetimes of the 10 nodes}
+\item{t.9}{Real latent variable, lifetimes of the 10 nodes}
+\item{t.10}{Real latent variable, lifetimes of the 10 nodes}
+\item{c.1}{Boolean observable variable}
+\item{c.2}{Boolean observable variable}
+\item{c.3}{Boolean observable variable}
+\item{c.4}{Boolean observable variable}
+\item{c.5}{Boolean observable variable}
+\item{c.6}{Boolean observable variable}
+\item{c.7}{Boolean observable variable}
+\item{c.8}{Boolean observable variable}
+\item{c.9}{Boolean observable variable}
+\item{c.10}{Boolean observable variable}
 }
 }
 \source{
@@ -27,5 +45,7 @@ candidate model is m0.
 }
 \details{
 Candidate set sizes are randomly drawn from {2,3,4,5,6,7,8,9}.
+\code{t.j} is the lifetime of node \code{j}. If \code{c.j} is \code{TRUE},
+that indicates node \code{j} is in candidate set.
 }
 \keyword{datasets}

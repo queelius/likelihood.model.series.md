@@ -4,7 +4,7 @@
 \alias{md_fisher_scoring}
 \title{Fisher scoring algorithm.}
 \usage{
-md_fisher_scoring(theta0, info, score, eps = 1e-05, max_iterations = 10000L)
+md_fisher_scoring(theta0, info, score, eps = 1e-05, max_iter = 250L)
 }
 \arguments{
 \item{theta0}{initial guess of theta with \eqn{p} components}
@@ -15,7 +15,7 @@ md_fisher_scoring(theta0, info, score, eps = 1e-05, max_iterations = 10000L)
 
 \item{eps}{stopping condition}
 
-\item{max_iterations}{maximum number of iterations}
+\item{max_iter}{maximum number of iterations}
 }
 \description{
 Fisher scoring algorithm.

@@ -29,7 +29,7 @@ A data frame with 100000 rows and 13 variables:
 exp_series_data_2
 }
 \description{
-Masked data containing the system lifetime and other attributes of 1000
+Masked data containing the system lifetime and other attributes of 100000
 series parameterized by \code{theta=c(3,4,5,6,7)} and candidate model m0.
 }
 \details{

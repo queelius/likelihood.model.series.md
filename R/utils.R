@@ -10,3 +10,10 @@ md_func_args <- function(...)
     match.call(sys.function(sys.parent()), call)
 }
 
+# pseudo-inverse
+pinv <- function(m)
+{
+    s <- svd(m);
+    d <- rep(0, length(s$d));
+    for (i in 1:length(d)) { d[i] <- ifelse(s$d[i] == 0, 0, 1/s$d[i]);  }
+    s$v %*% diag(d) %*% t(s$u); }

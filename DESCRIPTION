@@ -23,7 +23,8 @@ Imports:
     readr,
     stats,
     tibble,
-    mvtnorm
+    mvtnorm,
+    MASS
 Depends: 
     R (>= 2.10)
 LazyData: true

@@ -7,21 +7,23 @@
 #' @param info information matrix function of type \eqn{R^p -> R^{p \times q}}
 #' @param score score function of type \eqn{R^p -> R^p}
 #' @param eps stopping condition
-#' @param max_iterations maximum number of iterations
+#' @param max_iter maximum number of iterations
 #'
 #' @export
-md_fisher_scoring <- function(theta0,info,score,eps=1e-5,max_iterations=250L)
+md_fisher_scoring <- function(theta0,info,score,eps=1e-5,max_iter=250L)
 {
-    n <- 1L
-    repeat
+    for (iter in 1:max_iter)
     {
         I <- info(theta0)
-        sigma <- ginv(I)
+        sigma <- MASS::ginv(I)
         s <- score(theta0)
         theta1 <- theta0 + sigma %*% s
-        if (n == max_iterations || max(abs(theta1-theta0)) < eps)
-            return(list(theta.hat=theta1,sigma=sigma,score=s,iterations=n))
+        if (max(abs(theta1-theta0)) < eps)
+            break
         theta0 <- theta1
-        n <- n + 1L
     }
+
+    structure(
+        list(theta.hat=theta1,sigma=sigma,score=s,info=I,iter=n,max_iter=max_iter),
+        class=c("estimate","list"))
 }

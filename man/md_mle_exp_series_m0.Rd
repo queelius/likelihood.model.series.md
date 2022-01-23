@@ -7,7 +7,7 @@ system with nodes that have exponentially distributed
 lifetimes given a sample of masked data according to
 candidate model m0.}
 \usage{
-md_mle_exp_series_m0(md, theta0 = NULL, eps = 1e-05, max_iterations = 10000L)
+md_mle_exp_series_m0(md, theta0 = NULL, eps = 1e-05, max_iterations = 250L)
 }
 \arguments{
 \item{md}{masked data}
