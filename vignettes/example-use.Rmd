@@ -42,11 +42,11 @@ Masked data is given by an i.i.d. sample of system lifetime data and
 
 The R package `series.system.estimation.masked.data` contains several simulated
 masked data sets.
-For example, a series system with $10$ exponentially distributed component
-lifetimes is stored in `exp_series_data_3`:
+For example, a series system with $3$ exponentially distributed component
+lifetimes is stored in `exp_series_data_1`:
 
 ```{r}
-print(exp_series_data_3,drop_latent=T,pprint=T)
+print(exp_series_data_1,drop_latent=T,pprint=T)
 ```
 
 You can get help on any object in `series.system.estimation.masked.data` using the built-in help.
@@ -441,8 +441,8 @@ probability.
 In the case of the exponential series system, this is just
 $(0,F^{-1}_{S|c}(0.95))$.
 
-We consider a larger and more complicated data set for this next example, `exp_series_data_3`.
-Type `?exp_series_data_3` to learn more about it.
+We consider a larger and more complicated data set for this next example, `exp_series_data_1`.
+Type `?exp_series_data_1` to learn more about it.
 It has a true parameter value of $\theta = (3,5,4,6,7,2,8,9,10,11)'$.
 We decorate its masked data with these upper and lower bounds and compare the result with the known system
 lifetimes, column `s`:

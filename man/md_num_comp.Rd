@@ -4,10 +4,10 @@
 \alias{md_num_comp}
 \title{Method for obtaining the number of nodes in an object.}
 \usage{
-md_num_comp(series)
+md_num_comp(x)
 }
 \arguments{
-\item{series}{The object to obtain the number of nodes of}
+\item{x}{The object to obtain the number of components of}
 }
 \description{
 Method for obtaining the number of nodes in an object.

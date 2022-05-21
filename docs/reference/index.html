@@ -70,16 +70,6 @@ masked data estimator, <code>md_estimate</code>.</dd>
         <dd>Masked data for a series system with exponentially distributed components</dd>
       </dl><dl><dt>
           
-          <code><a href="exp_series_data_2.html">exp_series_data_2</a></code> 
-        </dt>
-        <dd>Masked data for a 5-out-of-5 (series) system with exponentially distributed nodes.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="exp_series_data_3.html">exp_series_data_3</a></code> 
-        </dt>
-        <dd>Masked data for a 10-out-of-10 (series system) with exponentially distributed nodes.</dd>
-      </dl><dl><dt>
-          
           <code><a href="exp_series_data_4.html">exp_series_data_4</a></code> 
         </dt>
         <dd>Masked data for a 3-out-of-3 (series system) with exponentially distributed nodes.</dd>
@@ -140,13 +130,13 @@ an <code>exp_series_dist</code> object.</dd>
         <dd>Candidate model m1</dd>
       </dl><dl><dt>
           
-          <code><a href="md_exp_series_component_failure_reg_cand.html">md_exp_series_component_failure_reg_cand</a></code> 
+          <code><a href="md_exp_series_component_failure_decorator_reg_cand.html">md_exp_series_component_failure_decorator_reg_cand</a></code> 
         </dt>
         <dd>Constructs a pdf (pmf) object for the conditional probability of component
 failure <code>Pr{Ki=j|Ci=ci,Ti=ti) = h_j(ti)/h(ti) I(j in ci)}.
 in an exponential series system for the regular candidate model.</code>
 
-md_exp_series_component_failure_reg_cand(theta)
+md_exp_series_component_failure_decorator_reg_cand(md, theta)
 
 
 thetaparameter value of <code>exp_series_dist</code>
@@ -156,6 +146,12 @@ Constructs a pdf (pmf) object for the conditional probability of component
 failure <code>Pr{Ki=j|Ci=ci,Ti=ti) = h_j(ti)/h(ti) I(j in ci)}.
 in an exponential series system for the regular candidate model.
 </code></dd>
+      </dl><dl><dt>
+          
+          <code><a href="md_exp_series_decorator.html">md_exp_series_decorator()</a></code> 
+        </dt>
+        <dd>Generates masked data for a series system with exponentially distributed
+nodes and candidate sets according to candidate_model.</dd>
       </dl><dl><dt>
           
           <code><a href="md_info_exp_series_reg_cand.html">md_info_exp_series_reg_cand()</a></code> 
@@ -172,10 +168,12 @@ the regular candidate model.</dd>
 regular candidate set model for exponential series system.</dd>
       </dl><dl><dt>
           
-          <code><a href="md_maked_data_exp_series_dist_reg_cand.html">md_maked_data_exp_series_dist_reg_cand()</a></code> 
+          <code><a href="md_mle_exp_series_reg_cand.html">md_mle_exp_series_reg_cand()</a></code> 
         </dt>
-        <dd>Generates masked data for a series system with exponentially distributed
-nodes and candidate sets according to candidate_model.</dd>
+        <dd>Maximum likelihood estimator of the parameters of a series
+system with nodes that have exponentially distributed
+lifetimes given a sample of masked data according to
+candidate model m0.</dd>
       </dl><dl><dt>
           
           <code><a href="md_num_comp.html">md_num_comp()</a></code> 
@@ -190,7 +188,7 @@ nodes and candidate sets according to candidate_model.</dd>
           
           <code><a href="md_score_exp_series_reg_cand.html">md_score_exp_series_reg_cand()</a></code> 
         </dt>
-        <dd>score function of masked data for a series system
+        <dd>Score function of masked data for a series system
 with exponentially distributed lifetimes.</dd>
       </dl><dl><dt>
           
@@ -268,6 +266,12 @@ a masked data estimator, <code>md_mle</code>.</dd>
         </dt>
         <dd>series.system.masked.data: A package for estimating series system
 component lifetime parameters from masked data</dd>
+      </dl><dl><dt>
+          
+          <code><a href="series_data.html">series_data()</a></code> 
+        </dt>
+        <dd>Generates system failure time and component failure for a series system with
+the given matix of component failure times.</dd>
       </dl><dl><dt>
           
           <code><a href="vcov.exp_dist.html">vcov(<i>&lt;exp_dist&gt;</i>)</a></code> 

@@ -31,5 +31,6 @@ Depends:
     R (>= 2.10)
 LazyData: true
 VignetteBuilder: knitr
-URL: https://github.com/queelius/series.system.estimation.masked.data
+URL: https://github.com/queelius/series.system.estimation.masked.data,
+    https://queelius.github.io/series_system_estimation_masked_data/
 BugReports: https://github.com/queelius/series.system.estimation.masked.data/issues

@@ -2,7 +2,7 @@
 % Please edit documentation in R/md_exp_series.R
 \name{md_score_exp_series_reg_cand}
 \alias{md_score_exp_series_reg_cand}
-\title{score function of masked data for a series system
+\title{Score function of masked data for a series system
 with exponentially distributed lifetimes.}
 \usage{
 md_score_exp_series_reg_cand(md)
@@ -11,9 +11,9 @@ md_score_exp_series_reg_cand(md)
 \item{md}{masked data for regular candidate model}
 }
 \value{
-score function of type R^m -> R
+score function of type \code{R^m -> R}
 }
 \description{
-score function of masked data for a series system
+Score function of masked data for a series system
 with exponentially distributed lifetimes.
 }
