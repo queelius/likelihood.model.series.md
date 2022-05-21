@@ -23,11 +23,29 @@ pdf <- function(x, ...)
 
 #' Method for obtaining the number of nodes in an object.
 #'
-#' @param series The object to obtain the number of nodes of
+#' @param x The object to obtain the number of components of
 #'
 #' @export
-md_num_comp <- function(series)
+md_num_comp <- function(x)
 {
-    series$num_comp
+    x$num_comp
 }
 
+#' Generates system failure time and component failure for a series system with
+#' the given matix of component failure times.
+#'
+#' @param t matrix of node failure times
+#' @importFrom dplyr %>%
+#' @export
+series_data <- function(t)
+{
+    m <- ncol(t)
+    data <- tibble::tibble(
+        k = apply(t,1,which.min),
+        t = apply(t,1,min))
+
+    t <- tibble::as_tibble(t)
+    names(t) <- paste0("t",1:m)
+
+    data %>% dplyr::bind_cols(t)
+}
