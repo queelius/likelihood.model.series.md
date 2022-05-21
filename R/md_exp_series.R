@@ -166,6 +166,35 @@ if (is.matrix(theta))
     md
 }
 
+#' Maximum likelihood estimator of the parameters of a series
+#' system with nodes that have exponentially distributed
+#' lifetimes given a sample of masked data according to
+#' candidate model m0.
+#'
+#' @param md masked data
+#' @param theta0 initial guess for MLE
+#' @param eps stopping condition
+#' @param max_iterations stop if iterations reaches max_iterations.
+#'
+#' @return MLE estimate
+#' @export
+md_mle_exp_series_reg_cand = function(md,theta0,eps=1e-3,max_iter=250L)
+{
+    mle <- algebraic.mle::fisher_scoring(
+        theta0,
+        md_info_exp_series_reg_cand(md),
+        md_score_exp_series_reg_cand(md),
+        eps,
+        max_iter)
+
+    class(mle) <- c("md_mle_exp_series_reg_cand","md_mle",class(mle))
+    attr(mle,"num_comp") <- length(theta0)
+    attr(mle,"sample_size") <- nrow(md)
+
+    mle
+}
+
+
 #' Construct exponential series object.
 #'
 #' @param rate failure rates
