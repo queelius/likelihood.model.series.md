@@ -1,14 +1,3 @@
-#' Generic method for obtaining the parameters of
-#' a parametric distribution.
-#'
-#' @param x The object to obtain the parameters of
-#'
-#' @export
-params <- function(x, ...)
-{
-    UseMethod("params",x)
-}
-
 #' Generic method for obtaining the hazard function of
 #' a random variable.
 #'
@@ -37,17 +26,8 @@ pdf <- function(x, ...)
 #' @param series The object to obtain the number of nodes of
 #'
 #' @export
-num_nodes <- function(series)
+md_num_comp <- function(series)
 {
-    series$num_nodes
+    series$num_comp
 }
 
-#' Generic method for sampling from distribution objects.
-#'
-#' @param x The object to sample from.
-#'
-#' @export
-sampler <- function(x, ...)
-{
-    UseMethod("sampler",x)
-}

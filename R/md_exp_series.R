@@ -19,7 +19,7 @@
 #'
 #' @examples
 #' md_exp_series(n=10,theta=c(1,2,3),w=rep(2,10))
-md_exp_series <- function(n,theta,w,candidate_model=md_candidate_m0,metadata=T)
+md_maked_data_exp_series_dist_reg_cand <- function(n,theta,metadata=T)
 {
     m <- length(theta)
     t <- matrix(stats::rexp(n*m,rate=theta), ncol=m, byrow=T)
@@ -45,21 +45,17 @@ md_exp_series <- function(n,theta,w,candidate_model=md_candidate_m0,metadata=T)
     md
 }
 
-#' Kernel log-likelihood for masked data m0 for exponential series system
-#' using sufficient statistics.
-#'
-#' The log of the kernel of the likelihood function for masked data
-#' for a series system with exponentially distributed lifetimes
-#' and candidate sets that model m0 using sufficient statistics.
+#' Log-likelihood for masked data with candidate sets obeying the
+#' regular candidate set model for exponential series system.
 #'
 #' @param md masked data
 #' @importFrom dplyr %>%
 #' @export
-md_kloglike_exp_series_m0 <- function(md)
+md_loglike_exp_series_reg_cand <- function(md)
 {
-    md$C <- md_candidates_as_matrix(md)
+    md$C <- md_decode_matrix(md,"x")
     freq = md %>% dplyr::group_by(C) %>% dplyr::count()
-    sum.t = -sum(md$s)
+    sum.t = -sum(md$t)
     n = nrow(freq)
     function(theta)
     {
@@ -73,14 +69,14 @@ md_kloglike_exp_series_m0 <- function(md)
 #' score function of masked data for a series system
 #' with exponentially distributed lifetimes.
 #'
-#' @param md masked data for candidate model m0
+#' @param md masked data for regular candidate model
 #'
 #' @return score function of type R^m -> R
 #' @importFrom dplyr %>%
 #' @export
-md_score_exp_series_m0 <- function(md)
+md_score_exp_series_reg_cand <- function(md)
 {
-    s <- -sum(md$s)
+    t <- -sum(md$t)
     md$C <- md_candidates_as_matrix(md)
     cnt <- md %>% dplyr::group_by(C) %>% dplyr::count()
     m <- ncol(md$C)
@@ -103,17 +99,17 @@ md_score_exp_series_m0 <- function(md)
 #' Information matrix (observed) for rate parameter
 #' with respect to masked data of a series system
 #' with exponentially distributed lifetimes and
-#' candidate model m0.
+#' the regular candidate model.
 #'
-#' @param md masked data for candidate model m0
-#'
+#' @param md masked data with candidate sets \code{x1,...,xm} that meet the
+#'           regular candidate model
 #' @return observed information matrix of type R^m -> R^(m x m)
 #' @importFrom dplyr %>%
 #' @export
-md_info_exp_series_m0 <- function(md)
+md_info_exp_series_reg_cand <- function(md)
 {
     s <- -sum(md$s)
-    md$C <- md_candidates_as_matrix(md)
+    md$C <- md_decode_matrix(md,"x")
     cnt <- md %>% dplyr::group_by(C) %>% dplyr::count()
     m <- ncol(md$C)
 
@@ -135,82 +131,102 @@ md_info_exp_series_m0 <- function(md)
     }
 }
 
-#' Maximum likelihood estimator of the parameters of a series
-#' system with nodes that have exponentially distributed
-#' lifetimes given a sample of masked data according to
-#' candidate model m0.
+
+#' Constructs a pdf (pmf) object for the conditional probability of component
+#' failure \code{Pr{K[i]=j|C[i]=c[i],T[i]=t[i]) = h_j(t[i])/h(t[i]) I(j in c[i])}.
+#' in an exponential series system for the regular candidate model.
 #'
-#' @param md masked data
-#' @param theta0 initial guess for MLE
-#' @param eps stopping condition
-#' @param max_iterations stop if iterations reaches max_iterations.
-#'
-#' @return MLE estimate
+#' @param theta parameter value of \code{exp_series_dist}
 #' @export
-md_mle_exp_series_m0 = function(md,theta0=NULL,eps=1e-5,max_iterations=250L)
-{
-    if (is.null(theta0))
-        theta0 <- rep(1.,md_num_nodes(md))
-
-    res <- md_fisher_scoring(
-        theta0,
-        md_info_exp_series_m0(md),
-        md_score_exp_series_m0(md),
-        eps,
-        max_iterations)
-
-    structure(list(
-        theta.hat=res$theta.hat,
-        iterations=res$iterations,
-        max_iterations=max_iterations,
-        eps=eps,
-        score=res$s,
-        info=res$info,
-        sigma=res$sigma),
-        class=c("md_estimate"),
-        attributes=list("candidate_model" = "m0"))
-}
-
-#' Constructs a pdf object for the conditional node failure
-#' in an exponential series system according to candidate model
-#' m0, \code{f(k|c,s) = h_k(s)/h(s) I(k in c)}.
-#'
-#' This simplifies to \code{f(k|c) = theta[k] / sum(theta[j],j in c)} for
-#' the exponential series system.
-#'
-#' @param theta parameter value of \code{exp_series}
-#' @export
-md_exp_series_node_failure_m0 <- function(theta)
+md_exp_series_component_failure_reg_cand <- function(theta)
 {
     if (is.matrix(theta))
         theta <- as.vector(theta)
 
     theta <- unlist(theta)
     m <- length(theta)
-    function(k,c,s)
-    {
-        if (s <= 0 || !(k %in% (1:m)[c]))
-            0
-        else
-            theta[k] / sum(theta[c])
-    }
+    function(k,c,t)
+        ifelse(t <= 0 || !(k %in% (1:m)[c]), 0, theta[k] / sum(theta[c]))
 }
 
 
-#' Constructs the shortest interval for the system lifetime
-#' given a candidate set under model m0 with a probability \code{p}
-#' that the interval contains the system failure.
+
+
+
+#' Construct exponential series object.
 #'
-#' @param theta parameter value of \code{exp_series}
-#' @param p probability that system failure time is in the computed interval
+#' @param rate failure rates
+#'
 #' @export
-md_exp_series_system_failure_interval_m0 <- function(theta,p)
+make_exp_series_dist <- function(rate)
 {
-    if (is.matrix(theta))
-        theta <- as.vector(theta)
-    theta <- unlist(theta)
-    function(c)
+    structure(list(
+        theta=unlist(rate),
+        num_nodes=length(rate)),
+        class=c("exp_series","series_dist","dist"))
+}
+
+
+#' Method for obtaining the variance-covariance of a \code{exp_series_dist} object.
+#'
+#' @param object The \code{exp_series}The object to obtain the variance of
+#' @importFrom stats vcov
+#' @export
+vcov.exp_series_dist <- function(object, ...)
+{
+    diag(1/object$theta)^2
+}
+
+
+
+#' Method to obtain the hazard function of
+#' an \code{exp_series_dist} object.
+#'
+#' @param x The \code{exp_series_dist} object to obtain the hazard function of
+#'
+#' @export
+hazard.exp_series_dist <- function(x, ...)
+{
+    theta <- params(x)
+    function(t,...)
+        ifelse(t <= 0,0,sum(theta))
+}
+
+
+#' Method to obtain the pdf of an \code{exp_series_dist} object.
+#'
+#' @param x The object to obtain the pdf of
+#'
+#' @export
+pdf.exp_series_dist <- function(x, ...)
+{
+    theta <- params(x)
+    function(t,...)
     {
-        c(0,qexp(p,sum(theta[c])))
+        ifelse(t <= 0,0,sum(theta))
     }
+}
+
+#' Method to sample from an \code{exp_series_dist} object.
+#'
+#' @param x The \code{exp_series_dist} object to sample from.
+#' @importFrom algebraic.mle sampler
+#' @export
+sampler.exp_series_dist <- function(x,...)
+{
+    rates <- params(x)
+    m <- length(rates)
+    function(n=1,...)
+        series_data(matrix(stats::rexp(m*n,rates,...),nrow=n,ncol=m))
+}
+
+#' Method for obtaining the parameters of
+#' a \code{series} distribution object.
+#'
+#' @param x The \code{series} object to obtain the parameters of
+#' @importFrom algebraic.mle params
+#' @export
+params.series <- function(x, ...)
+{
+    x$theta
 }

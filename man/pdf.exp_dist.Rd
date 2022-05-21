@@ -10,6 +10,5 @@
 \item{x}{The object to obtain the pdf of}
 }
 \description{
-Note that since \code{exp_series} is also exponentially distributed,
-this works for that too.
+Method to obtain the pdf of an \code{exp_dist} object.
 }

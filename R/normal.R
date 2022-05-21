@@ -11,14 +11,14 @@ make_normal <- function(
     structure(list(
         mu=mu,
         sigma=sigma),
-        class=c("normal","random_variable"))
+        class=c("normal","dist"))
 }
 
 #' Retrieve the variance-covariance matrix (or scalar)
 #' of a \code{normal} object.
 #'
 #' @param object The \code{normal} object to retrieve the variance-covariance matrix from
-#'
+#' @importFrom stats vcov
 #' @export
 vcov.normal <- function(object, ...)
 {
@@ -28,7 +28,7 @@ vcov.normal <- function(object, ...)
 #' Method for obtaining the parameters of a \code{normal} object.
 #'
 #' @param x The object to obtain the parameters of
-#'
+#' @importFrom algebraic.mle params
 #' @export
 params.normal <- function(x, ...)
 {
@@ -38,6 +38,8 @@ params.normal <- function(x, ...)
 #' Method for sampling from a \code{normal} object.
 #'
 #' @param x The object to sample from
+#' @importFrom mvtnorm rmvnorm
+#' @importFrom algebraic.mle sampler
 #'
 #' @export
 sampler.normal <- function(x, ...)

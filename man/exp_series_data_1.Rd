@@ -3,7 +3,7 @@
 \docType{data}
 \name{exp_series_data_1}
 \alias{exp_series_data_1}
-\title{Masked data for a series system with exponentially distributed nodes}
+\title{Masked data for a series system with exponentially distributed components}
 \format{
 A data frame with 1000 rows and 9 variables:
 \describe{

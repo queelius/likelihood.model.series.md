@@ -1,23 +1,55 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# masked.data
+# Series Systems: Estimating Lifetime Distributions of Unobserved Components with Masked Data
+
+This R package, `series_system_estimation_masked_data`, provides a set
+of functions for generating MLEs for the lifetime parameters of series
+systems and other related characteristics from *masked data*.
+
+Masked data comes in a variety of forms:
+
+1.  The system lifetime can be masked in three related ways. First,
+    right censoring occurs when the system under observation is only
+    known to have survived for some minimum length of time. Second, left
+    censoring occurs when the system under observation is only know to
+    have survived for some maximum length of time. Finally, interval
+    censoring occurs when the system under observation is only known to
+    have survived between some minimum and maximum length of time.
+
+    In the unmasked situation, we know precisely how long the system
+    under observation survived.
+
+2.  Regardless of how the series system lifetime is masked, the lifetime
+    of the components may be masked in any of the ways described in item
+    (1). There is, additionally, another kind of masking we would like
+    to consider. What if we do not observe any of the component
+    lifetimes, and instead are only given a (potentially masked) series
+    system lifetime, and a *candidate set* of component indexes which
+    plausibly contains the failed component index.
+
+    For a series system of
+    ![m](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;m "m")
+    components, the candidate sets are subsets of
+    ![\\{1,\ldots,m\\}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5C%7B1%2C%5Cldots%2Cm%5C%7D "\{1,\ldots,m\}"),
+    excluding the empty set in cases where we observe a series system
+    failure.
+
+This R package is mostly concerned with masked data that takes the form
+of a (potentially masked) series system lifetime and a set of candidate
+components. (If the series system lifetime is right censored, then the
+candidate set is naturally empty since no component has failed yet.)
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-`masked.data` is an R library that facilitates inference of parameters
-for the nodes of the system from masked data. Masked data usually
-consists of a system failure time and some other covariate, like
-*candidate sets*, that contain information about the *latent* node
-failure.
-
 ## Installation
 
-You can install the development version of masked.data like so:
+You can install the development version of
+`series_system_estimation_masked_data` like so:
 
 ``` r
-devtools::install_github("queelius/masked.data")
+devtools::install_github("queelius/series_system_estimation_masked_data")
 ```
 
 ## Example
@@ -25,7 +57,7 @@ devtools::install_github("queelius/masked.data")
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
-#library(masked.data)
+#library(series_system_estimation_masked_data)
 
 ## basic example code
 ```

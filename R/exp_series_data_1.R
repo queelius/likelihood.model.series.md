@@ -1,4 +1,4 @@
-#' Masked data for a series system with exponentially distributed nodes
+#' Masked data for a series system with exponentially distributed components
 #'
 #' Masked data containing the system lifetime and other attributes of 1000
 #' series system with parameter value \code{theta=c(3,4,5)} and candidate

@@ -1,9 +1,9 @@
 ---
-title: "The masked.data package"
+title: "Example of how to use series.system.estimation.masked.data package"
 output: pdf_document
 #output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{The masked.data package}
+  %\VignetteIndexEntry{The series.system.estimation.masked.data package}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -17,21 +17,21 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-The R package `masked.data` is a framework for estimating the parameters of latent node lifetimes from *masked data*
+The R package `series.system.estimation.masked.data` is a framework for
+estimating the parameters of latent component lifetimes from *masked data*
 in a series system.
-Presently, we only provide support for series systems with node lifetimes in the `exponential` and `lomax` parametric families.
 
 Install the library with:
 ```r
-devtools::install_github("queelius/masked.data")
+devtools::install_github("queelius/series_system_estimation_masked_data")
 ```
 
 Once installed, you may load the library with:
 
 ```{r setup,message=F}
-# load the masked data library
-library(masked.data)
-# load other dependencies
+library(series.system.estimation.masked.data)
+library(algebraic.mle)
+library(md.tools)
 library(tidyverse)
 ```
 
@@ -40,15 +40,16 @@ library(tidyverse)
 Masked data is given by an i.i.d. sample of system lifetime data and
 *plausible* candidate sets that contain the failed node.
 
-The `masked.data` R package contains several simulated masked data sets.
-For example, a series system with $10$ exponentially distributed nodes
-is stored in `exp_series_data_3`:
+The R package `series.system.estimation.masked.data` contains several simulated
+masked data sets.
+For example, a series system with $10$ exponentially distributed component
+lifetimes is stored in `exp_series_data_3`:
 
 ```{r}
 print(exp_series_data_3,drop_latent=T,pprint=T)
 ```
 
-You can get help on any object in `masked.data` using the built-in help.
+You can get help on any object in `series.system.estimation.masked.data` using the built-in help.
 For instance, to get information on the data set `exp_series_data_1`, type
 `?exp_series_data_1` in your R console.
 
@@ -94,7 +95,7 @@ Later, we consider model $m_1$, the $\alpha$-masked candidate model.
 The candidate model $m_0$ for masked data (of size $n=1000$) for this exponential
 series system, with $w=2$ candidates for each observation, is given by:
 
-```{r}
+```{r,eval=F}
 n <- 1000
 theta <- c(3,4,5)
 m <- length(theta)
@@ -111,16 +112,16 @@ To get more help on it, type `?md_exp_series`.
 
 The log-likelihood function (technically, it is the log of the likelihood kernel) is given by
 $$
-    \operatorname{kloglik}(\theta) =
+    L(\theta) =
     -\left(\sum_{i=1}^{n} s_i\right)\left(\sum_{j=1}^{m}\right) + \sum_{i=1}^{n} \log\left(\sum_{k \in c_i} \lambda_k\right).
 $$
 
-The following log-likelihood constructor, `md_kloglike_exp_series_m0`, is implemented using minimally sufficient
+The following log-likelihood constructor, `md_loglike_exp_series_reg_cand`, is implemented using minimally sufficient
 statistics, which significantly improves the computational efficiency of computing the log-likelihood.
 
 We compute the log-likelihood function as a function of the masked data `md` with:
-```{r}
-kloglik <- md_kloglike_exp_series_m0(md)
+```{r,eval=F}
+loglik <- md_loglike_exp_series_reg_cand(md)
 ```
 
 The log-likelihood function contains the maximum amount of information
@@ -149,8 +150,8 @@ where $I$ is the information matrix (or observed information matrix).
 The function `md_mle_exp_series_m0` is a small wrapper for this function,
 providing `md_fisher_scoring` with the appropriate arguments.
 We find $\hat\theta$ by running the following R code:
-```{r}
-mle <- md_mle_exp_series_m0(md) 
+```{r,eval=F}
+mle <- md_mle_exp_series_reg_cand(md) 
 theta.hat <- point(mle)
 print(round(theta.hat,digits=3))
 ```
@@ -161,14 +162,15 @@ estimators confidence interval).
 In the above, we see use of the `point` method, which takes an estimator
 object and obtains its *best* point estimate, or in this case,
 the MLE $\hat\theta$.
-We see that $\hat\theta = (`r round(theta.hat,digits=3)`)$.
+
+We see that $\hat\theta = (`r theta.hat <- c(1,1,1); round(theta.hat,digits=3)`)$.
 
 If we let the third argument in the log-likelhood function be fixed
 at $\hat\theta_3 = `r round(theta.hat[3],digits=3)`$, then we may profile the
 log-likelihood function over the first two parameters:
 
-```{r,message=F}
-prof <- function(theta1) { kloglik(c(theta1,theta.hat[2],theta.hat[3])) }
+```{r,message=F,eval=F}
+prof <- function(theta1) { loglik(c(theta1,theta.hat[2],theta.hat[3])) }
 data <- tibble(x=seq(theta.hat[1]-3,theta.hat[1]+3,.05))
 data$y <- numeric(nrow(data))
 for (i in 1:nrow(data))
@@ -222,7 +224,7 @@ $$
 Asymptotically, $\hat\theta$ is the UMVUE, i.e.,
 it is unbiased and obtains the minimum sampling variance.
 An estimate of the variance-covariance $V$ may be obtained with:
-```{r}
+```{r,eval=F}
 (V.hat <- vcov(mle))
 ```
 
@@ -232,7 +234,7 @@ with parameter Bootstrapping.
 
 Using the MLE $\hat\theta$, we may sample from the masked data model
 with:
-```{r,cache=T}
+```{r,cache=T,eval=F}
 B <- 200 # bootstrap replicates
 theta.hat.sim <- matrix(nrow=B,ncol=length(theta.hat))
 for (i in 1:B)
@@ -248,7 +250,7 @@ for (i in 1:B)
 
 Now that we have Bootstrapped sample of MLEs, $\hat\theta^{(1)},\ldots,\hat\theta^{(B)}$,
 we can compute its sample covariance to estimate $V$:
-```{r}
+```{r,eval=F}
 (V.bs <- cov(theta.hat.sim))
 ```
 
@@ -275,13 +277,13 @@ $$
 
 Thus, for sufficiently large samples, $\operatorname{MSE}(\hat\theta)$ is approximately given by the `trace`
 of the estimated variance-covariance matrix:
-```{r}
+```{r,eval=F}
 (mse <- sum(diag(V.hat)))
 ```
 
 Mean squared error as a function of sample size $n$:
 
-```{r, fig.width=5,fig.height=5}
+```{r, fig.width=5,fig.height=5, eval=F}
 Ns <- seq(100, nrow(exp_series_data_1), 100)
 mses.vcov <- numeric(length=length(Ns))
 mses <- numeric(length=length(Ns))
@@ -303,12 +305,12 @@ tibble(mse=mses,mses.vcov=mses.vcov,n=Ns) %>% ggplot() +
 A primary statistic is the *confidence interval*.
 A $(1-\alpha)100\%$ confidence interval for $\theta_j$ may be estimated with $\hat\theta_j \pm z_{1-\alpha/2} \sqrt{\hat{V}_{j j}}$.
 We provide a method for doing this calculation:
-```{r}
+```{r,eval=F}
 as_tibble(confint(mle)) %>% mutate(length=.[[2]]-.[[1]])
 ```
 
 How does this compare to the confidence intervals given that all candidate sets in the sample have size $w=1$?
-```{r}
+```{r,eval=F}
 as_tibble(confint(md_mle_exp_series_m0(
     md_exp_series(n=n,
                   theta=theta,
@@ -331,13 +333,13 @@ with $\mathcal{N}(\hat\theta,I^{-1}(\hat\theta))$.
 
 This makes it trivial to estimate any other function of
 $\theta$ by sampling from the approximation:
-```{r}
+```{r,eval=F}
 samp <- sampler(make_normal(point(mle),vcov(mle)))
 mles <- samp(n=1000)
 ```
 
 We show a contour plot of the first two components of each point in the MLE sample with:
-```{r}
+```{r,eval=F}
 ggplot(tibble(x=mles[,1],y=mles[,2]),aes(x=x,y=y)) + geom_point()
 ```
 
@@ -380,7 +382,7 @@ that accepts masked data as input and an `md_exp_series_node_failure_m0`
 object and returns the masked data with columns for node failure
 probabilities given by `k.1`,...,`k.m`.
 
-```{r}
+```{r,eval=F}
 fk <- md_exp_series_node_failure_m0(theta.hat)
 md %>% select(-c("w",starts_with("t."))) %>%
     md_series_node_failure_decorator_m0(fk)
@@ -445,7 +447,7 @@ It has a true parameter value of $\theta = (3,5,4,6,7,2,8,9,10,11)'$.
 We decorate its masked data with these upper and lower bounds and compare the result with the known system
 lifetimes, column `s`:
 
-```{r}
+```{r,eval=F}
 (theta.large.hat <- point(md_mle_exp_series_m0(exp_series_data_3)))
 q.hat <- md_exp_series_system_failure_interval_m0(theta.large.hat,.85)
 (data <- exp_series_data_3 %>% md_series_system_failure_decorator_m0(q.hat) %>%
@@ -459,27 +461,24 @@ mean(data$contains)
 #> [1] 0.952
 ```
 
-We were expecting something closer to $0.85$, but instead we obtained a result of around $0.95$.
-TODO: investigate!
+## Relaxing conditions
+In real-world data sets, the conditions we assume may not be entirely realistic.
+We may relax these conditions in order to see how well the MLE $\hat{\theta}$
+performs under these ostensibly more realistic and more relaxed conditions.
 
-## Candidate model $m_1$
+The most important condition, $\Pr\{K_i = j|T_i=t_i\} = 1$, may be too stringent.
+Instead, we can relax it by assuming only that $\Pr\{K_i = j|T_i=t_i\} = \alpha$
+for some $\alpha$ in $(0,1)$.
 
-Here, we derive similar results for the $\alpha$-masked model.
-
-TODO: finish this section, but provide fewer examples and details.
-
-# Lomax series systems
-
-```{r}
-print(lomax_series_data_1,pprint=T,drop_latent=T)
-```
-
-TODO: fix likelihood function, the output seems wron -- the algorithms I've tried
-either do not converge to a solution, or converge to the wrong solution.
-TODO: plot the surface of the profile of the log-likelihood, like I did for exponential. If it seems to be large in
-the wrong area (given that we roughly know what the MLE should be), find out why. If it just looks highly non-linear,
-then look into random restarts and other iterative methods, although starting near the true parameter value in
-the search should largely avoid the problem. If I can't figure it out, move to Weibull instead.
-
-
+The masking probability condition,
+$$
+\Pr\{C_i = c_i | K_i = j, T_i=t_i\} = \Pr\{C_i = c_i | K_i = j', T_i=t_i\}
+$$
+for any $j'$ in $c_i$ may also be relaxed by replacing the equality with
+a distance measure, such as
+$$
+\max_{j,k} \mid \Pr\{C_i = c_i | K_i = j, T_i=t_i\} -
+    \Pr\{C_i = c_i | K_i = k, T_i=t_i\} \mid \leq \gamma
+$$
+for any $i,j$ in $c_i$.
 

@@ -1,16 +1,3 @@
-#' Construct exponential series object.
-#'
-#' @param rate failure rates
-#'
-#' @export
-make_exp_series <- function(rate)
-{
-    structure(list(
-        theta=unlist(rate),
-        num_nodes=length(rate)),
-        class=c("exp_series","series","exp_dist","distribution"))
-}
-
 #' Construct exponential distribution object.
 #'
 #' @param rate failure rate
@@ -20,24 +7,15 @@ make_exp_dist <- function(rate)
 {
     structure(list(
         theta=unlist(rate),
-        num_nodes=length(rate)),
-        class=c("exp_dist","random_variable"))
+        num_comp=length(rate)),
+        class=c("exp_dist","dist"))
 }
 
-#' Method for obtaining the variance-covariance of a \code{exp_series} object.
-#'
-#' @param object The \code{exp_series}The object to obtain the variance of
-#'
-#' @export
-vcov.exp_series <- function(object, ...)
-{
-    diag(1/object$theta)^2
-}
 
 #' Method for obtaining the variance of a \code{exp_dist} object.
 #'
 #' @param object The \code{exp_dist} object to obtain the variance of
-#'
+#' @importFrom stats vcov
 #' @export
 vcov.exp_dist <- function(object, ...)
 {
@@ -45,12 +23,12 @@ vcov.exp_dist <- function(object, ...)
 }
 
 #' Method for obtaining the parameters of
-#' a \code{series} distribution object.
+#' a \code{exp_dist} distribution object.
 #'
-#' @param x The \code{series} object to obtain the parameters of
-#'
+#' @param x The \code{exp_dist} object to obtain the parameters of
+#' @importFrom algebraic.mle params
 #' @export
-params.series <- function(x, ...)
+params.exp_dist <- function(x, ...)
 {
     x$theta
 }
@@ -65,15 +43,12 @@ hazard.exp_dist <- function(x, ...)
 {
     theta <- params(x)
     function(t,...)
-    {
-        ifelse(t <= 0,0,sum(theta))
-    }
+        ifelse(t <= 0,0,theta)
 }
 
+
+
 #' Method to obtain the pdf of an \code{exp_dist} object.
-#'
-#' Note that since \code{exp_series} is also exponentially distributed,
-#' this works for that too.
 #'
 #' @param x The object to obtain the pdf of
 #'
@@ -83,14 +58,14 @@ pdf.exp_dist <- function(x, ...)
     theta <- params(x)
     function(t,...)
     {
-        ifelse(t <= 0,0,sum(theta))
+        ifelse(t <= 0,0,theta)
     }
 }
 
 #' Method to sample from an \code{exp_dist} object.
 #'
 #' @param x The \code{exp_dist} object to sample from.
-#'
+#' @importFrom algebraic.mle sampler
 #' @export
 sampler.exp_dist <- function(x,...)
 {
@@ -99,3 +74,15 @@ sampler.exp_dist <- function(x,...)
         stats::rexp(n,params(x),...)
     }
 }
+
+
+#' Method to obtain the fisher information of the \code{x} object that
+#' represents an \code{exp_dist} object.
+#'
+#' @importFrom algebraic.mle fisher_info
+#' @export
+fisher_info.exp_dist <- function(x,...)
+{
+    1/params(x)^2
+}
+

@@ -11,20 +11,12 @@ md_candidate_m1(md, m)
 column 'w' for corresponding candidate set size, and column 'alpha' for
 corresponding alpha probabilities}
 
-\item{m}{Integer, number of nodes in the series system}
+\item{m}{Integer, number of components in the series system}
 }
 \value{
-alpha-masked data with candidate sets that model m1
+masked data
 }
 \description{
-Decorates masked data object \code{md} with candidate sets according to candidate
-model m1.
-}
-\details{
-Specifically, the candidate sets are generated according to the alpha-masked
-model, where with probability \code{alpha[i]}, \code{C[i,]} contains \code{k[i]}
-and \code{w[i-1]} nodes randomly selected without replacement from
-\code{{1,...,m} - { k[i]}} and with probability \code{1-alpha[i]},
-\code{C[i,]} contains \code{w[i]} nodes randomly selected without
-replacement from \code{{1,...,m} - { k[i] }}.
+Decorates masked data object \code{md} with candidate sets according to relaxed
+candidate model with \code{Pr{K[i] in C[i]} = alpha}.
 }
