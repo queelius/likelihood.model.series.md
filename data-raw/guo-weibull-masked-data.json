@@ -1,0 +1,11 @@
+{
+  "sim": {
+    "family": ["Guo paper, table ?, masked data"],
+    "index": [3, 4, 5],
+    "candidate_model": ["reg_cand"]
+  },
+  "masked": ["k", "t1", "t2", "t3"],
+  "m": [3],
+  "n": [14],
+  "dataset": ["guo-weifull-masked.data.csv"]
+}
