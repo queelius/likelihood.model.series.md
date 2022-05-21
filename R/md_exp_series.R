@@ -1,46 +1,45 @@
 #' Generates masked data for a series system with exponentially distributed
 #' nodes and candidate sets according to candidate_model.
 #'
-#' @param n Integer. The sample size (each row is an observation).
-#' @param theta Numeric vector. The jth component has a failure rate \code{theta[j]}.
-#' @param w Integer vector. For the ith observation, generate \code{w[j]} candidates.
-#' @param candidate_model Function that accepts masked data as an argument.
-#'                        The candidate model, defaults to \code{md_candidate_m0}.
-#'                        If set to \code{NULL}, then do not generate a candidate set.
-#'                        \code{md_mle_exp_series} will treat such masked data as
-#'                        a sample that includes every node as candidates.
+#' @param md a masked data frame to decorate with exponential series data
+#' @param theta component \code{j} has a failure rate \code{theta[j]}.
+#' @param cand_model function that accepts masked data as an argument.
+#'                   the candidate model, defaults to \code{md_cand_m0}.
+#'                   If set to \code{NULL}, then do not generate a candidate set.
+#'                   \code{md_mle_exp_series} will treat such masked data as
+#'                   a sample that includes every node as candidates.
 #' @param metadata Boolean. If \code{TRUE} writes meta-data for series system to
 #'                 attributes of masked data.
-#' @return masked data, a data frame of n observations, \code{(s,k,t1,...,tm,c1,...,cm)}
-#'         where \code{k}, \code{t}, and \code{c} are covariates (or predictors) of
-#'         \code{s,k,t1,...,tm}.
+#' @return masked data populated with columns for \code{s}, \code{k}, and
+#'         a the matrix of component lifetimes encoded in the columns
+#'         \code{t.1,t.2,...,t.m}.
 #' @importFrom dplyr %>%
 #' @export
 #'
 #' @examples
-#' md_exp_series(n=10,theta=c(1,2,3),w=rep(2,10))
-md_maked_data_exp_series_dist_reg_cand <- function(n,theta,metadata=T)
+#' md_exp_series_decorator(n=10,theta=c(1,2,3),w=rep(2,10))
+md_exp_series_decorator <- function(md,theta,metadata=T)
 {
     m <- length(theta)
+    n <- nrows(md)
     t <- matrix(stats::rexp(n*m,rate=theta), ncol=m, byrow=T)
-    md <- md_series_data(t,w,candidate_model)
+    md <- md_series_data(md,t)
 
     if (metadata)
     {
         args <- md_func_args()
-        nodes <- list()
+        components <- list()
         for (j in 1:m)
-            nodes[[j]] <- list(
+            components[[j]] <- list(
                 "family" = "exponential",
                 "index" = theta[j])
         attr(md,"sim") <- list(
             "family" = toString(args[1]),
             "index" = theta,
-            "nodes" = nodes,
-            "candidate_model" = toString(args["candidate_model"]))
-        attr(md,"masked") <- c("k",paste("t",1:m,sep="."))
-        attr(md,"m") <- m
-        attr(md,"n") <- n
+            "components" = components)
+        md.tools::md_mark_latent(md, c("k",paste("t",1:m,sep=".")))
+        attr(md,"num_comp") <- m
+        attr(md,"sample_size") <- n
     }
     md
 }
@@ -66,12 +65,12 @@ md_loglike_exp_series_reg_cand <- function(md)
     }
 }
 
-#' score function of masked data for a series system
+#' Score function of masked data for a series system
 #' with exponentially distributed lifetimes.
 #'
 #' @param md masked data for regular candidate model
 #'
-#' @return score function of type R^m -> R
+#' @return score function of type \code{R^m -> R}
 #' @importFrom dplyr %>%
 #' @export
 md_score_exp_series_reg_cand <- function(md)
@@ -83,7 +82,7 @@ md_score_exp_series_reg_cand <- function(md)
 
     function(rate)
     {
-        v <- rep(s,m)
+        v <- rep(t,m)
         for (j in 1:m)
         {
             for (i in 1:nrow(cnt))
@@ -108,7 +107,6 @@ md_score_exp_series_reg_cand <- function(md)
 #' @export
 md_info_exp_series_reg_cand <- function(md)
 {
-    s <- -sum(md$s)
     md$C <- md_decode_matrix(md,"x")
     cnt <- md %>% dplyr::group_by(C) %>% dplyr::count()
     m <- ncol(md$C)
@@ -127,6 +125,8 @@ md_info_exp_series_reg_cand <- function(md)
                 }
             }
         }
+        attr(nfo,"num_comp") <- m
+        attr(nfo,"sample_size") <- n        
         nfo
     }
 }
@@ -138,20 +138,33 @@ md_info_exp_series_reg_cand <- function(md)
 #'
 #' @param theta parameter value of \code{exp_series_dist}
 #' @export
-md_exp_series_component_failure_reg_cand <- function(theta)
+md_exp_series_component_failure_decorator_reg_cand <- function(md,theta)
 {
-    if (is.matrix(theta))
+if (is.matrix(theta))
         theta <- as.vector(theta)
-
     theta <- unlist(theta)
+    n <- nrow(md)
     m <- length(theta)
-    function(k,c,t)
-        ifelse(t <= 0 || !(k %in% (1:m)[c]), 0, theta[k] / sum(theta[c]))
+    md$C <- md.tools::md_decode_matrix(md,"x")
+
+    K <- matrix(rep(NA,m*n),ncol=m)
+    for (i in 1:n)
+    {
+        for (k in 1:m)
+        {
+            if (md$s[i] <= 0 || !(k %in% (1:m)[md$C[i,]]))
+                K[i,k] <- 0
+            else
+                K[i,k] <- theta[k]/sum(theta[md$C[i,]])
+        }
+    }
+
+    K <- tibble::as_tibble(K)
+    colnames(K) <- paste0("k.",1:m)
+    md <- dplyr::bind_cols(md,K)
+    md$C <- NULL
+    md
 }
-
-
-
-
 
 #' Construct exponential series object.
 #'
@@ -163,7 +176,7 @@ make_exp_series_dist <- function(rate)
     structure(list(
         theta=unlist(rate),
         num_nodes=length(rate)),
-        class=c("exp_series","series_dist","dist"))
+        class=c("exp_series_dist","series_dist","dist"))
 }
 
 
