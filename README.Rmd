@@ -102,31 +102,5 @@ component lifetimes.
 It takes two arguments, a formula expressing the structure of the model
 and a source of data (a data frame, typically).
 
-The object representing the fitted model is a child of `md_estimate`.
-`md_estimate` has a number of additional methods defined for it.
-
-1. `vcov(md_mle)` returns the variance-covariance matrix of the model's
-   parameters.
-
-2. `point(md_mle)` returns the point that maximizes the likelihood
-   of the model.
-
-3. `confint(md_mle)` returns confidence intervals of the point
-   estimates.
-
-4. `sample(md_mle)` samples from sampling distribution of the MLE
-   estimator.
-
-5. `comp_failure(md_series_param_estimate,...)` returns an `md_mle`
-   object representing the vector of probabilities for the component
-   failures, given arguments in `...`. Typically, `...` includes an
-   argument like `t` (system failure time).
-
-6. `resid(md_mle)` computes the residuals of the fitted model.
-   If `md_mle` is a `md_series_mle`, then uses
-   covariate data like `x1`,...,`xm` and `t` to predict `t1`,...`tm`,
-   i.e., it returns a matrix of residuals. It also returns the residual
-   for `s <- min(t1,...,tm)`.
-
-7. `aov(md_mle)` or `aov(formula)`?
-
+The object representing the fitted model is a child of `md_mle`.
+`md_mle` inherits from `mle`, which defines an algebra over MLEs.

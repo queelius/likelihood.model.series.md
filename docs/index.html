@@ -114,16 +114,7 @@
 <p>The function to fit a masked data model take two arguments, a formula expressing the structure of the model and a source of data; it then returns an object representing the fitted model consistent with the arguments.</p>
 <p>The <code>md</code> function fits a masked data model using maximum likelihood estimation to estimate the parameters of the parameters of the latent component lifetimes.</p>
 <p>It takes two arguments, a formula expressing the structure of the model and a source of data (a data frame, typically).</p>
-<p>The object representing the fitted model is a child of <code>md_estimate</code>. <code>md_estimate</code> has a number of additional methods defined for it.</p>
-<ol style="list-style-type: decimal">
-<li><p><code>vcov(md_mle)</code> returns the variance-covariance matrix of the model’s parameters.</p></li>
-<li><p><code>point(md_mle)</code> returns the point that maximizes the likelihood of the model.</p></li>
-<li><p><code>confint(md_mle)</code> returns confidence intervals of the point estimates.</p></li>
-<li><p><code>sample(md_mle)</code> samples from sampling distribution of the MLE estimator.</p></li>
-<li><p><code>comp_failure(md_series_param_estimate,...)</code> returns an <code>md_mle</code> object representing the vector of probabilities for the component failures, given arguments in <code>...</code>. Typically, <code>...</code> includes an argument like <code>t</code> (system failure time).</p></li>
-<li><p><code>resid(md_mle)</code> computes the residuals of the fitted model. If <code>md_mle</code> is a <code>md_series_mle</code>, then uses covariate data like <code>x1</code>,…,<code>xm</code> and <code>t</code> to predict <code>t1</code>,…<code>tm</code>, i.e., it returns a matrix of residuals. It also returns the residual for <code>s &lt;- min(t1,...,tm)</code>.</p></li>
-<li><p><code>aov(md_mle)</code> or <code>aov(formula)</code>?</p></li>
-</ol>
+<p>The object representing the fitted model is a child of <code>md_mle</code>. <code>md_mle</code> inherits from <code>mle</code>, which defines an algebra over MLEs.</p>
 </div>
 
   </main><aside class="col-md-3"><div class="links">

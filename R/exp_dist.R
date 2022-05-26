@@ -11,10 +11,10 @@ make_exp_dist <- function(rate)
         class=c("exp_dist","dist"))
 }
 
-
 #' Method for obtaining the variance of a \code{exp_dist} object.
 #'
 #' @param object The \code{exp_dist} object to obtain the variance of
+#' @param ... Additional arguments to pass
 #' @importFrom stats vcov
 #' @export
 vcov.exp_dist <- function(object, ...)
@@ -26,6 +26,7 @@ vcov.exp_dist <- function(object, ...)
 #' a \code{exp_dist} distribution object.
 #'
 #' @param x The \code{exp_dist} object to obtain the parameters of
+#' @param ... Additional arguments to pass
 #' @importFrom algebraic.mle params
 #' @export
 params.exp_dist <- function(x, ...)
@@ -37,12 +38,12 @@ params.exp_dist <- function(x, ...)
 #' an \code{exp_dist} object.
 #'
 #' @param x The \code{exp_dist} object to obtain the hazard function of
-#'
+#' @param ... Additional arguments to pass
 #' @export
 hazard.exp_dist <- function(x, ...)
 {
-    theta <- params(x)
-    function(t,...)
+    theta <- params(x,...)
+    function(t)
         ifelse(t <= 0,0,theta)
 }
 
@@ -55,7 +56,7 @@ hazard.exp_dist <- function(x, ...)
 #' @export
 pdf.exp_dist <- function(x, ...)
 {
-    theta <- params(x)
+    theta <- params(x,...)
     function(t,...)
     {
         ifelse(t <= 0,0,theta)
@@ -78,7 +79,9 @@ sampler.exp_dist <- function(x,...)
 
 #' Method to obtain the fisher information of the \code{x} object that
 #' represents an \code{exp_dist} object.
-#'
+
+#' @param x \code{exp_dist} object to get the fisher information of
+#' @param ... Additional arguments to pass
 #' @importFrom algebraic.mle fisher_info
 #' @export
 fisher_info.exp_dist <- function(x,...)

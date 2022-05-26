@@ -3,7 +3,7 @@ pkgdown: 2.0.3
 pkgdown_sha: ~
 articles:
   example-use: example-use.html
-last_built: 2022-05-21T09:18Z
+last_built: 2022-05-26T18:33Z
 urls:
   reference: https://queelius.github.io/series_system_estimation_masked_data/reference
   article: https://queelius.github.io/series_system_estimation_masked_data/articles
