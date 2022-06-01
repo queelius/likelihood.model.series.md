@@ -59,116 +59,61 @@
 
       <dl><dt>
           
-          <code><a href="confint.md_mle.html">confint(<i>&lt;md_mle&gt;</i>)</a></code> 
+          <code><a href="dexp_series.html">dexp_series()</a></code> 
         </dt>
-        <dd>Method to obtain the confidence intervals of the parameter values of a
-masked data estimator, <code>md_estimate</code>.</dd>
+        <dd>pdf for exponential series.</dd>
       </dl><dl><dt>
           
-          <code><a href="exp_series_data_1.html">exp_series_data_1</a></code> 
+          <code><a href="dgeneral_series.html">dgeneral_series()</a></code> 
         </dt>
-        <dd>Masked data for a series system with exponentially distributed components</dd>
+        <dd>pdf for general series</dd>
       </dl><dl><dt>
           
-          <code><a href="exp_series_data_4.html">exp_series_data_4</a></code> 
+          <code><a href="dweibull_series.html">dweibull_series()</a></code> 
         </dt>
-        <dd>Masked data for a 3-out-of-3 (series system) with exponentially distributed nodes.</dd>
+        <dd>pdf for weibull series</dd>
       </dl><dl><dt>
           
-          <code><a href="exp_series_data_5.html">exp_series_data_5</a></code> 
+          <code><a href="exp_series_md_1.html">exp_series_md_1</a></code> 
         </dt>
-        <dd>Masked data for a 3-out-of-3 (series) system with exponentially distributed
-nodes.</dd>
+        <dd>Simulated masked data 1</dd>
       </dl><dl><dt>
           
-          <code><a href="fisher_info.exp_dist.html">fisher_info(<i>&lt;exp_dist&gt;</i>)</a></code> 
+          <code><a href="guo_series_weibull_md.html">guo_series_weibull_md</a></code> 
         </dt>
-        <dd>Method to obtain the fisher information of the <code>x</code> object that
-represents an <code>exp_dist</code> object.</dd>
+        <dd>Real-world masked data. The source is from the paper,
+"Estimating Component Reliabilities from Incomplete System Failure Data",
+Table 2 (Example Data for a Series System).</dd>
       </dl><dl><dt>
           
-          <code><a href="fisher_info.md_mle.html">fisher_info(<i>&lt;md_mle&gt;</i>)</a></code> 
+          <code><a href="hazard_exp_series.html">hazard_exp_series()</a></code> 
         </dt>
-        <dd>Method to obtain the fisher information matrix of an <code>md_mle</code>.</dd>
+        <dd>Hazard function for exponential series.</dd>
       </dl><dl><dt>
           
-          <code><a href="hazard.html">hazard()</a></code> 
+          <code><a href="hazard_general_series.html">hazard_general_series()</a></code> 
         </dt>
-        <dd>Generic method for obtaining the hazard function of
-a random variable.</dd>
+        <dd>Hazard function for general series</dd>
       </dl><dl><dt>
           
-          <code><a href="hazard.exp_dist.html">hazard(<i>&lt;exp_dist&gt;</i>)</a></code> 
+          <code><a href="hazard_weibull_series.html">hazard_weibull_series()</a></code> 
         </dt>
-        <dd>Method to obtain the hazard function of
-an <code>exp_dist</code> object.</dd>
+        <dd>Hazard function for weibull series.</dd>
       </dl><dl><dt>
           
-          <code><a href="hazard.exp_series_dist.html">hazard(<i>&lt;exp_series_dist&gt;</i>)</a></code> 
+          <code><a href="md_bernoulli_candidate_alpha_C1_C3.html">md_bernoulli_candidate_alpha_C1_C3()</a></code> 
         </dt>
-        <dd>Method to obtain the hazard function of
-an <code>exp_series_dist</code> object.</dd>
+        <dd>Bernoulli candidate model that is a function of component
+cause of failure.</dd>
       </dl><dl><dt>
           
-          <code><a href="make_exp_dist.html">make_exp_dist()</a></code> 
+          <code><a href="md_bernoulli_candidate_set_exp_series_generator.html">md_bernoulli_candidate_set_exp_series_generator()</a></code> 
         </dt>
-        <dd>Construct exponential distribution object.</dd>
+        <dd>Bernoulli candidate model that is a function of component
+cause of failure and satisfies conditions <code>C1</code>, codeC2, and <code>C3</code>.</dd>
       </dl><dl><dt>
           
-          <code><a href="make_exp_series_dist.html">make_exp_series_dist()</a></code> 
-        </dt>
-        <dd>Construct exponential series object.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="make_normal.html">make_normal()</a></code> 
-        </dt>
-        <dd>Construct (multivariate or univariate) normal distribution object.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="md_candidate_m1.html">md_candidate_m1()</a></code> 
-        </dt>
-        <dd>Candidate model m1</dd>
-      </dl><dl><dt>
-          
-          <code><a href="md_exp_series_component_failure_decorator_reg_cand.html">md_exp_series_component_failure_decorator_reg_cand</a></code> 
-        </dt>
-        <dd>Constructs a pdf (pmf) object for the conditional probability of component
-failure <code>Pr{Ki=j|Ci=ci,Ti=ti) = h_j(ti)/h(ti) I(j in ci)}.
-in an exponential series system for the regular candidate model.</code>
-
-md_exp_series_component_failure_decorator_reg_cand(md, theta)
-
-
-thetaparameter value of <code>exp_series_dist</code>
-
-
-Constructs a pdf (pmf) object for the conditional probability of component
-failure <code>Pr{Ki=j|Ci=ci,Ti=ti) = h_j(ti)/h(ti) I(j in ci)}.
-in an exponential series system for the regular candidate model.
-</code></dd>
-      </dl><dl><dt>
-          
-          <code><a href="md_exp_series_decorator.html">md_exp_series_decorator()</a></code> 
-        </dt>
-        <dd>Generates masked data for a series system with exponentially distributed
-nodes and candidate sets according to candidate_model.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="md_info_exp_series_reg_cand.html">md_info_exp_series_reg_cand()</a></code> 
-        </dt>
-        <dd>Information matrix (observed) for rate parameter
-with respect to masked data of a series system
-with exponentially distributed lifetimes and
-the regular candidate model.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="md_loglike_exp_series_reg_cand.html">md_loglike_exp_series_reg_cand()</a></code> 
-        </dt>
-        <dd>Log-likelihood for masked data with candidate sets obeying the
-regular candidate set model for exponential series system.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="md_mle_exp_series_reg_cand.html">md_mle_exp_series_reg_cand()</a></code> 
+          <code><a href="md_grad_mle_series_C1_C2_C3.html">md_grad_mle_series_C1_C2_C3()</a></code> 
         </dt>
         <dd>Maximum likelihood estimator of the parameters of a series
 system with nodes that have exponentially distributed
@@ -176,25 +121,51 @@ lifetimes given a sample of masked data according to
 candidate model m0.</dd>
       </dl><dl><dt>
           
-          <code><a href="md_num_comp.html">md_num_comp()</a></code> 
+          <code><a href="md_info_exp_series_C1_C2_C3.html">md_info_exp_series_C1_C2_C3()</a></code> 
         </dt>
-        <dd>Method for obtaining the number of nodes in an object.</dd>
+        <dd>Generates the observed information matrix for an exponential series system
+with respect to parameter <code>theta</code> for masked data with candidate sets
+that approximately satisfy conditions C1, C2, and C3.</dd>
       </dl><dl><dt>
           
-          <code><a href="md_reg_cand.html">md_reg_cand()</a></code> 
+          <code><a href="md_loglike_exp_series_C1_C2_C3.html">md_loglike_exp_series_C1_C2_C3()</a></code> 
         </dt>
-        <dd>Regular candidate model</dd>
+        <dd>Generates a log-likelihood for an exponential series system with respect to
+parameter <code>theta</code> for masked data with candidate sets that approximately
+satisfy conditions C1, C2, and C3.</dd>
       </dl><dl><dt>
           
-          <code><a href="md_score_exp_series_reg_cand.html">md_score_exp_series_reg_cand()</a></code> 
+          <code><a href="md_loglike_general_series_C1_C2_C3.html">md_loglike_general_series_C1_C2_C3()</a></code> 
         </dt>
-        <dd>Score function of masked data for a series system
-with exponentially distributed lifetimes.</dd>
+        <dd>Masked data approximately satisfies the following set of conditions:
+C1: <code>Pr(K[i] in C[i]) = 1</code>
+C2: <code>Pr(C[i]=c[i] | K[i]=j, T[i]=t[i]) = Pr(C[i]=c[i] | K[i]=j', T[i]=t[i])}
+for any \code{j,j' in c[i]</code>.
+C3: masking probabilities are independent of theta</dd>
       </dl><dl><dt>
           
-          <code><a href="md_series_component_failure_decorator.html">md_series_component_failure_decorator()</a></code> 
+          <code><a href="md_loglike_weibull_series_C1_C2_C3.html">md_loglike_weibull_series_C1_C2_C3()</a></code> 
         </dt>
-        <dd>Decorate masked data (tbl_md) with component failure probabilities.</dd>
+        <dd>Masked data approximately satisfies the following set of conditions:
+C1: <code>Pr(K[i] in C[i]) = 1</code>
+C2: <code>Pr(C[i]=c[i] | K[i]=j, T[i]=t[i]) = Pr(C[i]=c[i] | K[i]=j', T[i]=t[i])
+    for any j, j' in c[i]</code>.
+C3: masking probabilities are independent of theta</dd>
+      </dl><dl><dt>
+          
+          <code><a href="md_mle_exp_series_C1_C2_C3.html">md_mle_exp_series_C1_C2_C3()</a></code> 
+        </dt>
+        <dd>Maximum likelihood estimator of the parameters of a series
+system with nodes that have exponentially distributed
+lifetimes given a sample of masked data according to
+candidate model m0.</dd>
+      </dl><dl><dt>
+          
+          <code><a href="md_score_exp_series_C1_C2_C3.html">md_score_exp_series_C1_C2_C3()</a></code> 
+        </dt>
+        <dd>Generates a score function  for an exponential series system with respect to
+parameter <code>theta</code> for masked data with candidate sets that approximately
+satisfy conditions C1, C2, and C3.</dd>
       </dl><dl><dt>
           
           <code><a href="md_series_component_failure_decorator_diff.html">md_series_component_failure_decorator_diff()</a></code> 
@@ -203,63 +174,74 @@ with exponentially distributed lifetimes.</dd>
 difference between component failure probabilities.</dd>
       </dl><dl><dt>
           
-          <code><a href="params.exp_dist.html">params(<i>&lt;exp_dist&gt;</i>)</a></code> 
+          <code><a href="md_series_component_failure_probability_decorator.html">md_series_component_failure_probability_decorator()</a></code> 
         </dt>
-        <dd>Method for obtaining the parameters of
-a <code>exp_dist</code> distribution object.</dd>
+        <dd>Component failure probability decorator.</dd>
       </dl><dl><dt>
           
-          <code><a href="params.normal.html">params(<i>&lt;normal&gt;</i>)</a></code> 
+          <code><a href="md_series_lifetime.html">md_series_lifetime()</a></code> 
         </dt>
-        <dd>Method for obtaining the parameters of a <code>normal</code> object.</dd>
+        <dd>Generates failure times and component cause of failure for a series
+system with the given data frame of component lifetimes encoded by
+the matrix columns prefixed with <code>t</code> in masked data frame <code>md</code>.</dd>
       </dl><dl><dt>
           
-          <code><a href="params.series.html">params(<i>&lt;series&gt;</i>)</a></code> 
+          <code><a href="md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring()</a></code> 
         </dt>
-        <dd>Method for obtaining the parameters of
-a <code>series</code> distribution object.</dd>
+        <dd>Generates right-censored system failure times <code>s</code> and right-censoring
+indicators <code>delta</code> for a series system with the given data frame of
+component lifetimes encoded by the matrix columns prefixed with <code>t</code></dd>
       </dl><dl><dt>
           
-          <code><a href="pdf.html">pdf()</a></code> 
+          <code><a href="pexp_series.html">pexp_series()</a></code> 
         </dt>
-        <dd>Generic method for obtaining the pdf function of
-a random variable.</dd>
+        <dd>cdf for exponential series.</dd>
       </dl><dl><dt>
           
-          <code><a href="pdf.exp_dist.html">pdf(<i>&lt;exp_dist&gt;</i>)</a></code> 
+          <code><a href="pgeneral_series.html">pgeneral_series()</a></code> 
         </dt>
-        <dd>Method to obtain the pdf of an <code>exp_dist</code> object.</dd>
+        <dd>cdf for general series</dd>
       </dl><dl><dt>
           
-          <code><a href="pdf.exp_series_dist.html">pdf(<i>&lt;exp_series_dist&gt;</i>)</a></code> 
+          <code><a href="pweibull_series.html">pweibull_series()</a></code> 
         </dt>
-        <dd>Method to obtain the pdf of an <code>exp_series_dist</code> object.</dd>
+        <dd>The cumulative distribution function for Weibull series</dd>
       </dl><dl><dt>
           
-          <code><a href="point.md_mle.html">point(<i>&lt;md_mle&gt;</i>)</a></code> 
+          <code><a href="qexp_series.html">qexp_series()</a></code> 
         </dt>
-        <dd>Method to obtain the point estimate of
-a masked data estimator, <code>md_mle</code>.</dd>
+        <dd>Qunatile function for exponential series.</dd>
       </dl><dl><dt>
           
-          <code><a href="sampler.exp_dist.html">sampler(<i>&lt;exp_dist&gt;</i>)</a></code> 
+          <code><a href="qgeneral_series.html">qgeneral_series()</a></code> 
         </dt>
-        <dd>Method to sample from an <code>exp_dist</code> object.</dd>
+        <dd>Quantile function (inverse of the cdf) for a general series system.
+By definition, the quantile <code>p * 100%</code> is the value <code>t</code> that
+satisfies <code>F(t) - p = 0</code>. We solve for <code>t</code> using Newton's method.</dd>
       </dl><dl><dt>
           
-          <code><a href="sampler.exp_series_dist.html">sampler(<i>&lt;exp_series_dist&gt;</i>)</a></code> 
+          <code><a href="qweibull_series.html">qweibull_series()</a></code> 
         </dt>
-        <dd>Method to sample from an <code>exp_series_dist</code> object.</dd>
+        <dd>Quantile function (inverse of the cdf).
+By definition, the quantile p * 100% for a strictly monotonically increasing
+cdf F is the value t that satisfies <code>F(t) - p = 0</code>.
+We solve for t using newton's method.</dd>
       </dl><dl><dt>
           
-          <code><a href="sampler.md_mle.html">sampler(<i>&lt;md_mle&gt;</i>)</a></code> 
+          <code><a href="rexp_series.html">rexp_series()</a></code> 
         </dt>
-        <dd>Method to obtain the sampler for an <code>md_mle</code> object.</dd>
+        <dd>Survival function for exponential series.</dd>
       </dl><dl><dt>
           
-          <code><a href="sampler.normal.html">sampler(<i>&lt;normal&gt;</i>)</a></code> 
+          <code><a href="rgeneral_series.html">rgeneral_series()</a></code> 
         </dt>
-        <dd>Method for sampling from a <code>normal</code> object.</dd>
+        <dd>Sample from a general series system of <code>m</code> components whose hazard
+and reliability functions are respectively given by <code>h</code> and <code>R</code>.</dd>
+      </dl><dl><dt>
+          
+          <code><a href="rweibull_series.html">rweibull_series()</a></code> 
+        </dt>
+        <dd>Sampler for weibull series.</dd>
       </dl><dl><dt>
           
           <code><a href="series.system.estimation.masked.data.html">series.system.estimation.masked.data</a></code> 
@@ -268,31 +250,19 @@ a masked data estimator, <code>md_mle</code>.</dd>
 component lifetime parameters from masked data</dd>
       </dl><dl><dt>
           
-          <code><a href="series_data.html">series_data()</a></code> 
+          <code><a href="survival_exp_series.html">survival_exp_series()</a></code> 
         </dt>
-        <dd>Generates system failure time and component failure for a series system with
-the given matix of component failure times.</dd>
+        <dd>Survival function for exponential series.</dd>
       </dl><dl><dt>
           
-          <code><a href="vcov.exp_dist.html">vcov(<i>&lt;exp_dist&gt;</i>)</a></code> 
+          <code><a href="survival_general_series.html">survival_general_series()</a></code> 
         </dt>
-        <dd>Method for obtaining the variance of a <code>exp_dist</code> object.</dd>
+        <dd>Survival function for general series</dd>
       </dl><dl><dt>
           
-          <code><a href="vcov.exp_series_dist.html">vcov(<i>&lt;exp_series_dist&gt;</i>)</a></code> 
+          <code><a href="survival_weibull_series.html">survival_weibull_series()</a></code> 
         </dt>
-        <dd>Method for obtaining the variance-covariance of a <code>exp_series_dist</code> object.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="vcov.md_mle.html">vcov(<i>&lt;md_mle&gt;</i>)</a></code> 
-        </dt>
-        <dd>Compute the covariance matrix from the given masked data estimate.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="vcov.normal.html">vcov(<i>&lt;normal&gt;</i>)</a></code> 
-        </dt>
-        <dd>Retrieve the variance-covariance matrix (or scalar)
-of a <code>normal</code> object.</dd>
+        <dd>Survival function for weibull series</dd>
       </dl></div>
   </main></div>
 

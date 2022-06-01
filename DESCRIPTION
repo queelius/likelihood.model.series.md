@@ -16,15 +16,8 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     dplyr,
-    extraDistr,
-    jsonlite,
-    matlib,
-    numDeriv,
-    readr,
     stats,
     tibble,
-    mvtnorm,
-    MASS,
     md.tools,
     algebraic.mle
 Depends: 
