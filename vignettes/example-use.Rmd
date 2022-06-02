@@ -29,10 +29,10 @@ Install the library with:
 ```r
 devtools::install_github("queelius/series_system_estimation_masked_data")
 ```
-
 Once installed, you may load the library with:
 
-```{r setup,message=F}
+```{r setup}
+library(devtools)
 devtools::install_github("queelius/algebraic.mle")
 devtools::install_github("queelius/md.tools")
 library(series.system.estimation.masked.data)
@@ -95,11 +95,8 @@ data $\v{D_i}$.
 Conditions
 ==========
 The candidate set conditions, $C_1$, $C_2$, and $C_3$ may not be clear from the
-definitions.
-
-Arguably the most important condition in our statistical model is given by
-Condition $C_1$, imposes the constraint $\Pr\{K_i \in C_i\} = 1$.
-In a real-world setting, this condition may be too strict.
+definitions. We explore these conditions in more detail, and also provide
+a way to simulate masked data that satisfies these conditions.
 
 Let $\v{x} \mapsto \lVert \v{x} \rVert $ be a norm, which is a formalization of
 *length*.
