@@ -25,16 +25,18 @@ The R package `series.system.estimation.masked.data` is a framework for
 estimating the parameters of latent component lifetimes from *masked data*
 in a series system.
 
-Install the library with:
-```r
+Install the library and other dependent packages with:
+```{r,message=F,warning=F}
 devtools::install_github("queelius/series_system_estimation_masked_data")
-```
-Once installed, you may load the library with:
-
-```{r setup}
-library(devtools)
 devtools::install_github("queelius/algebraic.mle")
 devtools::install_github("queelius/md.tools")
+install.packages("devtools")
+install.packages("tidyverse")
+```
+
+Once installed, you may load these libraries with:
+```{r setup,message=F}
+library(devtools)
 library(series.system.estimation.masked.data)
 library(algebraic.mle)
 library(md.tools)
@@ -77,6 +79,31 @@ satisfy the following set of conditions:
     
 - Condition $C_3$: The masking probabilities are independent of $\v\theta$,
   i.e., $\Pr\{C_i=c_i|K_i=j,T_i=t_i\}$ is not a function of $\v\theta$.
+  
+  That means, whatever the generative mechanism underlying
+  $\mathcal{C}_1,\ldots,\mathcal{C}_n$, it has no explicit knowledge of $\v\theta$,
+  but the $i$\textsuperscript{th} candidate set $\mathcal{C}_i$ may depend on
+  the realizations of $T_{i 1},\ldots,T_{i n}$ and other factors not explicitly
+  in the statistical model we have described.
+
+
+## Bernoulli candidate model that satisfies $C_1$, $C_2$, and $C_3$
+
+As long as we satisfy conditions $C_1$, $C_2$, and $C_3$, our reduced
+likelihood function that assumes those conditions obtains the same MLEs 
+as the full likelihood function.
+
+In what follows, we describe our Bernoulli candidate set model that generates
+candidate sets that satisfy these conditions.\footnote{There are many other
+ways to generate candidate sets that satisfy these conditions, and they
+may generate masked data that is more or less informative (e.g., the
+same MLEs but with different MSEs).}
+
+```{r,warning=F,message=F,echo=F}
+library(printr)
+?md_bernoulli_candidate_C1_C2_C3
+print(md_bernoulli_candidate_C1_C2_C3)
+```
 
 
 ## Estimating the variance-covariance using the Bootstrap method
@@ -92,96 +119,6 @@ Assuming the above solution to the MLE equation is _unique_, this gives us a
 single point $\hat{\v\theta}_{(i)}$ when conditioned on the simulated masked
 data $\v{D_i}$.
 
-Conditions
-==========
-The candidate set conditions, $C_1$, $C_2$, and $C_3$ may not be clear from the
-definitions. We explore these conditions in more detail, and also provide
-a way to simulate masked data that satisfies these conditions.
-
-Let $\v{x} \mapsto \lVert \v{x} \rVert $ be a norm, which is a formalization of
-*length*.
-There are many kinds of norms, be we will be primarily interested in the L1
-norm, $\lVert \v{x} \rVert = \sum_{i=1}^n |x_i|$ where $\v{x} \in \mathbb{R}^n$.
-
-We may use this norm to define the distance measure given by
-$$
-    d(\v{x},\v{y}) = \lVert \v{y} - \v{x} \rVert,
-$$
-which in our case, since $\v{x},\v{y} \in \mathbb{R}$ and we are using the L1 norm,
-$d(x,y) = |x-y|$.
-
-### Condition $C_1$
-We are interested in simulating masked data with candidate sets that satisfy
-Condition $C_1$,
-$$
-    \Pr\{j \in \mathcal{C}_i | K_i = j} = 1.
-$$
-Let $d_{C_1}$ be defined as
-$$
-    d_{C_1}(j) = d(\Pr\{j \in \mathcal{C}_i | K_i = j},1).
-$$
-
-Then, Condition $C_1$ may be seen to take the form of satisfying
-$$
-    d_{C_1}(j) \geq 1.
-$$
-This may be too strict in reality, so we may replace the above with a
-*relaxation*, $C_1 : [0,1] \mapsto \{0,1\}$, defined as
-$$
-    C_1(\alpha) = d_{C_1}(j) \geq \alpha
-$$
-where $0 \leq \alpha \leq 1$.
-
-### Condition $C_2$
-We are interested in simulating masked data with candidate sets that satisfy
-Condition $C_2$,
-$$
-    \Pr\{\mathcal{C}_i = \mathbb{C}_i | K_i = j,T_i = t_i\},
-    \Pr\{\mathcal{C}_i = \mathbb{C}_i | K_i = j',T_i = t_i\}.
-$$
-Let $d_{C_2}$ be defined as
-$$
-    d_{C_2}(j,j') = \bigl|\Pr\{\mathcal{C}_i = \mathbb{C}_i | K_i = j\} -
-                     \Pr\{\mathcal{C}_i = \mathbb{C}_i | K_i = j'\}\bigr|
-$$
-where $j,j' \in \mathbb{C}_i$.
-
-Then, Condition $C_2$ (when we assume Condition $C_1$) may be seen to take the
-form
-$$
-    \max_{q,r} \{ d_{C_2}(q,r) : q,r \in c_i \} \leq 0.
-$$
-This may be too strict in reality, so we replace the above with a *relaxation*
-$C_2 : [0,1] \mapsto \{0,1\}$, defined as
-$$
-    C_2(\epsilon) = \max_{q,r} \{ d(q,r) : q,r \in c_i \} \leq \epsilon
-$$
-where $0 \leq \epsilon \leq 1$.
-
-### Condition $C_3$
-
-The third condition states that
-$\Pr\{\mathcal{C}_i = \mathbb{C}_i | K_i = j, T_i=t_i\}$ is independent of
-$\v\theta$.
-That means, whatever the generative mechanism underlying
-$\mathcal{C}_1,\ldots,\mathcal{C}_n$, it has no explicit knowledge of $\v\theta$,
-but it may certainly depend on the realizations of $T_{i 1},\ldots,T_{i n}$
-and other factors not explicitly in the statistical model we have described.
-
-### Bernoulli candidate model that satisfies $C_1$, $C_2$, and $C_3$
-
-As long as we satisfy conditions $C_1$, $C_2$, and $C_3$, our reduced
-likelihood function that assumes those conditions obtains the same MLEs 
-as the full likelihood function.
-
-In what follows, we describe our Bernoulli candidate set model that generates
-candidate sets that satisfy these conditions.\footnote{There are many other
-ways to generate candidate sets that satisfy these conditions, and they
-will generate masked data that may be more or lesss informative (e.g., the
-same MLEs but with more or less MSE).}
-
-```{r}
-```
 
 Exponential series system
 =========================
@@ -197,7 +134,7 @@ rate of the component indexed by $4$.
 
 Let's simulate a series system (without candidate sets):
 ```{r}
-n <- 500
+n <- 300
 #theta <- c(3,4,5)
 theta <- c(3,3,3)
 m <- length(theta)
@@ -217,9 +154,7 @@ To get more help on it, type `?md_series_lifetime`.
 We simulate candidate sets using the Bernoulli candidate model with an
 appropriate set of parameters to satisfy conditions $C_1$, $C_2$, and $C_3$:
 ```{r warning=F, message=F}
-gamma <- rep(.5,m)
-alpha <- rep(1,n)
-md <- md %>% md_bernoulli_candidate_alpha_C1_C3(gamma,alpha)
+md <- md %>% md_bernoulli_candidate_C1_C2_C3(m, function(n) rep(.5,n))
 print(md)
 ```
 
@@ -432,13 +367,12 @@ choice of parameters? First, we generate a new MLE using a different sample
 of masked data, `new.md`:
 
 ```{r}
-new.md <- tibble(t1=rexp(n=n,rate=theta[1]),
-             t2=rexp(n=n,rate=theta[2]),
-             t3=rexp(n=n,rate=theta[3])) %>%
+new.md <- tibble(
+    t1=rexp(n=n,rate=theta[1]),
+    t2=rexp(n=n,rate=theta[2]),
+    t3=rexp(n=n,rate=theta[3])) %>%
     md_series_lifetime() %>%
-    md_bernoulli_candidate_alpha_C1_C3(gamma=rep(.3,3),
-                                       alpha=rep(1,n))
-                                       
+    md_bernoulli_candidate_C1_C2_C3(m=3,p=function(n) rep(.5,n))
 mle.new <- md_mle_exp_series_C1_C2_C3(new.md,theta)
 ```
 
@@ -468,7 +402,7 @@ $\v\theta$ by sampling from the approximation:
 
 In Figure 2, we show contour plots of the first two components for the MLE sample.
 
-```{r fig2, echo=F, fig.align='center',fig.cap="Figure 2: Countour plots of the first two components of the 500 MLEs."}
+```{r fig2, eval=F,echo=F, fig.align='center',fig.cap="Figure 2: Countour plots of the first two components of the 500 MLEs."}
 library(latex2exp)
 library(patchwork)
 library(mvtnorm)
@@ -482,9 +416,8 @@ for (i in 1:fig2.N)
                       t2=rexp(n=n,rate=theta[2]),
                       t3=rexp(n=n,rate=theta[3])) %>%
     md_series_lifetime() %>%
-    md_bernoulli_candidate_alpha_C1_C3(gamma=rep(.5,3),
-                                       alpha=rep(1,n))
-    fig2.theta.hats[i,] <- point(md_mle_exp_series_C1_C2_C3(fig2.md,theta0=theta))
+    md_bernoulli_candidate_C1_C2_C3(m=3,p=function(n) rep(.5,n))
+    fig2.theta.hats[i,] <- point(md_mle_exp_series_C1_C2_C3(md=fig2.md,theta0=theta))
 }
 
 fig2.plot1 <- ggplot(tibble(x=fig2.theta.hats[,1],y=fig2.theta.hats[,2]),aes(x=x,y=y)) +
@@ -495,8 +428,8 @@ fig2.plot1 <- ggplot(tibble(x=fig2.theta.hats[,1],y=fig2.theta.hats[,2]),aes(x=x
     ylab(TeX("$\\hat{\\lambda}_2$"))
 
 
-fig2.mle <- md_mle_exp_series_C1_C2_C3(md,theta)
-fig2.theta.hat.asym <- rmvnorm(fig2.N,theta,vcov(fig2.mle))
+fig2.vcov <- vcov(md_mle_exp_series_C1_C2_C3(md,theta))
+fig2.theta.hat.asym <- rmvnorm(fig2.N,theta,fig2.vcov)
 
 fig2.plot2 <- ggplot(tibble(x=fig2.theta.hat.asym[,1],y=fig2.theta.hat.asym[,2]),aes(x=x,y=y)) +
     xlim(c(2,4)) + ylim(c(2,4)) +
@@ -507,22 +440,6 @@ fig2.plot2 <- ggplot(tibble(x=fig2.theta.hat.asym[,1],y=fig2.theta.hat.asym[,2])
 
 fig2.plot1+fig2.plot2
 ```
-
-
-
-
-
-```{r,eval=F,echo=F}
-library(plotly)
-plot_ly(x=mles[,1],y=mles[,2],z=mles[,3],
-        type="scatter3d",mode="markers",size=.05) %>%
-    plotly::layout(
-        title="test",
-        scene=list(xaxis=list(title="λ₁"),
-                   yaxis=list(title="λ₂"),
-                   zaxis=list(title="λ₃")))
-```
-
 
 Estimating component cause
 ==========================
@@ -573,7 +490,8 @@ probabilities given by `k1`,...,`km`.
 We notice that every row over the columns `k1`, `k2`, and `k3`
 given a specific candidate set are the same.
 This is as expected, since in the case of the exponential series,
-the component failure rates are constant (i.e., not a function of $t$).
+the component failure rates are constant with respect to system
+failure time.
 
 If we already had an estimate of $\v\theta$ and we sought to predict
 the failed components from only system lifetime data, we would just let
@@ -584,11 +502,10 @@ $$
     \hat{\v k}_i(\v\theta) = (\hat{k}_1,\hat{k}_2,\hat{k}_3)'
 $$
 is a random vector whose sampling distribution under the right conditions is a
-multivariate normal
+multivariate normal whose $j$\textsuperscript{th} component is given by
 $$
-    \hat{k}_j(\v\theta) \sim \mathcal{N}(f_{K_i|T_i}(j|t_i,\v\theta), \v \Sigma_i).
+    \hat{k}_j \sim \mathcal{N}(f_{K_i|T_i}(j|t_i,\v\theta),\v\Sigma_i).
 $$
-
 We can simulate $n$ draws from $\hat{\v\theta}$ and then apply the above statistic of
 interest, generating the data
 $$
