@@ -1,11 +1,10 @@
 ---
-title: "Example of how to use series.system.estimation.masked.data package"
-output:
-  html_document:
-    df_print: paged
-    toc: true
-vignette: "%\\VignetteIndexEntry{The series.system.estimation.masked.data package}
-  %\\VignetteEncoding{UTF-8} %\\VignetteEngine{knitr::rmarkdown}\n"
+title: "Series system with exponentially distributed component lifetimes"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Series system with exponentially distributed component lifetimes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
@@ -16,6 +15,16 @@ knitr::opts_chunk$set(
 options(digits=3)
 ```
 
+```{r setup}
+library(series.system.estimation.masked.data)
+library(algebraic.mle)
+library(md.tools)
+library(tidyverse)
+library(devtools)
+#devtools::install_github("queelius/algebraic.mle")
+#devtools::install_github("queelius/md.tools")
+```
+
 \renewcommand{\v}[1]{\boldsymbol{#1}}
 
 Introduction
@@ -24,24 +33,6 @@ Introduction
 The R package `series.system.estimation.masked.data` is a framework for
 estimating the parameters of latent component lifetimes from *masked data*
 in a series system.
-
-Install the library and other dependent packages with:
-```{r,message=F,warning=F}
-devtools::install_github("queelius/series_system_estimation_masked_data")
-devtools::install_github("queelius/algebraic.mle")
-devtools::install_github("queelius/md.tools")
-install.packages("devtools")
-install.packages("tidyverse")
-```
-
-Once installed, you may load these libraries with:
-```{r setup,message=F}
-library(devtools)
-library(series.system.estimation.masked.data)
-library(algebraic.mle)
-library(md.tools)
-library(tidyverse)
-```
 
 # Masked data
 
