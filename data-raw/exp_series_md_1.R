@@ -26,5 +26,4 @@ exp_series_md_1 <- tibble(t1=stats::rexp(n,rate=rates[1]),
 exp_series_md_1$tau <- NULL
 write_csv(exp_series_md_1, "data-raw/exp_series_md_1.csv")
 usethis::use_data(exp_series_md_1, overwrite=T)
-#usethis::use_data_raw("exp_series_md_1")
 

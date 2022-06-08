@@ -28,6 +28,7 @@ md_bernoulli_candidate_C1_C2_C3 <- function(md,m,p=function(n) runif(n))
     x <- matrix(NA,nrow=n,ncol=m)
     u <- matrix(runif(m*n),nrow=n)
     gam <- p(n)
+
     for (i in 1:n)
     {
         for (j in 1:m)
@@ -38,7 +39,7 @@ md_bernoulli_candidate_C1_C2_C3 <- function(md,m,p=function(n) runif(n))
         }
     }
 
-    x <- as_tibble(x)
+    x <- tibble::as_tibble(x)
     colnames(x) <- paste0("x",1:m)
-    md %>% bind_cols(x)
+    md %>% dplyr::bind_cols(x)
 }

@@ -20,6 +20,9 @@ Imports:
     tibble,
     md.tools,
     algebraic.mle
+Remotes:
+    github::queelius/md.tools,
+    github::queelius/algebraic.mle
 Depends: 
     R (>= 2.10)
 LazyData: true
