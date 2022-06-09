@@ -64,6 +64,9 @@
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/guo_series_weibull_md.html</loc>
   </url>
   <url>
+    <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/guo_weibull_series_md.html</loc>
+  </url>
+  <url>
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/hazard.exp_dist.html</loc>
   </url>
   <url>
@@ -143,6 +146,9 @@
   </url>
   <url>
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/md_mle_exp_series_reg_cand.html</loc>
+  </url>
+  <url>
+    <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/md_mle_series_C1_C2_C3.html</loc>
   </url>
   <url>
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/md_num_comp.html</loc>

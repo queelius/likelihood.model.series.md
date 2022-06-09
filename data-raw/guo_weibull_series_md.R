@@ -4,5 +4,8 @@
 
 # The series system has m=3 components and the sample size is n=31.
 
+library(usethis)
+library(readr)
+
 guo_weibull_series_md <- read_csv("data-raw/guo_weibull_series_md.csv")
 usethis::use_data(guo_weibull_series_md, overwrite=T)

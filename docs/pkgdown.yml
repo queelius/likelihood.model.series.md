@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   exponential: exponential.html
   weibull: weibull.html
-last_built: 2022-06-08T21:23Z
+last_built: 2022-06-09T09:39Z
 urls:
   reference: https://queelius.github.io/series_system_estimation_masked_data/reference
   article: https://queelius.github.io/series_system_estimation_masked_data/articles

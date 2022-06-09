@@ -25,7 +25,7 @@ md_loglike_weibull_series_C1_C2_C3 <- function(md)
 
     if (right_censoring)
     {
-        function(theta)
+        return(function(theta)
         {
             # theta should be a parameter vector of length 2*m
             scales <- theta[(0:(m-1)*2)+1]
@@ -46,11 +46,11 @@ md_loglike_weibull_series_C1_C2_C3 <- function(md)
                 }
             }
             s
-        }
+        })
     }
     else
     {
-        function(theta)
+        return(function(theta)
         {
             # theta should be a parameter vector of length 2*m
             scales <- theta[(0:(m-1)*2)+1]
@@ -68,8 +68,7 @@ md_loglike_weibull_series_C1_C2_C3 <- function(md)
                 s <- s + log(acc)
             }
             s
-        }
-
+        })
     }
 }
 

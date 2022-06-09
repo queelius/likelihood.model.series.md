@@ -25,7 +25,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/exponential.html">Series system with exponentially distributed component lifetimes</a>
-    <a class="dropdown-item" href="../articles/weibull.html">weibull</a>
+    <a class="dropdown-item" href="../articles/weibull.html">Series system with Weibull distributed component lifetimes</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -74,7 +74,7 @@
         <dd>Simulated masked data 1</dd>
       </dl><dl><dt>
           
-          <code><a href="guo_series_weibull_md.html">guo_series_weibull_md</a></code> 
+          <code><a href="guo_weibull_series_md.html">guo_weibull_series_md</a></code> 
         </dt>
         <dd>Real-world masked data. The source is from the paper,
 "Estimating Component Reliabilities from Incomplete System Failure Data",
@@ -100,14 +100,6 @@ Table 2 (Example Data for a Series System).</dd>
         </dt>
         <dd>Bernoulli candidate model that is a function of component
 cause of failure.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="md_grad_mle_series_C1_C2_C3.html">md_grad_mle_series_C1_C2_C3()</a></code> 
-        </dt>
-        <dd>Maximum likelihood estimator of the parameters of a series
-system with nodes that have exponentially distributed
-lifetimes given a sample of masked data according to
-candidate model m0.</dd>
       </dl><dl><dt>
           
           <code><a href="md_info_exp_series_C1_C2_C3.html">md_info_exp_series_C1_C2_C3()</a></code> 
@@ -136,18 +128,19 @@ C3: masking probabilities are independent of theta</dd>
           <code><a href="md_loglike_weibull_series_C1_C2_C3.html">md_loglike_weibull_series_C1_C2_C3()</a></code> 
         </dt>
         <dd>Masked data approximately satisfies the following set of conditions:
-C1: <code>Pr(K[i] in C[i]) = 1</code>
-C2: <code>Pr(C[i]=c[i] | K[i]=j, T[i]=t[i]) = Pr(C[i]=c[i] | K[i]=j', T[i]=t[i])
-    for any j, j' in c[i]</code>.
+C1: Pr(K in C) = 1
+C2: Pr(C=c | K=j, T=t) = Pr(C=c | K=j', T=t)
+for any j, j' in c.
 C3: masking probabilities are independent of theta</dd>
       </dl><dl><dt>
           
-          <code><a href="md_mle_exp_series_C1_C2_C3.html">md_mle_exp_series_C1_C2_C3()</a></code> 
+          <code><a href="md_mle_series_C1_C2_C3.html">md_mle_series_C1_C2_C3()</a></code> 
         </dt>
         <dd>Maximum likelihood estimator of the parameters of a series
-system with nodes that have exponentially distributed
-lifetimes given a sample of masked data according to
-candidate model m0.</dd>
+system given a sample of masked data according to candidate sets
+that are generated in a way that is compatible with conditions C1, C2, and
+C3 so that we do not need to know or estimate the distribution of candidate
+sets.</dd>
       </dl><dl><dt>
           
           <code><a href="md_score_exp_series_C1_C2_C3.html">md_score_exp_series_C1_C2_C3()</a></code> 
