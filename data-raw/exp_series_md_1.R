@@ -20,7 +20,7 @@ exp_series_md_1 <- tibble(t1=stats::rexp(n,rate=rates[1]),
                           t3=stats::rexp(n,rate=rates[3])) %>%
     md_series_lifetime() %>%
     md_series_lifetime_right_censoring(tau) %>%
-    md_bernoulli_candidate_C1_C2_C3(m)
+    md_bernoulli_candidate_C1_C2_C3(m,p=function(n) rep(.333,n))
 
 exp_series_md_1$tau <- NULL
 write_csv(exp_series_md_1, "data-raw/exp_series_md_1.csv")

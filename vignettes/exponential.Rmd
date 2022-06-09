@@ -142,7 +142,7 @@ To get more help on it, type `?md_series_lifetime`.
 We simulate candidate sets using the Bernoulli candidate model with an
 appropriate set of parameters to satisfy conditions $C_1$, $C_2$, and $C_3$:
 ```{r warning=F, message=F}
-md <- md %>% md_bernoulli_candidate_C1_C2_C3(m, function(n) rep(.5,n))
+md <- md %>% md_bernoulli_candidate_C1_C2_C3(m, function(n) rep(.333,n))
 print(md)
 ```
 
@@ -192,19 +192,8 @@ using backtracking line search.
 We use the function `mle_gradient_ascent` provided by the R package `algebraic.mle`
 with the appropriate arguments.
 We find $\hat{\v\theta}$ by running the following R code:
-
 ```{r}
-print(md)
-knitr::knit_exit()
-```
-
-
-```{r}
-print(md_score_exp_series_C1_C2_C3)
-scr - md_score_exp_series_C1_C2_C3(md)
-```
-
-```{r}
+scr <- md_score_exp_series_C1_C2_C3(md)
 mle <- mle_gradient_ascent(l=l,theta0=theta,score=scr)
 theta.hat <- point(mle)
 summary(mle)
@@ -317,32 +306,33 @@ Note that this is similiar to the Bootstrap, except we know $\v\theta$.
 # bootstrap sampling distribution of mle: mle.boot
 
 N <- c(100, 200) #, 400, 800, 1600, 3200, 6400, 12800, 256000)
-m <- 3
-rates <- c(3,4,5)
-
-for (i in N)
+for (ni in N)
 {
-    R <- N
+    R <- ni
     data <- tibble(
-        t1=rexp(N,theta[1]),
-        t2=rexp(N,theta[2]),
-        t3=rexp(N,theta[3])) %>%
+        t1=rexp(ni,theta[1]),
+        t2=rexp(ni,theta[2]),
+        t3=rexp(ni,theta[3])) %>%
         md_series_lifetime() %>%
-        md_bernoulli_candidate_C1_C2_C3(m=m,p=function(n) rep(.5,n))
+        md_bernoulli_candidate_C1_C2_C3(m=m,p=function(n) rep(.333,n))
+    
+    print(data)
 
     loglik <- md_loglike_exp_series_C1_C2_C3(data)
-    rates.hat <- mle_gradient_ascent(loglik,rates)
+    scr <- md_score_exp_series_C1_C2_C3(data)
+    theta.hat <- mle_gradient_ascent(l=loglik,theta0=theta,score=scr)
+    summary(theta.hat)
     loglik.gen <- function(md) md_loglike_exp_series_C1_C2_C3(md)
-    rates.boot <- mle_samp_bs_loglike(rates.hat,loglik.gen,data,R)
-    
-    summary(rates.boot)
-    
-    mse(x=rates.boot,par=rates)
-    bias(x=rates.boot,par=rates)
-    point(rates.boot)
-    vcov(rates.boot)
-    confint(rates.boot)
+    #theta.boot <- mle_samp_bs_loglike(x=theta.hat,loglike=loglik.gen,data=data,R=R)
+
+    #summary(theta.boot)
+    #mse(x=theta.boot,par=rates)
+    #bias(x=theta.boot,par=rates)
+    #point(theta.boot)
+    #vcov(theta.boot)
+    #confint(theta.boot)
 }
+knitr::knit_exit()
 ```
 
 
@@ -365,8 +355,11 @@ new.md <- tibble(
     t2=rexp(n=n,rate=theta[2]),
     t3=rexp(n=n,rate=theta[3])) %>%
     md_series_lifetime() %>%
-    md_bernoulli_candidate_C1_C2_C3(m=3,p=function(n) rep(.5,n))
-mle.new <- md_mle_exp_series_C1_C2_C3(new.md,theta)
+    md_bernoulli_candidate_C1_C2_C3(m=3,p=function(n) rep(.333,n))
+
+l <- md_loglike_exp_series_C1_C2_C3(new.md)
+scr <- md_score_exp_series_C1_C2_C3(new.md)
+mle.new <- mle_gradient_ascent(l=l,theta0=theta,score=scr)
 ```
 
 Let's compare the lengths of the confidence intervals:

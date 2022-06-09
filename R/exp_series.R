@@ -11,8 +11,8 @@
 #' @export
 md_loglike_exp_series_C1_C2_C3 <- function(md)
 {
-    md$C <- md.tools::md_decode_matrix(md,"x")
     sum.t <- -sum(md$t)
+    md$C <- md.tools::md_decode_matrix(md,"x")
 
     if ("delta" %in% colnames(md))
         md <- md %>% dplyr::filter(delta==F)
