@@ -164,8 +164,6 @@ improves the computational efficiency of computing the log-likelihood.
 We compute the log-likelihood function as a function of the masked data `md` with:
 ```{r}
 l <- md_loglike_exp_series_C1_C2_C3(md)
-print(l)
-knitr::knit_exit()
 ```
 
 The log-likelihood function contains the maximum amount of information
@@ -194,8 +192,19 @@ using backtracking line search.
 We use the function `mle_gradient_ascent` provided by the R package `algebraic.mle`
 with the appropriate arguments.
 We find $\hat{\v\theta}$ by running the following R code:
+
 ```{r}
+print(md)
+knitr::knit_exit()
+```
+
+
+```{r}
+print(md_score_exp_series_C1_C2_C3)
 scr - md_score_exp_series_C1_C2_C3(md)
+```
+
+```{r}
 mle <- mle_gradient_ascent(l=l,theta0=theta,score=scr)
 theta.hat <- point(mle)
 summary(mle)

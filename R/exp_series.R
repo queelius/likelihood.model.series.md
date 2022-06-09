@@ -11,12 +11,12 @@
 #' @export
 md_loglike_exp_series_C1_C2_C3 <- function(md)
 {
-    md$C <- md_decode_matrix(md,"x")
+    md$C <- md.tools::md_decode_matrix(md,"x")
     sum.t <- -sum(md$t)
 
     if ("delta" %in% colnames(md))
-        md <- md %>% select(delta==F)
-    md <- md %>% group_by(C) %>% count()
+        md <- md %>% dplyr::filter(delta==F)
+    md <- md %>% dplyr::group_by(C) %>% dplyr::count()
     n <- nrow(md)
 
     function(theta)
@@ -37,15 +37,16 @@ md_loglike_exp_series_C1_C2_C3 <- function(md)
 #' @importFrom dplyr %>%
 #' @importFrom dplyr group_by
 #' @importFrom dplyr count
+#' @importFrom dplyr filter
 #' @importFrom md.tools md_decode_matrix
 #' @export
 md_score_exp_series_C1_C2_C3 <- function(md)
 {
     sum.t <- -sum(md$t)
-    md$C <- md_decode_matrix(md,"x")
+    md$C <- md.tools::md_decode_matrix(md,"x")
     if ("delta" %in% colnames(md))
-        md <- md %>% select(delta==F)
-    md <- md %>% group_by(C) %>% count()
+        md <- md %>% dplyr::filter(delta==F)
+    md <- md %>% dplyr::group_by(C) %>% dplyr::count()
     m <- ncol(md$C)
 
     function(theta)
@@ -77,10 +78,10 @@ md_score_exp_series_C1_C2_C3 <- function(md)
 #' @export
 md_info_exp_series_C1_C2_C3 <- function(md)
 {
-    md$C <- md_decode_matrix(md,"x")
+    md$C <- md.tools::md_decode_matrix(md,"x")
     if ("delta" %in% colnames(md))
-        md <- md %>% select(delta==F)
-    md <- md %>% group_by(C) %>% count()
+        md <- md %>% dplyr::filter(delta==F)
+    md <- md %>% dplyr::group_by(C) %>% dplyr::count()
     m <- ncol(md$C)
     n <- nrow(md)
 
