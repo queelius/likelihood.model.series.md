@@ -6,7 +6,7 @@
 #' @importFrom dplyr %>%
 #' @importFrom dplyr group_by
 #' @importFrom dplyr count
-#' @importFrom dplyr select
+#' @importFrom dplyr filter
 #' @importFrom md.tools md_decode_matrix
 #' @export
 md_loglike_exp_series_C1_C2_C3 <- function(md)
@@ -74,6 +74,7 @@ md_score_exp_series_C1_C2_C3 <- function(md)
 #' @importFrom dplyr %>%
 #' @importFrom dplyr group_by
 #' @importFrom dplyr count
+#' @importFrom dplyr filter
 #' @importFrom md.tools md_decode_matrix
 #' @export
 md_info_exp_series_C1_C2_C3 <- function(md)
