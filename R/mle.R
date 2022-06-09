@@ -80,8 +80,3 @@ md_mle_series_C1_C2_C3 <- function(
 }
 
 
-
-# beta: shape factor, controls the type of failure of the element (infant mortality, wear-out, or random).
-# beta = k
-# eta: scale factor, representing the time when 63.2 % of the total population is failed.
-# eta = lambda

@@ -1,8 +1,13 @@
+# NOTE: for guo paper:
+# beta: shape factor, controls the type of failure of the element (infant mortality, wear-out, or random).
+# beta = k
+# eta: scale factor, representing the time when 63.2 % of the total population is failed.
+# eta = lambda
 
 #' Masked data approximately satisfies the following set of conditions:
-#' C1: \code{Pr(K[i] in C[i]) = 1}
-#' C2: \code{Pr(C[i]=c[i] | K[i]=j, T[i]=t[i]) = Pr(C[i]=c[i] | K[i]=j', T[i]=t[i])
-#'     for any j, j' in c[i]}.
+#' C1: Pr(K in C) = 1
+#' C2: Pr(C=c | K=j, T=t) = Pr(C=c | K=j', T=t)
+#'     for any j, j' in c.
 #' C3: masking probabilities are independent of theta
 #'
 #' @param md masked data
@@ -11,38 +16,60 @@
 #' @export
 md_loglike_weibull_series_C1_C2_C3 <- function(md)
 {
+    right_censoring <- "delta" %in% colnames(md)
     C <- md_decode_matrix(md,"x")
     m <- ncol(C)
     n <- nrow(md)
     stopifnot(m > 0)
     stopifnot(n > 0)
 
-    function(theta)
+    if (right_censoring)
     {
-        # theta should be a parameter vector of length 2*m
-        # todo: make first m values of `theta` be for scale parameters
-        #            second m values (m+1,...,2m) be for shape parameters
-        scales <- theta[(0:(m-1)*2)+1]
-        shapes <- theta[(1:m)*2]
-        s <- 0
-
-        for (i in 1:n)
+        function(theta)
         {
-            acc <- 0
-            for (j in 1:m)
-                acc <- acc + (md$s[i]/scales[j])^shapes[j]
-            s <- s + log(acc)
+            # theta should be a parameter vector of length 2*m
+            scales <- theta[(0:(m-1)*2)+1]
+            shapes <- theta[(1:m)*2]
+            s <- 0
 
-            if (!md$delta[i])
+            for (i in 1:n)
             {
+                for (j in 1:m)
+                    s <- s - (md$s[i]/scales[j])^shapes[j]
+                if (!md$delta[i])
+                {
+                    acc <- 0
+                    c <- (1:m)[C[i,]]
+                    for (j in c)
+                        acc <- acc + shapes[j]/scales[j]*(md$s[i]/scales[j])^(shapes[j]-1)
+                    s <- s + log(acc)
+                }
+            }
+            s
+        }
+    }
+    else
+    {
+        function(theta)
+        {
+            # theta should be a parameter vector of length 2*m
+            scales <- theta[(0:(m-1)*2)+1]
+            shapes <- theta[(1:m)*2]
+            s <- 0
+
+            for (i in 1:n)
+            {
+                for (j in 1:m)
+                    s <- s - (md$t[i]/scales[j])^shapes[j]
                 acc <- 0
                 c <- (1:m)[C[i,]]
                 for (j in c)
-                    acc <- acc + shapes[j]/scales[j]*(md$s[i]/scales[j])^(shapes[j]-1)
+                    acc <- acc + shapes[j]/scales[j]*(md$t[i]/scales[j])^(shapes[j]-1)
                 s <- s + log(acc)
             }
+            s
         }
-        s
+
     }
 }
 
