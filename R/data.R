@@ -20,7 +20,7 @@ NULL
 #'   \item{x2}{Boolean observable variable, TRUE indicates component 2 is in candidate set}
 #'   \item{x3}{Boolean observable variable, TRUE indicates component 3 is in candidate set}
 #' }
-#' @source \url{https://github.com/queelius/series.system.estimation.masked.data/blob/master/data-raw/exp_series_md_1.R}
+#' @source \url{https://github.com/queelius/series_system_estimation_masked_data/blob/master/data-raw/exp_series_md_1.R}
 "exp_series_md_1"
 
 #' Real-world masked data. The source is from the paper,
@@ -38,5 +38,5 @@ NULL
 #'   \item{x2}{Boolean observable variable, TRUE indicates component 2 is in candidate set}
 #'   \item{x3}{Boolean observable variable, TRUE indicates component 3 is in candidate set}
 #' }
-#' @source \url{https://github.com/queelius/series.system.estimation.masked.data/blob/master/data-raw/guo_series_weibull_md.R}
-"guo_series_weibull_md"
+#' @source \url{https://github.com/queelius/series_system_estimation_masked_data/blob/master/data-raw/guo_weibull_series_md.R}
+"guo_weibull_series_md"

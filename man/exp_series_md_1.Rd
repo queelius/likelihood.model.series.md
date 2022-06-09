@@ -20,7 +20,7 @@ A data frame with 200 rows and 10 variables, only 5 of which are observable.
 }
 }
 \source{
-\url{https://github.com/queelius/series.system.estimation.masked.data/blob/master/data-raw/exp_series_md_1.R}
+\url{https://github.com/queelius/series_system_estimation_masked_data/blob/master/data-raw/exp_series_md_1.R}
 }
 \usage{
 exp_series_md_1

@@ -6,14 +6,19 @@
 #' @importFrom dplyr %>%
 #' @importFrom dplyr group_by
 #' @importFrom dplyr count
+#' @importFrom dplyr select
 #' @importFrom md.tools md_decode_matrix
 #' @export
 md_loglike_exp_series_C1_C2_C3 <- function(md)
 {
     md$C <- md_decode_matrix(md,"x")
     sum.t <- -sum(md$t)
+
+    if ("delta" %in% colnames(md))
+        md <- md %>% select(delta==F)
     md <- md %>% group_by(C) %>% count()
     n <- nrow(md)
+
     function(theta)
     {
         f <- sum.t * sum(theta)
@@ -36,14 +41,16 @@ md_loglike_exp_series_C1_C2_C3 <- function(md)
 #' @export
 md_score_exp_series_C1_C2_C3 <- function(md)
 {
-    t <- -sum(md$t)
+    sum.t <- -sum(md$t)
     md$C <- md_decode_matrix(md,"x")
+    if ("delta" %in% colnames(md))
+        md <- md %>% select(delta==F)
     md <- md %>% group_by(C) %>% count()
     m <- ncol(md$C)
 
     function(theta)
     {
-        v <- rep(t,m)
+        v <- rep(sum.t,m)
         for (j in 1:m)
         {
             for (i in 1:nrow(md))
@@ -52,7 +59,7 @@ md_score_exp_series_C1_C2_C3 <- function(md)
                     v[j] <- v[j] + md$n[i] / sum(theta[md$C[i,]])
             }
         }
-        v
+        as.matrix(v)
     }
 }
 
@@ -71,6 +78,8 @@ md_score_exp_series_C1_C2_C3 <- function(md)
 md_info_exp_series_C1_C2_C3 <- function(md)
 {
     md$C <- md_decode_matrix(md,"x")
+    if ("delta" %in% colnames(md))
+        md <- md %>% select(delta==F)
     md <- md %>% group_by(C) %>% count()
     m <- ncol(md$C)
     n <- nrow(md)
@@ -91,32 +100,6 @@ md_info_exp_series_C1_C2_C3 <- function(md)
         }
         nfo
     }
-}
-
-#' Maximum likelihood estimator of the parameters of a series
-#' system with nodes that have exponentially distributed
-#' lifetimes given a sample of masked data according to
-#' candidate model m0.
-#'
-#' @param md masked data
-#' @param theta0 initial guess for MLE
-#' @param stop_cond stopping condition, defaults to the absolute of the max component difference being less than 1e-05
-#' @param max_iter stop if iterations reaches max_iterations.
-#' @return MLE estimate
-#' @importFrom algebraic.mle mle_gradient_ascent
-#' @export
-md_mle_exp_series_C1_C2_C3 <- function(
-        md,
-        theta0,
-        stop_cond = function(theta1,theta0) abs(max(theta1 - theta0)) < 1e-05,
-        max_iter=0L)
-{
-    mle_gradient_ascent(
-        l=md_loglike_exp_series_C1_C2_C3(md),
-        theta0=theta0,
-        sup=function(theta) all(theta > 0),
-        stop_cond = stop_cond,
-        max_iter=max_iter)
 }
 
 #' Qunatile function for exponential series.

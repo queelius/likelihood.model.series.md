@@ -1,29 +1,29 @@
 ---
 title: "Series system with exponentially distributed component lifetimes"
-output: rmarkdown::html_vignette
+output:
+    rmarkdown::html_vignette:
+        toc: true
 vignette: >
   %\VignetteIndexEntry{Series system with exponentially distributed component lifetimes}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>")
 
-options(digits=3)
-```
-
-```{r setup}
 library(series.system.estimation.masked.data)
 library(algebraic.mle)
 library(md.tools)
 library(tidyverse)
 library(devtools)
-#devtools::install_github("queelius/algebraic.mle")
-#devtools::install_github("queelius/md.tools")
+library(printr)
+
+options(digits=3)
 ```
+
 
 \renewcommand{\v}[1]{\boldsymbol{#1}}
 
@@ -91,11 +91,9 @@ may generate masked data that is more or less informative (e.g., the
 same MLEs but with different MSEs).}
 
 ```{r,warning=F,message=F,echo=F}
-library(printr)
 ?md_bernoulli_candidate_C1_C2_C3
-print(md_bernoulli_candidate_C1_C2_C3)
+md_bernoulli_candidate_C1_C2_C3
 ```
-
 
 ## Estimating the variance-covariance using the Bootstrap method
 Alternatively, we could estimate $\v\theta$ with $B$ simulated draws from
@@ -118,16 +116,15 @@ The most straightforward series system to estimate is the series system with
 exponentially distributed component lifetimes.
 
 Suppose an exponential series system with $m$ components is parameterized by
-$\v\theta = (3,4,5)'$.
+$\v\theta = (1,1.25,1.5)'$.
 Then, the component assigned to index $j$ has an exponentially distributed
-lifetime with a failure rate $\theta_j$, e.g., $\theta_2 = 4$ is the failure
-rate of the component indexed by $4$.
+lifetime with a failure rate $\theta_j$, e.g., $\theta_2 = 1.25$ is the failure
+rate of the component indexed by $2$.
 
 Let's simulate a series system (without candidate sets):
 ```{r}
 n <- 300
-#theta <- c(3,4,5)
-theta <- c(3,3,3)
+theta <- c(1,1.25,1.5)
 m <- length(theta)
 
 md <- tibble(t1=rexp(n,theta[1]),
@@ -167,6 +164,8 @@ improves the computational efficiency of computing the log-likelihood.
 We compute the log-likelihood function as a function of the masked data `md` with:
 ```{r}
 l <- md_loglike_exp_series_C1_C2_C3(md)
+print(l)
+knitr::knit_exit()
 ```
 
 The log-likelihood function contains the maximum amount of information
@@ -192,22 +191,23 @@ $$
 where $\alpha_n$ is chosen to approximately maximize $\ell(\theta^{(n+1))}$ by
 using backtracking line search.
 
-The function `md_mle_exp_series_C1_C2_C3` is a small wrapper for this function,
-providing `mle_gradient_ascent` with the appropriate arguments.
+We use the function `mle_gradient_ascent` provided by the R package `algebraic.mle`
+with the appropriate arguments.
 We find $\hat{\v\theta}$ by running the following R code:
 ```{r}
-mle <- md_mle_exp_series_C1_C2_C3(md,theta0=theta)
+scr - md_score_exp_series_C1_C2_C3(md)
+mle <- mle_gradient_ascent(l=l,theta0=theta,score=scr)
 theta.hat <- point(mle)
 summary(mle)
 ```
 
-The function `md_mle_exp_series_C1_C2_C3` returns an `md_mle` object, which
+The function `md_gradient_ascent` returns an `mle` object, which
 has various methods implemented for it, e.g., `confint` (computes the
 estimators confidence interval).
 In the above, we see use of the `summary` method, which takes an `mle`
 object and prints out a summary of its properties.
-We let `theta.hat` be given by the `point` method, which obtains the *best*
-the MLE $\hat{\v\theta}$.
+We let `theta.hat` be given by the `point` method, which obtains the point
+$\hat{\v\theta}$.
 
 We see that $\hat{\v\theta} = (`r theta.hat`)$.
 If we let the third argument in the log-likelihood function be fixed
@@ -296,51 +296,44 @@ We may then compare these statistics, $\hat{\operatorname{b}}$ and
 $\widehat{\operatorname{MSE}}$, with the asymptotic bias $(\v{0})$ and the
 asymptotic $\operatorname{MSE}$.
 
-Let us compute estimates of the bias and mean squared error as a function of
-sample size $n$:
+Let us compute estimates of the bias, variance-covariance, and mean squared
+error as a function of sample size $n$ using Monte Carlo simulation.
+Note that this is similiar to the Bootstrap, except we know $\v\theta$.
 
 ```{r, fig.width=5,fig.height=5,echo=F}
-Ns <- seq(100, nrow(md), 100)
-mle.bias <- matrix(nrow=length(Ns),ncol=3)
-mles.vcov <- list(length=length(Ns))
-mses.vcov <- numeric(length=length(Ns))
-mses <- numeric(length=length(Ns))
-mles <- list(length=length(Ns))
-thetas <- matrix(nrow=length(Ns),ncol=3)
+# bias of mle
+# variance-covariance of asymptotic: vcov(mle)
+# variance-covariance estimator: cov(mle.boot)
+# mse of mle
+# bootstrap sampling distribution of mle: mle.boot
 
-mse.hat <- function(theta.hats,theta)
+N <- c(100, 200) #, 400, 800, 1600, 3200, 6400, 12800, 256000)
+m <- 3
+rates <- c(3,4,5)
+
+for (i in N)
 {
-    n <- nrow(theta.hats)
-    s <- 0
-    for (i in 1:n)
-        s <- s + sum((theta.hats[i,] - theta)^2)
-    s/n
-}
+    R <- N
+    data <- tibble(
+        t1=rexp(N,theta[1]),
+        t2=rexp(N,theta[2]),
+        t3=rexp(N,theta[3])) %>%
+        md_series_lifetime() %>%
+        md_bernoulli_candidate_C1_C2_C3(m=m,p=function(n) rep(.5,n))
 
-mles[[1]] <- md_mle_exp_series_C1_C2_C3(md[1:Ns[1],],theta)
-thetas[1,] <- point(mles[[1]])
-mles.vcov[[1]] <- vcov(mles[[1]])
-mses.vcov[1] <- sum(diag(mles.vcov[[1]]))
-mses[1] <- sum((thetas[1,]-theta)^2)
-mle.bias[1,] <- thetas[1,] - theta
-for (i in 2:length(Ns))
-{
-    mles[[i]] <- md_mle_exp_series_C1_C2_C3(md[1:Ns[i],],theta)
-    mles.vcov[[i]] <- vcov(mles[[i]])
-    mses.vcov[i] <- sum(diag(mles.vcov[[i]]))
-    thetas[i,] <- point(mles[[i]])
-    mses[i] <- mse.hat(thetas[1:i,],theta)
-    mle.bias[i,] <- colMeans(thetas[1:i,]) - theta
+    loglik <- md_loglike_exp_series_C1_C2_C3(data)
+    rates.hat <- mle_gradient_ascent(loglik,rates)
+    loglik.gen <- function(md) md_loglike_exp_series_C1_C2_C3(md)
+    rates.boot <- mle_samp_bs_loglike(rates.hat,loglik.gen,data,R)
+    
+    summary(rates.boot)
+    
+    mse(x=rates.boot,par=rates)
+    bias(x=rates.boot,par=rates)
+    point(rates.boot)
+    vcov(rates.boot)
+    confint(rates.boot)
 }
-
-tibble(
-    mse=mses,
-    mses.vcov=mses.vcov,
-    n=Ns) %>%
-    ggplot() +
-    geom_line(aes(x=n,y=mses,color="sample")) + 
-    geom_line(aes(x=n,y=mses.vcov,color="theory")) +
-    scale_color_manual(name="Legend",values=c("sample"="blue", "theory"="red"))
 ```
 
 

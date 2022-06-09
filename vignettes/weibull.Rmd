@@ -1,8 +1,8 @@
 ---
-title: "weibull"
+title: "Series system with Weibull distributed component lifetimes"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{weibull}
+  %\VignetteIndexEntry{Series system with Weibull distributed component lifetimes}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
