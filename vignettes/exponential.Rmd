@@ -95,20 +95,6 @@ same MLEs but with different MSEs).}
 md_bernoulli_candidate_C1_C2_C3
 ```
 
-## Estimating the variance-covariance using the Bootstrap method
-Alternatively, we could estimate $\v\theta$ with $B$ simulated draws from
-the MLEs that satisfy
-$$
-    \operatorname{argmax}_{\v\theta \in \v\Omega} \ell(\v\theta|\mathcal{D_i})
-$$
-where $\mathcal{\v{D_i}}$ is a random sample from the empirical distribution
-$\{(S_i,\delta_i,C_i)\}_1^n$. We call this the *Bootstrap*.
-
-Assuming the above solution to the MLE equation is _unique_, this gives us a
-single point $\hat{\v\theta}_{(i)}$ when conditioned on the simulated masked
-data $\v{D_i}$.
-
-
 Exponential series system
 =========================
 
@@ -124,7 +110,7 @@ rate of the component indexed by $2$.
 Let's simulate a series system (without candidate sets):
 ```{r}
 n <- 300
-theta <- c(1,1.25,1.5)
+theta <- c(1,1.25,1.75)
 m <- length(theta)
 
 md <- tibble(t1=rexp(n,theta[1]),
@@ -134,7 +120,6 @@ md <- tibble(t1=rexp(n,theta[1]),
 print(md)
 ```
 
-
 In the above, we used the function `md_series_lifetime`.
 To get more help on it, type `?md_series_lifetime`.
 
@@ -142,7 +127,7 @@ To get more help on it, type `?md_series_lifetime`.
 We simulate candidate sets using the Bernoulli candidate model with an
 appropriate set of parameters to satisfy conditions $C_1$, $C_2$, and $C_3$:
 ```{r warning=F, message=F}
-md <- md %>% md_bernoulli_candidate_C1_C2_C3(m, function(n) rep(.333,n))
+md <- md %>% md_bernoulli_candidate_C1_C2_C3(m, function(n) rep(.25,n))
 print(md)
 ```
 
@@ -219,7 +204,8 @@ data$y <- numeric(nrow(data))
 for (i in 1:nrow(data))
     data$y[i] <- prof(data$x[i])
 data %>% ggplot(aes(x=x,y=y)) + geom_line() +
-    geom_point(aes(x=theta.hat[1],prof(theta.hat[1])))
+    geom_point(aes(x=theta.hat[1],prof(theta.hat[1]))) +
+    labs(x="t",y="likelihood")
 ```
 
 Due to sampling variability, different runs of the experiment
@@ -314,21 +300,19 @@ for (ni in N)
         t2=rexp(ni,theta[2]),
         t3=rexp(ni,theta[3])) %>%
         md_series_lifetime() %>%
-        md_bernoulli_candidate_C1_C2_C3(m=m,p=function(n) rep(.333,n))
+        md_bernoulli_candidate_C1_C2_C3(m=m,p=function(n) rep(.25,n))
     
-    print(data)
-
     loglik <- md_loglike_exp_series_C1_C2_C3(data)
     scr <- md_score_exp_series_C1_C2_C3(data)
     theta.hat <- mle_gradient_ascent(l=loglik,theta0=theta,score=scr)
     summary(theta.hat)
     loglik.gen <- function(md) md_loglike_exp_series_C1_C2_C3(md)
-    #theta.boot <- mle_samp_bs_loglike(x=theta.hat,loglike=loglik.gen,data=data,R=R)
+    theta.boot <- mle_samp_bs_loglike(mle=theta.hat,loglike=loglik.gen,data=data,R=R)
 
     #summary(theta.boot)
     #mse(x=theta.boot,par=rates)
     #bias(x=theta.boot,par=rates)
-    #point(theta.boot)
+    point(theta.boot)
     #vcov(theta.boot)
     #confint(theta.boot)
 }
@@ -373,6 +357,25 @@ We see that the lengths of the confidence intervals are significantly shorter.
 If *no* information is provided about the component cause of failure
 in a series system with $m$ components, then the $m_0$ estimator is not unique
 and does not converge to $\v\theta$.
+
+## Estimating the variance-covariance using the Bootstrap method
+Alternatively, we could estimate $\v\theta$ with $B$ simulated draws from
+the MLEs that satisfy
+$$
+\operatorname{argmax}_{\v\theta \in \v\Omega} \ell(\v\theta|\mathcal{D_i})
+$$
+where $\mathcal{\v{D_i}}$ is a random sample from the empirical distribution
+$\{(S_i,\delta_i,C_i)\}_1^n$. We call this the *Bootstrap*.
+
+Assuming the above solution to the MLE equation is _unique_, this gives us a
+single point $\hat{\v\theta}_{(i)}$ when conditioned on the simulated masked
+data $\v{D_i}$.
+
+
+```{r}
+algebraic.mle::bias(mle)
+```
+
 
 ### Sampling distribution of the MLE
 

@@ -43,3 +43,28 @@ md_bernoulli_candidate_C1_C2_C3 <- function(md,m,p=function(n) runif(n))
     colnames(x) <- paste0("x",1:m)
     md %>% dplyr::bind_cols(x)
 }
+
+md_block_candidate_m3 <- function(md)
+{
+    block <- function(k)
+    {
+        if (k == 1)
+            return(c(T,T,F))
+        if (k == 2)
+            return(c(T,T,F))
+        if (k == 3)
+        {
+            if (runif(1) < 0.1)
+                return(c(T,T,T))
+            else
+                return(c(F,F,T))
+        }
+    }
+
+    for (i in 1:n)
+        x[i,] <- block(md$k[i])
+
+    x <- tibble::as_tibble(x)
+    colnames(x) <- paste0("x",1:3)
+    md %>% dplyr::bind_cols(x)
+}

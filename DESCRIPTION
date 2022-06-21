@@ -1,6 +1,6 @@
 Package: series.system.estimation.masked.data
-Title: Series Systems: Estimating Lifetime Distributions of Unobserved Components with Masked Data
-Version: 0.0.0.9000
+Title: Estimating Reliability of Components in Series from Masked Data
+Version: 0.9
 Authors@R: 
     person("Alexander", "Towell", , "lex@metafunctor.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6443-9897"))
