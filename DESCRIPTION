@@ -22,7 +22,8 @@ Imports:
     stats,
     tibble,
     md.tools,
-    algebraic.mle
+    algebraic.mle,
+    cubature
 Remotes:
     github::queelius/md.tools,
     github::queelius/algebraic.mle

@@ -1,3 +1,6 @@
+
+
+
 #' Masked data approximately satisfies the following set of conditions:
 #' C1: \code{Pr(K[i] in C[i]) = 1}
 #' C2: \code{Pr(C[i]=c[i] | K[i]=j, T[i]=t[i]) = Pr(C[i]=c[i] | K[i]=j', T[i]=t[i])}
@@ -66,21 +69,29 @@ md_loglike_general_series_C1_C2_C3 <- function(md,nparams,h,R)
 #' satisfies \code{F(t) - p = 0}. We solve for \code{t} using Newton's method.
 #'
 #' @param p vector of probabilities.
-#' @param theta parameter vector to evaluate h's and R's at
+#' @param theta parameter vector
 #' @param nparams integer vector, we have m components, each of which may have a
 #'                different number of parameters. the j-th component has
 #'                \code{nparmas[j]} parameters.
 #' @param h list of hazard functions
-#' @param R list of reliability functions
+#' @param R list of reliability functions, default is NULL (numerical approximation from h)
 #' @param eps stopping condition, default is 1e-3
 #' @param t0 initial guess, default is 1
 #' @export
-qgeneral_series <- Vectorize(function(p,theta,nparams,h,R,eps=1e-3,t0=1)
+qgeneral_series <- Vectorize(function(p,theta,nparams,h,R=NULL,eps=1e-3,t0=1)
 {
     stopifnot(length(theta)==sum(nparams))
-    stopifnot(length(h)==length(R))
     stopifnot(eps > 0)
     stopifnot(all(p > 0))
+    m <- length(h)
+
+    if (is.null(R))
+    {
+        R <- list()
+        for (i in 1:m)
+            R[[i]] <- generate_survival_from_hazard(h[[i]])
+    }
+    stopifnot(length(h)==length(R))
 
     series_h <- hazard_general_series_helper(h,nparams)
     series_R <- survival_general_series_helper(R,nparams)
@@ -106,19 +117,22 @@ qgeneral_series <- Vectorize(function(p,theta,nparams,h,R,eps=1e-3,t0=1)
 #' and reliability functions are respectively given by \code{h} and \code{R}.
 #'
 #' @param n sample size
-#' @param theta parameter vector to evaluate h's and R's at
+#' @param theta parameter vector
+#' @param nparams integer vector, we have m components, each of which may have a
+#'                different number of parameters. the j-th component has
+#'                \code{nparmas[j]} parameters.
 #' @param h list of hazard functions
-#' @param R list of reliability functions
+#' @param R list of reliability functions, defaults to NULL (results in a numerical approximation from h)
 #' @export
-rgeneral_series <- function(n,theta,h,R)
+rgeneral_series <- function(n,theta,nparams,h,R=NULL)
 {
-    qgeneral_series(runif(n),theta,h,R)
+    qgeneral_series(runif(n),theta,nparams,h,R)
 }
 
 #' pdf for general series
 #'
 #' @param t series system lifetime
-#' @param theta parameter vector to evaluate h's and R's at
+#' @param theta parameter vector
 #' @param nparams integer vector, we have m components, each of which may have a
 #'                different number of parameters. the j-th component has
 #'                \code{nparmas[j]} parameters.
@@ -137,7 +151,7 @@ dgeneral_series <- Vectorize(function(t,theta,nparams,h,R)
 #' cdf for general series
 #'
 #' @param t series system lifetime
-#' @param theta parameter vector to evaluate R's at
+#' @param theta parameter vector
 #' @param nparams integer vector, we have m components, each of which may have a
 #'                different number of parameters. the j-th component has
 #'                \code{nparmas[j]} parameters.
@@ -154,23 +168,24 @@ pgeneral_series <- Vectorize(function(t,theta,nparams,R)
 #' Survival function for general series
 #'
 #' @param t series system lifetime
-#' @param theta parameter vector to evaluate R's
+#' @param theta parameter vector
 #' @param nparams integer vector, we have m components, each of which may have a
 #'                different number of parameters. the j-th component has
 #'                \code{nparams[j]} parameters.
 #' @param R list of reliability functions
+#' @note convert this into a generator over (t,theta)
 #' @export
 survival_general_series <- Vectorize(function(t,theta,nparams,R)
 {
     stopifnot(length(theta)==sum(nparams))
     series_R <- survival_general_series_helper(R,nparams)
-    series_R(t,theta)
+    function(t,theta) series_R(t,theta)
 }, vectorize.args="t")
 
 #' Hazard function for general series
 #'
 #' @param t series system lifetime
-#' @param theta parameter vector to evaluate h's at
+#' @param theta parameter vector
 #' @param nparams integer vector, we have m components, each of which may have a
 #'                different number of parameters. the j-th component has
 #'                \code{nparams[j]} parameters.

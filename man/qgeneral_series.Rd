@@ -6,12 +6,12 @@
 By definition, the quantile \code{p * 100\%} is the value \code{t} that
 satisfies \code{F(t) - p = 0}. We solve for \code{t} using Newton's method.}
 \usage{
-qgeneral_series(p, theta, nparams, h, R, eps = 0.001, t0 = 1)
+qgeneral_series(p, theta, nparams, h, R = NULL, eps = 0.001, t0 = 1)
 }
 \arguments{
 \item{p}{vector of probabilities.}
 
-\item{theta}{parameter vector to evaluate h's and R's at}
+\item{theta}{parameter vector}
 
 \item{nparams}{integer vector, we have m components, each of which may have a
 different number of parameters. the j-th component has
@@ -19,7 +19,7 @@ different number of parameters. the j-th component has
 
 \item{h}{list of hazard functions}
 
-\item{R}{list of reliability functions}
+\item{R}{list of reliability functions, default is NULL (numerical approximation from h)}
 
 \item{eps}{stopping condition, default is 1e-3}
 

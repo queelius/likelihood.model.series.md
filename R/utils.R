@@ -61,3 +61,43 @@ hazard_general_series_helper <- function(h,nparams)
     }
 }
 
+cumulative_hazard <- function(h,t)
+{
+    adaptIntegrate(h, lowerLimit=0, upperLimit=t)$integral
+}
+
+generate_survival_from_hazard <- function(h)
+{
+    function(t) exp(-cumulative_hazard(h,t))
+}
+
+#' Expectation operator with respect to pdf \code{f} of function \code{g},
+#' i.e., \code{E(g(T))}, assuming \code{T ~ f(t)}.
+#'
+#' @param f pdf
+#' @param g characteristic function of interest, defaults to T
+#' @param lower lower limit of support of \code{f}, defaults to 0
+#' @param upper upper limit of support of \code{f}, defaults to infinity
+#' @importFrom cubature adaptIntegrate
+#' @export
+expectation <- function(f,g=function(t) t, lower=0,upper=Inf)
+{
+    adaptIntegrate(function(t) f(t)*g(t),lower=lower,upper=upper)$integral
+}
+
+#' Monte carlo expectation of a random vector \code{T ~ sampler(1)} applied to a
+#' function \code{g} where \code{g} should have a domain that is a superset of
+#' the random vector's support. That is, we estimate \code{E(g(T))} with the
+#' mean of \code{g(T[1]),...,g(T[n])}. We see that variance is
+#' \code{1/n var(g(T[1]))}, which is inversely proportional to the sample size
+#' \code{n}.
+#'
+#' @param sampler sampler, generates random vectors for a desired distribution
+#' @param g characteristic function of interest, defaults to identity
+#' @param n number of sample points, larger samples reduce variance
+#' @export
+mc_expectation <- function(sampler,g=function(t) t,n=10000)
+{
+    y <- g(sampler(n))
+    ifelse(is.numeric(y), mean(y), colMeans(y))
+}

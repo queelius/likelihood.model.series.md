@@ -11,17 +11,26 @@
 #' @export
 md_loglike_exp_series_C1_C2_C3 <- function(md)
 {
-    sum.t <- -sum(md$t)
+    sum.t <- NULL
+    if ("delta" %in% colnames(md))
+    {
+        stopifnot("s" %in% colnames(md))
+        sum.t <- sum(md$s)
+        md <- md %>% dplyr::filter(delta==F)
+    }
+    else
+    {
+        stopifnot("t" %in% colnames(md))
+        sum.t <- sum(md$t)
+    }
     md$C <- md.tools::md_decode_matrix(md,"x")
 
-    if ("delta" %in% colnames(md))
-        md <- md %>% dplyr::filter(delta==F)
     md <- md %>% dplyr::group_by(C) %>% dplyr::count()
     n <- nrow(md)
 
     function(theta)
     {
-        f <- sum.t * sum(theta)
+        f <- -sum.t * sum(theta)
         for (i in 1:n)
             f <- f + md$n[i] * log(sum(theta[md$C[i,]]))
         f
@@ -42,16 +51,25 @@ md_loglike_exp_series_C1_C2_C3 <- function(md)
 #' @export
 md_score_exp_series_C1_C2_C3 <- function(md)
 {
-    sum.t <- -sum(md$t)
-    md$C <- md.tools::md_decode_matrix(md,"x")
+    sum.t <- NULL
     if ("delta" %in% colnames(md))
+    {
+        stopifnot("s" %in% colnames(md))
+        sum.t <- sum(md$s)
         md <- md %>% dplyr::filter(delta==F)
+    }
+    else
+    {
+        stopifnot("t" %in% colnames(md))
+        sum.t <- sum(md$t)
+    }
+    md$C <- md.tools::md_decode_matrix(md,"x")
     md <- md %>% dplyr::group_by(C) %>% dplyr::count()
     m <- ncol(md$C)
 
     function(theta)
     {
-        v <- rep(sum.t,m)
+        v <- rep(-sum.t,m)
         for (j in 1:m)
         {
             for (i in 1:nrow(md))
@@ -79,9 +97,8 @@ md_score_exp_series_C1_C2_C3 <- function(md)
 #' @export
 md_info_exp_series_C1_C2_C3 <- function(md)
 {
+    md <- md %>% dplyr::filter(delta==F)
     md$C <- md.tools::md_decode_matrix(md,"x")
-    if ("delta" %in% colnames(md))
-        md <- md %>% dplyr::filter(delta==F)
     md <- md %>% dplyr::group_by(C) %>% dplyr::count()
     m <- ncol(md$C)
     n <- nrow(md)

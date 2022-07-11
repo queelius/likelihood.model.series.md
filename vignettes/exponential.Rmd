@@ -42,7 +42,7 @@ Masked data is given by an i.i.d. sample of system lifetime data and
 The R package `series.system.estimation.masked.data` contains several simulated
 masked data sets.
 For example, a series system with $3$ exponentially distributed component
-lifetimes is stored in `exp_series_data_1`:
+lifetimes is stored in `exp_series_md_1`:
 
 ```{r}
 print(exp_series_md_1)
@@ -57,19 +57,23 @@ For instance, to get information on the data set `exp_series_md_1`, type
 
 The principle object of study is the series system consisting of $m$
 components. We are interested in estimating the component lifetimes from
-masked data in the form of candidate sets, where the candidate sets
-satisfy the following set of conditions:
-    
-- Condition $C_1$: The index of the failed component is in the candidate set,
-  i.e., $\Pr\{K_i \in C_i\} = 1$.
+masked data. The masking comes in two independent forms:
 
-- Condition $C_2$: The probability of $C_i$ given $K_i$ and $T_i$ is equally
+- Censored system failure times, e.g., right-censoring.
+
+- Masked component cause of failure, which comes in the form of candidate sets,
+where the candidate sets satisfy the following set of conditions:
+    
+- $C_1$: The index of the failed component is in the candidate set,
+  i.e., $\Pr\{K_i \in \mathcal{C}_i\} = 1$.
+
+- $C_2$: The probability of $C_i$ given $K_i$ and $T_i$ is equally
   probable when the failed component varies over the components in the candidate
-  set, i.e., $\Pr\{C_i=c_i|K_i=j,T_i=t_i\} = \Pr\{C_i=c_i|K_i=j',T_i=t_i\}$ for
+  set, i.e., $\Pr\{\mathcal{C}_i=c_i|K_i=j,T_i=t_i\} = \Pr\{C_i=c_i|K_i=j',T_i=t_i\}$ for
   any $j,j' \in c_i$.
     
-- Condition $C_3$: The masking probabilities are independent of $\v\theta$,
-  i.e., $\Pr\{C_i=c_i|K_i=j,T_i=t_i\}$ is not a function of $\v\theta$.
+- $C_3$: The masking probabilities are independent of $\v\theta$,
+  i.e., $\Pr\{\mathcal{C}_i=c_i|K_i=j,T_i=t_i\}$ is not a function of $\v\theta$.
   
   That means, whatever the generative mechanism underlying
   $\mathcal{C}_1,\ldots,\mathcal{C}_n$, it has no explicit knowledge of $\v\theta$,
@@ -92,7 +96,34 @@ same MLEs but with different MSEs).}
 
 ```{r,warning=F,message=F,echo=F}
 ?md_bernoulli_candidate_C1_C2_C3
-md_bernoulli_candidate_C1_C2_C3
+```
+
+Here is the source code for `md_bernoulli_candidate_C1_C2_C3`:
+```{r,eval=F}
+md_bernoulli_candidate_C1_C2_C3 <- function(md,m,p=function(n) runif(n))
+{
+    stopifnot(!is.null(md$k))
+    n <- nrow(md)
+    stopifnot(n > 0)
+
+    x <- matrix(NA,nrow=n,ncol=m)
+    u <- matrix(runif(m*n),nrow=n)
+    gam <- p(n)
+
+    for (i in 1:n)
+    {
+        for (j in 1:m)
+        {
+            x[i,j] <- ifelse(md$k[i]==j,
+                             T,
+                             u[i,j] < gam[i])
+        }
+    }
+
+    x <- tibble::as_tibble(x)
+    colnames(x) <- paste0("x",1:m)
+    md %>% dplyr::bind_cols(x)
+}
 ```
 
 Exponential series system
@@ -102,17 +133,21 @@ The most straightforward series system to estimate is the series system with
 exponentially distributed component lifetimes.
 
 Suppose an exponential series system with $m$ components is parameterized by
-$\v\theta = (1,1.25,1.5)'$.
-Then, the component assigned to index $j$ has an exponentially distributed
-lifetime with a failure rate $\theta_j$, e.g., $\theta_2 = 1.25$ is the failure
-rate of the component indexed by $2$.
+the following R code:
 
-Let's simulate a series system (without candidate sets):
 ```{r}
-n <- 300
 theta <- c(1,1.25,1.75)
 m <- length(theta)
+```
 
+$\v\theta = (`r theta`)'$.
+Then, the component assigned to index $j$ has an exponentially distributed
+lifetime with a failure rate $\theta_j$, e.g., $\theta_2 = `r theta[2]`$ is the
+failure rate of the component indexed by $2$.
+
+Let's simulate generating the lifetimes of $n=300$ of these series systems:
+```{r}
+n <- 500000
 md <- tibble(t1=rexp(n,theta[1]),
              t2=rexp(n,theta[2]),
              t3=rexp(n,theta[3])) %>%
@@ -120,14 +155,26 @@ md <- tibble(t1=rexp(n,theta[1]),
 print(md)
 ```
 
-In the above, we used the function `md_series_lifetime`.
+In the above, we used the function `md_series_lifetime`, to decorate the
+masked data `md` consisting of $m=3$ component lifetimes to masked data
+that also includes the series system failure time (column $t$) and the
+comoponent cause of failure (column $k$).
 To get more help on it, type `?md_series_lifetime`.
 
-## Candidate sets
+## Right-censoring
+We simulate right-censoring, with a right-censoring time chosen by the
+probability $\Pr\{T_i > \tau\} = 0.75$, with:
+```{r}
+q <- 0.25
+tau <- rep(-(1/sum(theta))*log(q),n)
+md <- md %>% md_series_lifetime_right_censoring(tau)
+```
+
+## Masked component cause of failure (candidate sets)
 We simulate candidate sets using the Bernoulli candidate model with an
 appropriate set of parameters to satisfy conditions $C_1$, $C_2$, and $C_3$:
 ```{r warning=F, message=F}
-md <- md %>% md_bernoulli_candidate_C1_C2_C3(m, function(n) rep(.25,n))
+md <- md %>% md_bernoulli_candidate_C1_C2_C3(m, function(n) rep(.3,n))
 print(md)
 ```
 
@@ -145,6 +192,9 @@ $$
 The following log-likelihood constructor, `md_loglike_exp_series_C1_C2_c3`,
 is implemented using minimally sufficient statistics, which significantly
 improves the computational efficiency of computing the log-likelihood.
+```{r warning=F}
+?md_loglike_exp_series_C1_C2_C3
+```
 
 We compute the log-likelihood function as a function of the masked data `md` with:
 ```{r}
@@ -155,7 +205,7 @@ The log-likelihood function contains the maximum amount of information
 about parameter $\v\theta$ given the sample of masked data `md` satisfying
 conditions $C_1$, $C_2$, and $C_3$.
 
-Suppose we do not know that $\v\theta = (3,4,5)'$.
+Suppose we do not know that $\v\theta = (`r theta`)'$.
 With the log-likelihood, we may estimate $\theta$ with $\hat\theta$ by solving
 $$
 \hat{\v\theta} = \operatorname{argmax}_{\v\theta \in \Omega} \ell(\theta),
@@ -192,7 +242,13 @@ object and prints out a summary of its properties.
 We let `theta.hat` be given by the `point` method, which obtains the point
 $\hat{\v\theta}$.
 
-We see that $\hat{\v\theta} = (`r theta.hat`)$.
+We see that
+$$
+\hat{\v\theta} = (`r as.numeric(theta.hat)`)'.
+$$
+Recall that the true parameter $\v\theta = `r theta`$.
+
+
 If we let the third argument in the log-likelihood function be fixed
 at $\hat\theta_3 = `r theta.hat[3]`)$, then we may profile the
 log-likelihood function over the first two parameters:
@@ -282,43 +338,11 @@ asymptotic $\operatorname{MSE}$.
 
 Let us compute estimates of the bias, variance-covariance, and mean squared
 error as a function of sample size $n$ using Monte Carlo simulation.
-Note that this is similiar to the Bootstrap, except we know $\v\theta$.
+Note that this is similar to the Bootstrap, except we know $\v\theta$.
 
 ```{r, fig.width=5,fig.height=5,echo=F}
-# bias of mle
-# variance-covariance of asymptotic: vcov(mle)
-# variance-covariance estimator: cov(mle.boot)
-# mse of mle
-# bootstrap sampling distribution of mle: mle.boot
-
-N <- c(100, 200) #, 400, 800, 1600, 3200, 6400, 12800, 256000)
-for (ni in N)
-{
-    R <- ni
-    data <- tibble(
-        t1=rexp(ni,theta[1]),
-        t2=rexp(ni,theta[2]),
-        t3=rexp(ni,theta[3])) %>%
-        md_series_lifetime() %>%
-        md_bernoulli_candidate_C1_C2_C3(m=m,p=function(n) rep(.25,n))
-    
-    loglik <- md_loglike_exp_series_C1_C2_C3(data)
-    scr <- md_score_exp_series_C1_C2_C3(data)
-    theta.hat <- mle_gradient_ascent(l=loglik,theta0=theta,score=scr)
-    summary(theta.hat)
-    loglik.gen <- function(md) md_loglike_exp_series_C1_C2_C3(md)
-    theta.boot <- mle_samp_bs_loglike(mle=theta.hat,loglike=loglik.gen,data=data,R=R)
-
-    #summary(theta.boot)
-    #mse(x=theta.boot,par=rates)
-    #bias(x=theta.boot,par=rates)
-    point(theta.boot)
-    #vcov(theta.boot)
-    #confint(theta.boot)
-}
-knitr::knit_exit()
+#stats1 <- readr::read_csv2("./data-raw/exp_series_stats_1.csv")
 ```
-
 
 A primary statistic is the *confidence interval*.
 A $(1-\alpha)100\%$ confidence interval for $\theta_j$ may be estimated with

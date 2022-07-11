@@ -1,10 +1,8 @@
-# NOTE: for guo paper:
-# beta: shape factor, controls the type of failure of the element (infant mortality, wear-out, or random).
-# beta = k
-# eta: scale factor, representing the time when 63.2 % of the total population is failed.
-# eta = lambda
-
-#' Masked data approximately satisfies the following set of conditions:
+#' Log-likelihood generator for Weibull series system on masked data,
+#' where the masked data is in the form of right-censored system lifetimes
+#' and masked component cause of failure.
+#'
+#' Masked component data approximately satisfies the following conditions:
 #' C1: Pr(K in C) = 1
 #' C2: Pr(C=c | K=j, T=t) = Pr(C=c | K=j', T=t)
 #'     for any j, j' in c.
@@ -14,64 +12,53 @@
 #' @returns a log-likelihood function with respect to theta given md
 #' @importFrom md.tools md_decode_matrix
 #' @export
-md_loglike_weibull_series_C1_C2_C3 <- function(md)
+md_loglike_weibull_series_C1_C2_C3_2 <- function(md)
 {
     right_censoring <- "delta" %in% colnames(md)
+    t <- NULL
+    delta <- NULL
+    if (right_censoring)
+    {
+        stopifnot("s" %in% colnames(md))
+        t <- md$s
+        delta <- md$delta
+    }
+    else
+    {
+        stopifnot("t" %in% colnames(md))
+        t <- md$t
+    }
+
     C <- md_decode_matrix(md,"x")
     m <- ncol(C)
     n <- nrow(md)
     stopifnot(m > 0)
     stopifnot(n > 0)
+    md <- NULL
 
-    if (right_censoring)
+    function(theta)
     {
-        return(function(theta)
-        {
-            # theta should be a parameter vector of length 2*m
-            scales <- theta[(0:(m-1)*2)+1]
-            shapes <- theta[(1:m)*2]
-            s <- 0
+        # theta should be a parameter vector of length 2*m
+        scales <- theta[(0:(m-1)*2)+1]
+        shapes <- theta[(1:m)*2]
+        s <- 0
 
-            for (i in 1:n)
-            {
-                for (j in 1:m)
-                    s <- s - (md$s[i]/scales[j])^shapes[j]
-                if (!md$delta[i])
-                {
-                    acc <- 0
-                    c <- (1:m)[C[i,]]
-                    for (j in c)
-                        acc <- acc + shapes[j]/scales[j]*(md$s[i]/scales[j])^(shapes[j]-1)
-                    s <- s + log(acc)
-                }
-            }
-            s
-        })
-    }
-    else
-    {
-        return(function(theta)
+        for (i in 1:n)
         {
-            # theta should be a parameter vector of length 2*m
-            scales <- theta[(0:(m-1)*2)+1]
-            shapes <- theta[(1:m)*2]
-            s <- 0
-
-            for (i in 1:n)
+            for (j in 1:m)
+                s <- s - (t[i]/scales[j])^shapes[j]
+            if (!right_censoring || !delta[i])
             {
-                for (j in 1:m)
-                    s <- s - (md$t[i]/scales[j])^shapes[j]
                 acc <- 0
                 c <- (1:m)[C[i,]]
                 for (j in c)
-                    acc <- acc + shapes[j]/scales[j]*(md$t[i]/scales[j])^(shapes[j]-1)
+                    acc <- acc + shapes[j]/scales[j]*(t[i]/scales[j])^(shapes[j]-1)
                 s <- s + log(acc)
             }
-            s
-        })
+        }
+        s
     }
 }
-
 
 #' Quantile function (inverse of the cdf).
 #' By definition, the quantile p * 100% for a strictly monotonically increasing

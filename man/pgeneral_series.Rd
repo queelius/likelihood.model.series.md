@@ -9,7 +9,7 @@ pgeneral_series(t, theta, nparams, R)
 \arguments{
 \item{t}{series system lifetime}
 
-\item{theta}{parameter vector to evaluate R's at}
+\item{theta}{parameter vector}
 
 \item{nparams}{integer vector, we have m components, each of which may have a
 different number of parameters. the j-th component has

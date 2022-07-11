@@ -5,16 +5,20 @@
 \title{Sample from a general series system of \code{m} components whose hazard
 and reliability functions are respectively given by \code{h} and \code{R}.}
 \usage{
-rgeneral_series(n, theta, h, R)
+rgeneral_series(n, theta, nparams, h, R = NULL)
 }
 \arguments{
 \item{n}{sample size}
 
-\item{theta}{parameter vector to evaluate h's and R's at}
+\item{theta}{parameter vector}
+
+\item{nparams}{integer vector, we have m components, each of which may have a
+different number of parameters. the j-th component has
+\code{nparmas[j]} parameters.}
 
 \item{h}{list of hazard functions}
 
-\item{R}{list of reliability functions}
+\item{R}{list of reliability functions, defaults to NULL (results in a numerical approximation from h)}
 }
 \description{
 Sample from a general series system of \code{m} components whose hazard

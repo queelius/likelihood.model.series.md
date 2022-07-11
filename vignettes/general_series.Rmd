@@ -1,0 +1,202 @@
+---
+title: "General series system with component lifetimes that are in different parametric families"
+output:
+    rmarkdown::html_vignette:
+        toc: true
+vignette: >
+  %\VignetteIndexEntry{General series system with component lifetimes that are in different parametric families}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>")
+
+library(series.system.estimation.masked.data)
+library(algebraic.mle)
+library(md.tools)
+library(tidyverse)
+library(devtools)
+library(printr)
+
+options(digits=3)
+```
+
+
+\renewcommand{\v}[1]{\boldsymbol{#1}}
+
+Introduction
+============
+
+The R package `series.system.estimation.masked.data` is a framework for
+estimating the parameters of latent component lifetimes from *masked data*
+in a series system.
+
+# Masked data
+
+Masked data is given by an i.i.d. sample of system lifetime data and
+*plausible* candidate sets that contain the failed node.
+
+# Statistical model for masked data
+
+The principle object of study is the series system consisting of $m$
+components. We are interested in estimating the component lifetimes from
+masked data in the form of candidate sets, where the candidate sets
+satisfy the following set of conditions:
+    
+- Condition $C_1$: The index of the failed component is in the candidate set,
+  i.e., $\Pr\{K_i \in C_i\} = 1$.
+
+- Condition $C_2$: The probability of $C_i$ given $K_i$ and $T_i$ is equally
+  probable when the failed component varies over the components in the candidate
+  set, i.e., $\Pr\{C_i=c_i|K_i=j,T_i=t_i\} = \Pr\{C_i=c_i|K_i=j',T_i=t_i\}$ for
+  any $j,j' \in c_i$.
+    
+- Condition $C_3$: The masking probabilities are independent of $\v\theta$,
+  i.e., $\Pr\{C_i=c_i|K_i=j,T_i=t_i\}$ is not a function of $\v\theta$.
+  
+  That means, whatever the generative mechanism underlying
+  $\mathcal{C}_1,\ldots,\mathcal{C}_n$, it has no explicit knowledge of $\v\theta$,
+  but the $i$\textsuperscript{th} candidate set $\mathcal{C}_i$ may depend on
+  the realizations of $T_{i 1},\ldots,T_{i n}$ and other factors not explicitly
+  in the statistical model we have described.
+
+General series system
+=====================
+
+In the general series system, we no longer restrict ourselves to the case where
+each component lifetime comes from the same parametric family, like Weibull
+or exponential.
+This adds a slightly bit more sophistication to the setup, but we already have
+the general form of the likelihood function that only makes reference to the
+reliability and hazard functions of individual component lifetimes.
+
+We consider a general series system of $m=3$ components.
+Components $1$ and $2$ have lifetimes in the Weibull family and component $3$
+has a lifetime in the exponential family.
+
+Let's simulate a series system with masked data with a right-censoring time of
+$\tau_i = 3$ for $i=1,\ldots,n$ and with an Bernoulli candidate model
+appropriate set of parameters to satisfy conditions $C_1$, $C_2$, and $C_3$,
+where $\gamma = 0.25$ is the probability that each non-failed component is in
+the candidate set. Here is the R code to simulate the data:
+```{r}
+n <- 500
+m <- 3
+exp.lam <- log(2)/2
+wei1.shape <- 100
+wei1.scale <- 2/(log(2)^(1/wei1.shape))
+
+wei2.shape <- 200
+wei2.scale <- 2/(log(2)^(1/wei2.shape))
+
+theta <- c(wei1.shape,wei1.scale,
+           wei2.shape,wei2.scale,
+           exp.lam)
+print(theta)
+tau <- 1.975
+md <- tibble(t1=rweibull(n,theta[1],theta[2]),
+             t2=rweibull(n,theta[3],theta[4]),
+             t3=rexp(n,theta[5])) %>%
+    md_series_lifetime() %>%
+    md_series_lifetime_right_censoring(tau=tau) %>%
+    md_bernoulli_candidate_C1_C2_C3(m, function(n) rep(.25,n))
+print(md)
+```
+
+## Log-likelihood of $\theta$ given masked data
+
+The reduced log-likelihood function (the log of the kernel of the likelihood
+function) is given by
+$$
+\ell(\theta) = \sum_{i=1}^n \sum_{l=1}^m \log R_j(t_i) + \sum_{i=1}^n \log \Bigl\{ \sum_{j \in c_i} h_j(t_i) \Bigr\}.
+$$
+
+The following log-likelihood constructor, `md_loglike_general_series_C1_C2_c3`,
+implements the log-likelihood $\ell$ in a straightforward way, e.g., no
+minimally sufficient set of statistics are derived and it accepts four arguments:
+
+1. The maked data `md`.
+2. A vector specifying the number of parameters for each component.
+3. A list of the reliability functions for the components.
+4. A list of the hazard functions for the components.
+
+We compute the log-likelihood function with:
+```{r}
+nparams <- c(2,2,1)
+hs <- list()
+Rs <- list()
+hs[[1]] <- function(t,theta) theta[2]/theta[1]*(t/theta[1])^(theta[2]-1)
+Rs[[1]] <- function(t,theta) exp((-t/theta[1])^theta[2])
+
+hs[[2]] <- function(t,theta) theta[2]/theta[1]*(t/theta[1])^(theta[2]-1)
+Rs[[2]] <- function(t,theta) exp((-t/theta[1])^theta[2])
+
+hs[[3]] <- function(t,rate) rate
+Rs[[3]] <- function(t,rate) exp(-t*rate)
+
+print(hs[[1]](2,theta[1:2]))
+print(hs[[2]](2,theta[3:4]))
+print(hs[[3]](2,theta[5]))
+
+print(Rs[[1]](2,theta[1:2]))
+print(Rs[[2]](2,theta[3:4]))
+print(Rs[[3]](2,theta[5]))
+
+knitr::knit_exit()
+```
+
+
+```{r}
+loglike.general <- md_loglike_general_series_C1_C2_C3(md,nparams,hs,Rs)
+print(loglike.general)
+print(loglike.general(theta))
+knitr::knit_exit()
+```
+
+The log-likelihood function contains the maximum amount of information
+about parameter $\v\theta$ given the sample of masked data `md` satisfying
+conditions $C_1$, $C_2$, and $C_3$.
+
+With the log-likelihood, we may estimate $\theta$ with $\hat\theta$ by solving
+$$
+\hat{\v\theta} = \operatorname{argmax}_{\v\theta \in \Omega} \ell(\theta),
+$$
+i.e., finding the point that *maximizes* the log-likelihood on
+the observed sample `md`.
+This is known as *maximum likelihood estimation* (MLE).
+We typically solve for the MLE by solving
+$$
+\nabla \ell|_{\v\theta=\hat{\v\theta}} = \v{0}.
+$$
+We use the iterative method known as the Newton-Raphson to solve this, which
+has the updating equation
+$$
+\v\theta^{(n+1)} = \v\theta^n + \alpha_n \nabla \ell(\v\theta^n),
+$$
+where $\alpha_n$ is chosen to approximately maximize $\ell(\theta^{(n+1))}$ by
+using backtracking line search.
+
+We use the function `mle_newton_raphson` provided by the R package `algebraic.mle`
+with the appropriate arguments.
+We find $\hat{\v\theta}$ by running the following R code:
+```{r}
+mle <- mle_newton_raphson(l=loglike.general,theta0=theta)
+```
+
+The function `md_newton_raphson` returns an `mle` object, which
+has various methods implemented for it, e.g., `confint` (computes the
+estimator's confidence interval).
+We use the `summary` method, which takes an `mle` object and prints out a
+summary of its statistics:
+```{r}
+summary(mle)
+```
+
+We let $\hat{\v\theta}$ be given by the `point` method:
+```{r}
+point(mle)
+```
+We see that $\hat{\v\theta} = (`r theta.hat`)$.

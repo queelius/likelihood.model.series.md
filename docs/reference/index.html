@@ -25,6 +25,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/exponential.html">Series system with exponentially distributed component lifetimes</a>
+    <a class="dropdown-item" href="../articles/general_series.html">General series system with component lifetimes that are in different parametric families</a>
     <a class="dropdown-item" href="../articles/weibull.html">Series system with Weibull distributed component lifetimes</a>
   </div>
 </li>
@@ -74,6 +75,18 @@
         <dd>Simulated masked data 1</dd>
       </dl><dl><dt>
           
+          <code><a href="exp_series_stats_1.html">exp_series_stats_1</a></code> 
+        </dt>
+        <dd>Bootstrapped MLE sampling distribution statistics, compared with the
+asymptotic theory, for exponential series system with 3 components.</dd>
+      </dl><dl><dt>
+          
+          <code><a href="expectation.html">expectation()</a></code> 
+        </dt>
+        <dd>Expectation operator with respect to pdf <code>f</code> of function <code>g</code>,
+i.e., <code>E(g(T))</code>, assuming <code>T ~ f(t)</code>.</dd>
+      </dl><dl><dt>
+          
           <code><a href="guo_weibull_series_md.html">guo_weibull_series_md</a></code> 
         </dt>
         <dd>Real-world masked data. The source is from the paper,
@@ -94,6 +107,16 @@ Table 2 (Example Data for a Series System).</dd>
           <code><a href="hazard_weibull_series.html">hazard_weibull_series()</a></code> 
         </dt>
         <dd>Hazard function for weibull series.</dd>
+      </dl><dl><dt>
+          
+          <code><a href="mc_expectation.html">mc_expectation()</a></code> 
+        </dt>
+        <dd>Monte carlo expectation of a random vector <code>T ~ sampler(1)</code> applied to a
+function <code>g</code> where <code>g</code> should have a domain that is a superset of
+the random vector's support. That is, we estimate <code>E(g(T))</code> with the
+mean of <code>g(T[1]),...,g(T[n])</code>. We see that variance is
+<code>1/n var(g(T[1]))</code>, which is inversely proportional to the sample size
+<code>n</code>.</dd>
       </dl><dl><dt>
           
           <code><a href="md_bernoulli_candidate_C1_C2_C3.html">md_bernoulli_candidate_C1_C2_C3()</a></code> 
@@ -125,13 +148,11 @@ for any \code{j,j' in c[i]</code>.
 C3: masking probabilities are independent of theta</dd>
       </dl><dl><dt>
           
-          <code><a href="md_loglike_weibull_series_C1_C2_C3.html">md_loglike_weibull_series_C1_C2_C3()</a></code> 
+          <code><a href="md_loglike_weibull_series_C1_C2_C3_2.html">md_loglike_weibull_series_C1_C2_C3_2()</a></code> 
         </dt>
-        <dd>Masked data approximately satisfies the following set of conditions:
-C1: Pr(K in C) = 1
-C2: Pr(C=c | K=j, T=t) = Pr(C=c | K=j', T=t)
-for any j, j' in c.
-C3: masking probabilities are independent of theta</dd>
+        <dd>Log-likelihood generator for Weibull series system on masked data,
+where the masked data is in the form of right-censored system lifetimes
+and masked component cause of failure.</dd>
       </dl><dl><dt>
           
           <code><a href="md_score_exp_series_C1_C2_C3.html">md_score_exp_series_C1_C2_C3()</a></code> 
