@@ -8,7 +8,7 @@ C2: \code{Pr(C[i]=c[i] | K[i]=j, T[i]=t[i]) = Pr(C[i]=c[i] | K[i]=j', T[i]=t[i])
 for any \code{j,j' in c[i]}.
 C3: masking probabilities are independent of theta}
 \usage{
-md_loglike_general_series_C1_C2_C3(md, nparams, h, R)
+md_loglike_general_series_C1_C2_C3(md, nparams, h, R = NULL)
 }
 \arguments{
 \item{md}{masked data}
@@ -19,7 +19,8 @@ different number of parameters. the j-th component has
 
 \item{h}{list of hazard functions}
 
-\item{R}{list of survival functions}
+\item{R}{list of survival functions, defaults to NULL, in which case we
+generate the survival functions from \code{h}.}
 }
 \value{
 a log-likelihood function with respect to theta given \code{md}

@@ -12,15 +12,26 @@
 #'                different number of parameters. the j-th component has
 #'                \code{nparmas[j]} parameters.
 #' @param h list of hazard functions
-#' @param R list of survival functions
+#' @param R list of survival functions, defaults to NULL, in which case we
+#'          generate the survival functions from \code{h}.
 #' @returns a log-likelihood function with respect to theta given \code{md}
 #' @importFrom md.tools md_decode_matrix
 #' @export
-md_loglike_general_series_C1_C2_C3 <- function(md,nparams,h,R)
+md_loglike_general_series_C1_C2_C3 <- function(md,nparams,h,R = NULL)
 {
     m <- length(h)
     stopifnot(m > 0)
     stopifnot(m==length(R))
+    if (is.null(R))
+    {
+        R <- list(length=m)
+        j <- 1
+        for (hj in h)
+        {
+            R[j] <- generate_survival_from_hazard(hj)
+            j <- j + 1
+        }
+    }
     series_h <- hazard_general_series_helper(h,nparams)
     series_R <- survival_general_series_helper(R,nparams)
 

@@ -9,7 +9,7 @@ library(readr)
 
 # sim parameters
 set.seed(1234)
-N <- 5000
+N <- 50000
 theta <- c(1,1.25,1.75)
 m <- length(theta)
 

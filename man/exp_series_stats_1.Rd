@@ -3,8 +3,8 @@
 \docType{data}
 \name{exp_series_stats_1}
 \alias{exp_series_stats_1}
-\title{Bootstrapped MLE sampling distribution statistics, compared with the
-asymptotic theory, for exponential series system with 3 components.}
+\title{Bootstrapped MLE sampling distribution statistics from masked data, compared
+with the asymptotic theory, for exponential series system with 3 components.}
 \format{
 A data frame.
 \describe{
@@ -32,7 +32,7 @@ A data frame.
 exp_series_stats_1
 }
 \description{
-Bootstrapped MLE sampling distribution statistics, compared with the
-asymptotic theory, for exponential series system with 3 components.
+Bootstrapped MLE sampling distribution statistics from masked data, compared
+with the asymptotic theory, for exponential series system with 3 components.
 }
 \keyword{datasets}

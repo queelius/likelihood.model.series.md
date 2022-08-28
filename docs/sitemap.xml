@@ -61,6 +61,9 @@
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/exp_series_stats_1.html</loc>
   </url>
   <url>
+    <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/exp_series_stats_2.html</loc>
+  </url>
+  <url>
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/expectation.html</loc>
   </url>
   <url>
@@ -178,6 +181,9 @@
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/md_score_exp_series_reg_cand.html</loc>
   </url>
   <url>
+    <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/md_score_weibull_series_C1_C2_C3.html</loc>
+  </url>
+  <url>
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/md_series_component_failure_decorator.html</loc>
   </url>
   <url>
@@ -191,6 +197,9 @@
   </url>
   <url>
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/md_series_lifetime_right_censoring.html</loc>
+  </url>
+  <url>
+    <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/param_weibull_series.html</loc>
   </url>
   <url>
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/params.exp_dist.html</loc>
@@ -278,5 +287,8 @@
   </url>
   <url>
     <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/vcov.normal.html</loc>
+  </url>
+  <url>
+    <loc>https://queelius.github.io/series_system_estimation_masked_data/reference/weibull_series_md_1.html</loc>
   </url>
 </urlset>

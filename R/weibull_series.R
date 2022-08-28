@@ -12,7 +12,7 @@
 #' @returns a log-likelihood function with respect to theta given md
 #' @importFrom md.tools md_decode_matrix
 #' @export
-md_loglike_weibull_series_C1_C2_C3_2 <- function(md)
+md_loglike_weibull_series_C1_C2_C3 <- function(md)
 {
     right_censoring <- "delta" %in% colnames(md)
     t <- NULL
@@ -41,24 +41,80 @@ md_loglike_weibull_series_C1_C2_C3_2 <- function(md)
         # theta should be a parameter vector of length 2*m
         scales <- theta[(0:(m-1)*2)+1]
         shapes <- theta[(1:m)*2]
-        s <- 0
 
+        s <- 0
         for (i in 1:n)
         {
-            for (j in 1:m)
-                s <- s - (t[i]/scales[j])^shapes[j]
+            s <- s - sum((t[i]/scales)^shapes)
             if (!right_censoring || !delta[i])
-            {
-                acc <- 0
-                c <- (1:m)[C[i,]]
-                for (j in c)
-                    acc <- acc + shapes[j]/scales[j]*(t[i]/scales[j])^(shapes[j]-1)
-                s <- s + log(acc)
-            }
+                s <- s + log(sum(shapes[C[i,]]/scales[C[i,]]*(t[i]/scales[C[i,]])^(shapes[C[i,]]-1)))
         }
         s
     }
 }
+
+
+
+#' Score function generator (gradient of the log-likelihood) for Weibull series
+# system on masked data, where the masked data is in the form of right-censored
+#' system lifetimes and masked component cause of failure.
+#'
+#' Masked component data approximately satisfies the following conditions:
+#' C1: Pr(K in C) = 1
+#' C2: Pr(C=c | K=j, T=t) = Pr(C=c | K=j', T=t)
+#'     for any j, j' in c.
+#' C3: masking probabilities are independent of theta
+#'
+#' @param md masked data
+#' @returns a score function with respect to theta given md
+#' @importFrom md.tools md_decode_matrix
+#' @export
+md_score_weibull_series_C1_C2_C3 <- function(md)
+{
+    right_censoring <- "delta" %in% colnames(md)
+    t <- NULL
+    delta <- NULL
+    if (right_censoring)
+    {
+        stopifnot("s" %in% colnames(md))
+        t <- md$s
+        delta <- md$delta
+    }
+    else
+    {
+        stopifnot("t" %in% colnames(md))
+        t <- md$t
+    }
+
+    C <- md_decode_matrix(md,"x")
+    m <- ncol(C)
+    n <- nrow(md)
+    stopifnot(m > 0)
+    stopifnot(n > 0)
+    md <- NULL
+
+    function(theta)
+    {
+        # theta should be a parameter vector of length 2*m
+        scales <- theta[(0:(m-1)*2)+1]
+        shapes <- theta[(1:m)*2]
+
+        scr <- rep(0,m)
+        for (j in 1:m)
+        {
+            s <- 0
+            for (i in 1:n)
+            {
+                s <- s - shapes[j]/scales[j]*(t[i]/scales[j])^shapes[j]/(sum((t[i]/scales)^shapes))
+                if (C[i,j] && (!right_censoring || !delta[i]))
+                    s <- s - shapes[j]^2 * (t[i]/scales[j])^(shapes[j]-1)/
+                        sum(shapes[C[i,]]/scales[C[i,]]*(t[i]/scales[C[i,]])^(shapes[C[i,]]-1))
+            }
+            scr[j] <- s
+        }
+    }
+}
+
 
 #' Quantile function (inverse of the cdf).
 #' By definition, the quantile p * 100% for a strictly monotonically increasing
@@ -135,9 +191,10 @@ dweibull_series <- Vectorize(function(t,scales,shapes)
     stopifnot(all(shapes > 0))
     stopifnot(all(scales > 0))
 
-    ifelse(t < 0,
-           0,
-           sum(shapes/scales*(t/scales)^(shapes-1))*exp(-sum((t/scales)^shapes)))
+    d <- ifelse(t < 0,
+                0,
+                sum(shapes/scales*(t/scales)^(shapes-1))*exp(-sum((t/scales)^shapes)))
+    ifelse(is.nan(d), 0, d)
 }, vectorize.args="t")
 
 #' Survival function for weibull series
@@ -193,5 +250,19 @@ pweibull_series <- Vectorize(function(t,scales,shapes)
 }, vectorize.args="t")
 
 
-
+#' The cumulative distribution function for Weibull series
+#'
+#' @param scales scale parameters for Weibull component lifetimes
+#' @param shapes shape parameters for Weibull component lifetimes
+#' @param g function of system failure time \code{t}, some population
+#'          parameter of interest, such as the expected value or the variance.
+#'          defaults to expected value, \code{function(t) t}.
+#' @importFrom stats integrate
+#' @export
+param_weibull_series <- function(scales,shapes,g=function(t) t)
+{
+    integrate(f=function(t) g(t)*dweibull_series(t,scales,shapes),
+              lower=0,
+              upper=Inf)$value
+}
 

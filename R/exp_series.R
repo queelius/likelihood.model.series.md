@@ -8,6 +8,7 @@
 #' @importFrom dplyr count
 #' @importFrom dplyr filter
 #' @importFrom md.tools md_decode_matrix
+#' @importFrom rlang .data
 #' @export
 md_loglike_exp_series_C1_C2_C3 <- function(md)
 {
@@ -16,7 +17,7 @@ md_loglike_exp_series_C1_C2_C3 <- function(md)
     {
         stopifnot("s" %in% colnames(md))
         sum.t <- sum(md$s)
-        md <- md %>% dplyr::filter(delta==F)
+        md <- md %>% dplyr::filter(.data$delta==F)
     }
     else
     {
@@ -25,7 +26,7 @@ md_loglike_exp_series_C1_C2_C3 <- function(md)
     }
     md$C <- md.tools::md_decode_matrix(md,"x")
 
-    md <- md %>% dplyr::group_by(C) %>% dplyr::count()
+    md <- md %>% dplyr::group_by(.data$C) %>% dplyr::count()
     n <- nrow(md)
 
     function(theta)
@@ -48,6 +49,7 @@ md_loglike_exp_series_C1_C2_C3 <- function(md)
 #' @importFrom dplyr count
 #' @importFrom dplyr filter
 #' @importFrom md.tools md_decode_matrix
+#' @importFrom rlang .data
 #' @export
 md_score_exp_series_C1_C2_C3 <- function(md)
 {
@@ -56,7 +58,7 @@ md_score_exp_series_C1_C2_C3 <- function(md)
     {
         stopifnot("s" %in% colnames(md))
         sum.t <- sum(md$s)
-        md <- md %>% dplyr::filter(delta==F)
+        md <- md %>% dplyr::filter(.data$delta==F)
     }
     else
     {
@@ -64,7 +66,7 @@ md_score_exp_series_C1_C2_C3 <- function(md)
         sum.t <- sum(md$t)
     }
     md$C <- md.tools::md_decode_matrix(md,"x")
-    md <- md %>% dplyr::group_by(C) %>% dplyr::count()
+    md <- md %>% dplyr::group_by(.data$C) %>% dplyr::count()
     m <- ncol(md$C)
 
     function(theta)
@@ -94,12 +96,13 @@ md_score_exp_series_C1_C2_C3 <- function(md)
 #' @importFrom dplyr count
 #' @importFrom dplyr filter
 #' @importFrom md.tools md_decode_matrix
+#' @importFrom rlang .data
 #' @export
 md_info_exp_series_C1_C2_C3 <- function(md)
 {
-    md <- md %>% dplyr::filter(delta==F)
+    md <- md %>% dplyr::filter(.data$delta==F)
     md$C <- md.tools::md_decode_matrix(md,"x")
-    md <- md %>% dplyr::group_by(C) %>% dplyr::count()
+    md <- md %>% dplyr::group_by(.data$C) %>% dplyr::count()
     m <- ncol(md$C)
     n <- nrow(md)
 
