@@ -19,8 +19,6 @@ library(algebraic.mle)
 library(md.tools)
 library(tidyverse)
 library(devtools)
-library(printr)
-
 options(digits=3)
 ```
 

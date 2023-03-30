@@ -65,31 +65,6 @@ NULL
 #' @source \url{https://github.com/queelius/series_system_estimation_masked_data/blob/master/data-raw/exp_series_stats_1.R}
 "exp_series_stats_1"
 
-#' MLE sampling distribution statistics, compared with the
-#' asymptotic theory, for exponential series system with 3 components.
-#'
-#' @format A data frame.
-#' \describe{
-#'   \item{n}{sample size}
-#'   \item{mse}{asymptotic mean squared error of the MLE},
-#'   \item{frob}{frobenius norm of the difference vcov(theta.hat) - vcov(theta) given `md`}
-#'   \item{rate1.lb}{lower-bound 95% confidence interval for rate1}
-#'   \item{rate1.ub}{upper-bound 95% confidence interval for rate1}
-#'   \item{rate1.in}{indicator of whether confidence interval contains rate1}
-#'   \item{rate2.lb}{lower-bound 95% confidence interval for rate2}
-#'   \item{rate2.ub}{upper-bound 95% confidence interval for rate2}
-#'   \item{rate2.in}{indicator of whether confidence interval contains rate2}
-#'   \item{rate3.lb}{lower-bound 95% confidence interval for rate3}
-#'   \item{rate3.ub}{upper-bound 95% confidence interval for rate3}
-#'   \item{rate3.in}{indicator of whether confidence interval contains rate3}
-#'   \item{rate4.lb}{lower-bound 95% confidence interval for rate4}
-#'   \item{rate4.ub}{upper-bound 95% confidence interval for rate4}
-#'   \item{rate4.in}{indicator of whether confidence interval contains rate4}
-#' }
-#' @source \url{https://github.com/queelius/series_system_estimation_masked_data/blob/master/data-raw/exp_series_stats_2.R}
-"exp_series_stats_2"
-
-
 #' Simulated masked data 1 for weibull series
 #'
 #' Simulated masked data for weibull series system satisfying conditions

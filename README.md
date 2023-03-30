@@ -16,7 +16,7 @@ Masked data comes in a variety of forms:
     have survived for some maximum length of time. Finally, interval
     censoring occurs when the system under observation is only known to
     have survived between some minimum and maximum length of time.
-
+    
     In the unmasked situation, we know precisely how long the system
     under observation survived.
 
@@ -27,13 +27,13 @@ Masked data comes in a variety of forms:
     lifetimes, and instead are only given a (potentially masked) series
     system lifetime, and a *candidate set* of component indexes which
     plausibly contains the failed component index.
-
+    
     For a series system of
-    ![m](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;m "m")
-    components, the candidate sets are subsets of
-    ![\\{1,\ldots,m\\}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5C%7B1%2C%5Cldots%2Cm%5C%7D "\{1,\ldots,m\}"),
-    excluding the empty set in cases where we observe a series system
-    failure.
+    ![m](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;m
+    "m") components, the candidate sets are subsets of
+    ![\\{1,\\ldots,m\\}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5C%7B1%2C%5Cldots%2Cm%5C%7D
+    "\\{1,\\ldots,m\\}"), excluding the empty set in cases where we
+    observe a series system failure.
 
 This R package is mostly concerned with masked data that takes the form
 of a (potentially masked) series system lifetime and a set of candidate
@@ -41,6 +41,7 @@ components. (If the series system lifetime is right censored, then the
 candidate set is naturally empty since no component has failed yet.)
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 ## Installation
@@ -71,7 +72,7 @@ This is a basic example which shows you how to solve a common problem:
     covariates and system lifetime
 
 3.  extract sampler and other related stuff, like random variables (not
-    series variations) into a algebraic_random_elements R package.
+    series variations) into a algebraic\_random\_elements R package.
 
 4.  compare info/cov with bootstrap version
 

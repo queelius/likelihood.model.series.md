@@ -8,7 +8,7 @@ Description: Set of functions for providing MLEs for lifetime parameters of seri
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.3
 Suggests: 
     knitr,
     rmarkdown,
