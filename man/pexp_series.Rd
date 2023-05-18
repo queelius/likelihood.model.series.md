@@ -2,19 +2,22 @@
 % Please edit documentation in R/exp_series.R
 \name{pexp_series}
 \alias{pexp_series}
-\title{cdf for exponential series.}
+\title{Cumulative distribution function for exponential series.}
 \usage{
-pexp_series(t, rates, lower.tail = T, log.p = F)
+pexp_series(t, rates, lower.tail = TRUE, log.p = FALSE)
 }
 \arguments{
-\item{t}{series system lifetime}
+\item{t}{Vector of series system lifetimes.}
 
-\item{rates}{rate parameters for exponential component lifetimes}
+\item{rates}{Vector of rate parameters for exponential component lifetimes.}
 
-\item{lower.tail}{logical; logical; if TRUE (default), probabilities are \code{P[X<=x]}, otherwise, \code{P[X > x]}.}
+\item{lower.tail}{Logical; if TRUE (default), probabilities are \verb{P[X <= x], otherwise, }P\link{X > x}`.}
 
-\item{log.p}{return the log of the cdf}
+\item{log.p}{Logical; if TRUE, return the log of the cdf.}
+}
+\value{
+The cumulative probabilities evaluated at the specified lifetimes.
 }
 \description{
-cdf for exponential series.
+Cumulative distribution function for exponential series.
 }

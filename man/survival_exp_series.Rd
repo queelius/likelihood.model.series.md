@@ -4,14 +4,17 @@
 \alias{survival_exp_series}
 \title{Survival function for exponential series.}
 \usage{
-survival_exp_series(t, rates, log.p = F)
+survival_exp_series(t, rates, log.p = FALSE)
 }
 \arguments{
-\item{t}{series system lifetime}
+\item{t}{Vector of series system lifetimes.}
 
-\item{rates}{rate parameters for exponential component lifetimes}
+\item{rates}{Vector of rate parameters for exponential component lifetimes.}
 
-\item{log.p}{return the log of the survival function}
+\item{log.p}{Logical; if TRUE, return the log of the survival function.}
+}
+\value{
+The survival function evaluated at the specified lifetimes.
 }
 \description{
 Survival function for exponential series.

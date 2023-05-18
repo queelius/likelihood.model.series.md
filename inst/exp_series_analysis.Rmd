@@ -1,0 +1,193 @@
+---
+title: "Masked series data"
+author: "Alex Towell"
+date: "2023-03-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+We are interested in the generative process that gave rise to the data we observed.
+In particular, we are interested in the censored component lifetimes, where we
+are only able to observe the lifetime of the component that failed and a subset
+of the components which in some way provide information about which component
+failed.
+We discuss the particular way we assume this occurs later.
+
+In the real world, systems are quite complex:
+
+1. They are not series systems.
+
+2. The components are not independent.
+
+3. The lifetimes of the systems (in the population) is not precisely modeled by
+   any known probability distribution.
+   
+4. It may not be easy to characterize a system as either in a failed state or a
+   non-failed state, and failure may only be transient.
+   
+5. The components may depend on many other unobserved factors.
+
+With all of these caveats in mind, we model the data as coming from a series
+system as described previously, and other factors, like ambient temperature, are
+either negligible (on the distribution of component lifetimes) or are more or
+less constant and so we model the component lifetimes under those conditions.
+Then, the process of parametrically modeling the observed data takes the
+following form:
+
+1. Visualize the data, e.g., plot a histogram of the data.
+
+2. Guess which parametric distribution (for the components) might fit the
+   observed data for the system lifetime.
+   
+3. Use a statistical test for goodness-of-fit.
+
+4. Repeat steps 2 and 3 if the measure of goodness of fit is not satisfactory.
+
+Steps 1 and 3 are trivial to do, but step 2 may be very difficult, particularly
+in our case since a histogram of the data is probably not that informative. Why?
+There are two reasons:
+
+1. The distribution of the system is a function of the distribution of the
+   components. The system distribution probably does not even have a name.
+   
+2. The histogram is of the system lifetime data, but the distributions we guess
+   are for the components.
+   
+   
+## The series system
+
+...
+
+
+## Masking conditions
+
+Since you have information about which component failed, you can use this information to estimate the parameters of the Weibull distribution for each component separately. This can be done by fitting a Weibull distribution to the failure times of each component, and then using the maximum likelihood estimation (MLE) method to estimate the shape and scale parameters of the Weibull distribution for each component.
+
+You can also use this information to estimate the reliability of each component and the overall system. This can be done by using the laws of probability, such as the law of total probability, to calculate the reliability of the overall system given the reliabilities of its components.
+
+You could also use the information about which component failed to study the relationship between the failure time of the systems and the component that failed. For example, you can use a Cox proportional hazards model to estimate the hazard ratio of the failure time between different components.
+
+Finally, you could use the information about which component failed to study the system's lifetime and to compare different systems. For example, you could use the Kaplan-Meier estimator to estimate the survival function for each component, and compare the survival functions to see which component has the longest lifetime.
+
+It is important to keep in mind that you should use appropriate statistical methods to analyze the data and to test hypotheses, taking into account the censoring nature of the data and the number of components that failed.
+
+
+It is important to keep in mind that this assumption may not hold in all cases, and it is important to check whether the assumption is reasonable for your data. If the assumption is not reasonable, you can use more complex models that do not make this assumption.
+
+
+### Equal probability
+Given a masked candidate set $C$, the probability that any component in $C$
+caused the failure at the observed time is the same for all the components in $C$.
+
+This assumption allows you to estimate the hazard ratio of the failure time
+between different components in $C$ by assuming that the probability of failure
+is the same for all the components in $C$. This simplifies the model and makes
+it easier to estimate the parameters.
+  
+This assumption can be relaxed by using more complex models such as the
+Copula-based method, which allows you to estimate the dependence between the
+failure time and the components that caused the failure, allowing for more
+flexibility in modeling the probability of failure for different components in $C$.
+
+
+## Simulation study
+
+It's good to focus on a few key performance measures and explore the behavior of your estimator. Including the comparison of the estimated variance-covariance matrix to the "true" variance-covariance matrix is also a valuable addition. Here's a brief outline of how to implement these measures in your simulation study:
+
+Bias, Variance, and MSE: For each simulated dataset, obtain the MLE estimates of the parameters, and compute the bias, variance, and MSE as follows:
+
+a. Bias: Calculate the difference between the MLE estimates and the true parameter values for each dataset. Then compute the average difference across all datasets.
+
+b. Variance: Compute the variance of the MLE estimates across all datasets.
+
+c. MSE: Calculate the squared difference between the MLE estimates and the true parameter values for each dataset. Then compute the average squared difference across all datasets.
+
+Confidence Interval Coverage: For each simulated dataset, construct confidence intervals for the parameters using the estimated variance-covariance matrix (e.g., using the Fisher Information Matrix, FIM). Calculate the proportion of datasets for which the true parameter values fall within the constructed confidence intervals.
+
+Comparison of Variance-Covariance Matrices: For each simulated dataset, estimate the variance-covariance matrix of the MLEs using the FIM. Then, obtain the "true" variance-covariance matrix by computing the covariance of the MLEs across all datasets. Compare the two matrices using a suitable metric, such as the Frobenius norm or the Kullback-Leibler divergence.
+
+Sensitivity Analysis by Model Specification: Analyze the robustness of your estimator by changing the true parameter values in your simulations. Observe how the performance measures (bias, variance, MSE, confidence interval coverage) are affected by these changes.
+
+Visualizations: Create plots of the performance measures against factors such as sample size, censoring percentage, and true parameter values. This will help you understand how the estimator's performance changes under different conditions.
+
+Implementing these performance measures and analyses in your simulation study will provide a comprehensive understanding of your MLE estimator's behavior and accuracy in estimating the parameters of lifetime components in a series system with competing risks. It will also help you identify potential limitations and sources of error, which can be valuable for future research and improvement.
+
+
+
+```{r}
+# Load required libraries
+library(tidyverse)
+
+# Set seed for reproducibility
+set.seed(1234)
+
+# Define simulation settings
+n_datasets <- 1000   # Number of datasets to generate
+sample_size <- 100   # Sample size for each dataset
+true_params <- c(...) # Replace with your true parameter values
+
+# Function to simulate data
+simulate_data <- function(sample_size, true_params) {
+  # Replace this with your function to generate masked data
+}
+
+# Function to compute MLE estimates
+mle_estimator <- function(data) {
+  # Replace this with your function to compute MLE estimates
+}
+
+# Perform simulations
+results <- tibble()
+
+for (i in 1:n_datasets) {
+  # Simulate data
+  data <- simulate_data(sample_size, true_params)
+  
+  # Compute MLE estimates
+  mle_estimates <- mle_estimator(data)
+  
+  # Save results
+  results <- results %>%
+    add_row(dataset = i,
+            estimate_1 = mle_estimates[1],
+            estimate_2 = mle_estimates[2],
+            ... ) # Add more estimates as needed
+}
+
+# Compute performance measures
+performance_measures <- results %>%
+  summarize(bias_1 = mean(estimate_1 - true_params[1]),
+            bias_2 = mean(estimate_2 - true_params[2]),
+            ... , # Add more biases as needed
+            var_1 = var(estimate_1),
+            var_2 = var(estimate_2),
+            ... , # Add more variances as needed
+            mse_1 = mean((estimate_1 - true_params[1])^2),
+            mse_2 = mean((estimate_2 - true_params[2])^2),
+            ... ) # Add more MSEs as needed
+
+# Print performance measures
+performance_measures
+
+# Compute confidence intervals and coverage
+coverage_results <- results %>%
+  mutate(conf_lower_1 = ..., # Replace with your lower confidence interval formula
+         conf_upper_1 = ..., # Replace with your upper confidence interval formula
+         ... , # Add more confidence intervals as needed
+         coverage_1 = (true_params[1] >= conf_lower_1) & (true_params[1] <= conf_upper_1),
+         coverage_2 = (true_params[2] >= conf_lower_2) & (true_params[2] <= conf_upper_2),
+         ... ) # Add more coverages as needed
+
+coverage_summary <- coverage_results %>%
+  summarize(coverage_1 = mean(coverage_1),
+            coverage_2 = mean(coverage_2),
+            ... ) # Add more coverage summaries as needed
+
+# Print coverage summary
+coverage_summary
+```

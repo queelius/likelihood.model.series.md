@@ -7,9 +7,12 @@
 rexp_series(n, rates)
 }
 \arguments{
-\item{n}{sample size}
+\item{n}{Integer, number of observations to generate.}
 
-\item{rates}{rate parameters for exponential component lifetimes}
+\item{rates}{Vector of rate parameters for exponential component lifetimes.}
+}
+\value{
+A vector of random variates from the specified exponential series distribution.
 }
 \description{
 Survival function for exponential series.

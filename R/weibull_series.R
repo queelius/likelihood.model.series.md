@@ -1,120 +1,15 @@
-#' Log-likelihood generator for Weibull series system on masked data,
-#' where the masked data is in the form of right-censored system lifetimes
-#' and masked component cause of failure.
+#' Weibull series
 #'
-#' Masked component data approximately satisfies the following conditions:
-#' C1: Pr(K in C) = 1
-#' C2: Pr(C=c | K=j, T=t) = Pr(C=c | K=j', T=t)
-#'     for any j, j' in c.
-#' C3: masking probabilities are independent of theta
+#' This file contains functions related to the Weibull series distribution.
+#' Functions include simulation, pdf, cdf, quantile, and other related
+#' functions for the Weibull series distribution.
+#' 
+#' For parameter estimation from masked data, see the file \code{md_weibull_series_mle.R}.
 #'
-#' @param md masked data
-#' @returns a log-likelihood function with respect to theta given md
-#' @importFrom md.tools md_decode_matrix
-#' @export
-md_loglike_weibull_series_C1_C2_C3 <- function(md)
-{
-    right_censoring <- "delta" %in% colnames(md)
-    t <- NULL
-    delta <- NULL
-    if (right_censoring)
-    {
-        stopifnot("s" %in% colnames(md))
-        t <- md$s
-        delta <- md$delta
-    }
-    else
-    {
-        stopifnot("t" %in% colnames(md))
-        t <- md$t
-    }
-
-    C <- md_decode_matrix(md,"x")
-    m <- ncol(C)
-    n <- nrow(md)
-    stopifnot(m > 0)
-    stopifnot(n > 0)
-    md <- NULL
-
-    function(theta)
-    {
-        # theta should be a parameter vector of length 2*m
-        scales <- theta[(0:(m-1)*2)+1]
-        shapes <- theta[(1:m)*2]
-
-        s <- 0
-        for (i in 1:n)
-        {
-            s <- s - sum((t[i]/scales)^shapes)
-            if (!right_censoring || !delta[i])
-                s <- s + log(sum(shapes[C[i,]]/scales[C[i,]]*(t[i]/scales[C[i,]])^(shapes[C[i,]]-1)))
-        }
-        s
-    }
-}
-
-
-
-#' Score function generator (gradient of the log-likelihood) for Weibull series
-# system on masked data, where the masked data is in the form of right-censored
-#' system lifetimes and masked component cause of failure.
-#'
-#' Masked component data approximately satisfies the following conditions:
-#' C1: Pr(K in C) = 1
-#' C2: Pr(C=c | K=j, T=t) = Pr(C=c | K=j', T=t)
-#'     for any j, j' in c.
-#' C3: masking probabilities are independent of theta
-#'
-#' @param md masked data
-#' @returns a score function with respect to theta given md
-#' @importFrom md.tools md_decode_matrix
-#' @export
-md_score_weibull_series_C1_C2_C3 <- function(md)
-{
-    right_censoring <- "delta" %in% colnames(md)
-    t <- NULL
-    delta <- NULL
-    if (right_censoring)
-    {
-        stopifnot("s" %in% colnames(md))
-        t <- md$s
-        delta <- md$delta
-    }
-    else
-    {
-        stopifnot("t" %in% colnames(md))
-        t <- md$t
-    }
-
-    C <- md_decode_matrix(md,"x")
-    m <- ncol(C)
-    n <- nrow(md)
-    stopifnot(m > 0)
-    stopifnot(n > 0)
-    md <- NULL
-
-    function(theta)
-    {
-        # theta should be a parameter vector of length 2*m
-        scales <- theta[(0:(m-1)*2)+1]
-        shapes <- theta[(1:m)*2]
-
-        scr <- rep(0,m)
-        for (j in 1:m)
-        {
-            s <- 0
-            for (i in 1:n)
-            {
-                s <- s - shapes[j]/scales[j]*(t[i]/scales[j])^shapes[j]/(sum((t[i]/scales)^shapes))
-                if (C[i,j] && (!right_censoring || !delta[i]))
-                    s <- s - shapes[j]^2 * (t[i]/scales[j])^(shapes[j]-1)/
-                        sum(shapes[C[i,]]/scales[C[i,]]*(t[i]/scales[C[i,]])^(shapes[C[i,]]-1))
-            }
-            scr[j] <- s
-        }
-    }
-}
-
+#' @author Alex Towell
+#' @name Weibull series
+#' @keywords weibull, distribution, series, statistics
+NULL
 
 #' Quantile function (inverse of the cdf).
 #' By definition, the quantile p * 100% for a strictly monotonically increasing
@@ -265,4 +160,3 @@ param_weibull_series <- function(scales,shapes,g=function(t) t)
               lower=0,
               upper=Inf)$value
 }
-

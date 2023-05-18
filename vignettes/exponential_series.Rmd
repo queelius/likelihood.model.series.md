@@ -1,0 +1,695 @@
+---
+title: "Series system with exponentially distributed component lifetimes"
+output:
+    rmarkdown::html_vignette:
+        toc: true
+vignette: >
+  %\VignetteIndexEntry{Series system with exponentially distributed component lifetimes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  echo = TRUE,
+  comment = "#>")
+
+library(series.system.estimation.masked.data)
+library(algebraic.mle)
+library(md.tools)
+library(tidyverse)
+library(devtools)
+options(digits=4)
+library(printr)
+```
+
+
+Introduction
+============
+
+The R package `series.system.estimation.masked.data` is a framework for
+estimating the parameters of latent component lifetimes from *masked data*
+in a series system. The masked data comes from two sources:
+
+(1) The system might be right-censored.
+(2) The cause of failure of the failed component might be masked.
+
+
+Statistical model
+=================
+
+In this study, the system is a series system with $m$
+components. The true DGP for the system lifetime is in the
+exponential series system family, i.e., the component lifetimes are
+exponentially and independently distributed and we denote the
+true parameter value by $\theta$.
+
+The principle object of study is $\theta$, which in the case of
+the exponential series system family consists of $m$ rate (scale)
+parameters for each component lifetime, $\lambda_1, \ldots, \lambda_m$.
+
+We are interested in estimating the $\theta$ from masked data.
+The masking comes in two independent forms:
+
+- Censored system failure times, e.g., right-censoring. The system failure
+time is the minimum of the component lifetimes, and it is right-censored
+if the system failure time does not occur during the observation period,
+$$
+    T_i = \min\{\tau_i, T_{i 1}, \ldots, T_{i m}\},
+$$
+where $\tau_i$ is the right-censoring time for the $i$\textsuperscript{th}
+observation and $T_{i 1},\ldots,T_{i m}$ are the component lifetimes
+for the $i$th system.
+
+- The cause of failure, the failed component, is masked. This masking
+comes in the form of a candidate set $\mathcal{C}_i$ that, on average,
+conveys information about the component cause of failure.
+
+The candidate set $\mathcal{C}_i$ is a random variable that is a subset of
+$\{1,\ldots,m\}$. The true DGP for the candidate set model has a general form
+that may be denoted by
+$$
+    \Pr\{\mathcal{C}_i=c_i|T_1=j,\ldots,T_m,\theta,\text{other factors}\}.
+$$
+
+This is a pretty complicated looking model, and we are not even interested
+in the DGP for candidate sets, except to the extent that it affects the
+sampling distribution of the MLE for $\theta$.
+
+In theory, given some candidate set model, we could construct a joint likelihood
+function for the full model and jointly estimate the parameters of both the
+candidate set model and $\theta$. In practice, however, this could be a very
+challenging task unless we make some simplifying assumptions about the DGP for
+candidate sets.
+
+## Candidate set models
+In every model we consider, we assume that the candidate set $\mathcal{C}_i$
+is only a function of the component lifetimes $T_{i 1},\ldots,T_{i m}$, $\theta$,
+and the right-censoring time $\tau_i$. That is, the candidate set $\mathcal{C}_i$
+is independent of any other factors (or held constant for the duration of the
+experiment), like ambient temperature, and these factors also have a neglible
+effect on the series system lifetime and thus we can ignore them.
+
+### Reduced likelihood model
+In the Bernoulli candidate set model, we make the following assumptions about
+how candidate sets are generated:
+
+  - $C_1$: The index of the failed component is in the candidate set,
+  i.e., $\Pr\{K_i \in \mathcal{C}_i\} = 1$, where
+  $K_i = \arg\min_j \{ T_{i j} : j = 1,\ldots,m\}$.
+
+  - $C_2$: The probability of $C_i$ given $K_i$ and $T_i$ is equally
+  probable when the failed component varies over the components in the candidate
+  set, i.e., $\Pr\{\mathcal{C}_i=c_i|K_i=j,T_i=t_i,\theta\} = \Pr\{C_i=c_i|K_i=j',T_i=t_i\}$ for
+  any $j,j' \in c_i$.
+    
+  - $C_3$: The masking probabilities are conditionally independent of $\theta$
+  given $K_i$ and $T_i$, i.e., $\Pr\{\mathcal{C}_i=c_i|K_i=j,T_i=t_i\}$ is not a
+  function of $\theta$.
+
+Using these simplifying assumptions, we can arrive at a reduced likelihood
+function that only depends on $\theta$ and the observed data and as long as our
+candidate set satisfies conditions $C_1$, $C_2$, and $C_3$, our reduced
+likelihood function obtains the same MLEs as the full likelihood function.
+
+We see that
+$$
+    \Pr\{\mathcal{C}_i=c_i,|K_i=j,T_i=t_i\} = g(c_i,t_i),
+$$
+since the probability cannot depend on $j$ by condition $C_2$ and cannot depend
+on $\theta$ by condition $C_3$. Thus, we can write the likelihood function as
+$$
+    L(\theta) = \prod_{i=1}^n f_{T_i}(t_i|\theta) g(c_i,t_i).
+$$
+
+We show that $g(c_i,t_i)$ is proportional to
+$$
+    g(c_i,t_i) \propto \sum_{j \in c_i} f_j(t_i|\theta_j) \prod_{l=j,l \neq j}^m R_l(t_i|\theta_l),
+$$
+and thus 
+
+Note, however, that different ways in which the conditions are met will yield
+MLEs with different sampling distributions, e.g., more or less efficient estimators.
+
+### Bernoulli candidate set model #1
+This is a special case of the reduced likelihood model.
+In this model, we satisfy conditions $C_1$, $C_2$, and $C_3$, but we include 
+each of the non-failed components with a fixed probability $p$, $0 < p < 1$.
+
+In the simplest case, $p = 0.5$, and candidate set $c_i$ has a probability
+given by
+$$
+\Pr\{\mathcal{C}_i=c_i|K_i=j,T_i=t_i\} =
+\begin{cases}
+        (1/2)^{m-1} & \text{if $j \in c_i$ and $c_i \subseteq \{1,\ldots,m\}$} \\
+        0 & \text{if $j \notin c_i$}.
+\end{cases}
+$$
+\begin{proof}
+Since there are $m-1$ non-failed components (the failed component $j$ is 
+in $c_i$ with probability $1$), there are $2^(m-1)$ possible
+candidate sets (the size of the power set of the non-failed component indexes).
+Each of these candidate sets has equal probability of occurring, and thus
+the probability of any particular candidate set is $1/2^(m-1)$.
+\end{proof}
+
+
+### Bernoulli candidate set model #2
+
+Now, we remove condition $C_2$. We still assume conditions $C_1$ and $C_3$,
+but we allow $C_i$ to depend on the failed component $K_i$, i.e.,
+$$
+    \Pr\{\mathcal{C}_i=c_i|K_i=j,T_i=t_i,\theta\} \neq \Pr\{C_i=c_i|K_i=j',T_i=t_i\}
+$$
+for $j,j' \in c_i$.
+
+In this case, we can write the likelihood function as
+$$
+    L(\theta) = \prod_{i=1}^n f_{T_i}(t_i|\theta) \prod_{j=1}^m \Pr\{K_i=j|T_i=t_i\} \prod_{c_i \in \mathcal{C}_i} g(c_i,t_i,j).
+$$
+
+
+Exponential series system
+=========================
+
+The most straightforward series system to estimate is the series system with
+exponentially distributed component lifetimes.
+
+Suppose an exponential series system with $m$ components is parameterized by
+the following R code:
+
+```{r}
+theta <- c(1,     # component 1 failure rate
+           1.1,   # 3
+           0.95,  # 5
+           1.15,  # 6
+           1.1)   # 7
+
+m <- length(theta)
+```
+
+So, in our study, $\theta = (`r theta`)'$.
+The component assigned to index $j$ has an exponentially distributed
+lifetime with a failure rate $\theta_j$, e.g., $\theta_2 = `r theta[2]`$ is the
+failure rate of the component indexed by $2$.
+
+Let's simulate generating the lifetimes of the $m = `r m`$ components for this series
+system:
+```{r}
+set.seed(7231) # set seed for reproducibility
+n <- 75
+comp_times <- matrix(nrow=n,ncol=m)
+for (j in 1:m)
+    comp_times[,j] <- rexp(n,theta[j])
+comp_times <- md_encode_matrix(comp_times,"t")
+print(comp_times,n=4)
+```
+
+Next, we use the function `md_series_lifetime_right_censoring` to decorate the
+masked data with the right-censor-censoring time chosen by the probability
+$\Pr\{T_i > \tau\} = 0.75$:
+```{r}
+q <- 0.25
+tau <- rep(-(1/sum(theta))*log(q),n)
+data <- comp_times %>% md_series_lifetime_right_censoring(tau)
+print(data,n=4,drop_latent=TRUE)
+```
+
+## Masked component cause of failure (candidate sets)
+We simulate candidate sets using the Bernoulli candidate model with an
+appropriate set of parameters to satisfy conditions $C_1$, $C_2$, and $C_3$:
+```{r warning=F, message=F}
+p <- .3
+data <- data %>% md_bernoulli_cand_C1_C2_C3(p)
+print(data[,paste0("q",1:m)],n=4)
+```
+
+Now, to generate candidate sets, we sample from these probabilities:
+```{r}
+data <- data %>% md_cand_sampler()
+print(md_boolean_matrix_to_charsets(data,drop_set=TRUE),drop_latent=TRUE,n=6)
+```
+
+We see that after dropping latent (unobserved) columns, we only have the right
+censoring time, right censoring indicator, and the candidate sets. (Note that
+this time we showed the candidate sets in a more friendly way using
+`md_boolean_matrix_to_charsets`.)
+
+## Log-likelihood of $\theta$ given masked data
+
+The reduced log-likelihood function (the log of the kernel of the likelihood
+function) is given by
+$$
+\ell(\theta|\text{data}) =
+    -\left(\sum_{i=1}^{n} t_i\right)
+    \left(\sum_{j=1}^{m} \theta_j\right) +
+    \sum_{i=1}^{n} (1-\delta_i)\log\left(\sum_{j \in c_i} \theta_j\right).
+$$
+
+We compute the log-likelihood function as a function of the masked data `data` with:
+```{r}
+ll <- md_loglike_exp_series_C1_C2_C3(data)
+```
+Note that `md_loglike_exp_series_C1_C2_c3` is implemented using minimally
+sufficient statistics, which improves the computational efficiency of
+evaluating the log-likelihood.
+
+The log-likelihood function contains the maximum amount of information
+about parameter $\theta$ given the sample of masked data `data` satisfying
+conditions $C_1$, $C_2$, and $C_3$.
+
+Suppose we do not know that $\theta = (`r theta`)'$.
+With the log-likelihood, we may estimate $\theta$ with $\hat\theta$ by solving
+$$
+\hat{\theta} = \operatorname{argmax}_{\theta \in \Omega} \ell(\theta),
+$$
+i.e., finding the point that *maximizes* the log-likelihood on
+the observed sample `data`.
+This is known as *maximum likelihood estimation* (MLE).
+We typically solve for the MLE by solving
+$$
+\nabla \ell|_{\theta=\hat{\theta}} = 0.
+$$
+
+A popular choice is gradient ascent, which is an iterative method
+based on the update rule
+$$
+\theta^{(n+1)} = \theta^n + \eta \ell(\theta^n),
+$$
+where $\eta$ is the learning rate.
+
+We'll show a simple way to solve this using gradient ascent.
+First, we need the gradient function.
+```{r,message=F,warning=F}
+grad <- md_score_exp_series_C1_C2_C3(data)
+```
+This is a custom version for computing the gradient of the log-likelihood
+`md_loglike_exp_series_C1_C2_C3`. If `md_score_exp_series_C1_C2_C3` was
+not implemented, a simple numerical approximation of the gradient could be
+computed instead. More more advanced techniques, like auto-gradient type packages,
+may also be used, but for relatively small samples, it may not be worth the
+time.
+
+```{r}
+grad_ascent_hist <- function(theta0,eta,n)
+{
+    loglike_hist <- numeric(length=n) # history of log-likelihoods    
+    for (i in 1:n)
+    {
+        theta1 <- theta0 + eta*grad(theta0) # gradient ascent update rule
+        loglike_hist[i] <- ll(theta1) # store log-likelihood
+        theta0 <- theta1 # update theta0
+    }
+    list(argmax=theta1,loglike_hist=loglike_hist)
+}
+```
+
+Now, we can use gradient ascent to find the MLE.
+```{r}
+theta0 <- rep(5,m) # initial guess (5,...,5)
+res <- grad_ascent_hist(theta0=theta0,eta=.001,n=1000)
+plot(1:length(res$loglike_hist),res$loglike_hist,type='l',
+    xlab='iteration',ylab='loglike',col='blue')
+```
+
+It looks like it's converged to a local maximum. Let's print the solution:
+```{r}
+theta.hat <- res$argmax
+cat("theta.hat = (", theta.hat, ")'\nwith a log-likelihood of ", ll(theta.hat), "\n")
+```
+
+If we let the $\theta_2,\ldots,\theta_m$ in log-likelihood function be fixed
+at their maximum likelihood estimates, then we may profile the log-likelihood function over
+$\theta_1$ to get a better sense of the shape of the log-likelihood function.
+
+```{r,message=F,warning=F}
+prof <- function(theta1) { ll(c(theta1,theta.hat[2:m])) }
+prof.data <- tibble(x=seq(max(1e-3,theta.hat[1]-2),theta.hat[1]+2,.05))
+prof.data$y <- numeric(nrow(prof.data))
+for (i in 1:nrow(prof.data))
+    prof.data$y[i] <- prof(prof.data$x[i])
+prof.data %>% ggplot(aes(x=x,y=y)) + geom_line() +
+    geom_point(aes(x=theta.hat[1],prof(theta.hat[1]))) +
+    labs(x="theta1",y="likelihood")
+```
+
+This seems to be a well-behaved loglikelihood profile, essentially quadratic
+in shape with a single maximum. We have some confidence that this is the MLE,
+but of course we could do more to verify this.
+
+This was a very simple approach. In a more sophisticated approach,
+you might try a learning rate that decreases over time, or use a
+line search method (like backtracking), but this one worked well
+enough. However, these are local methods and are not guaranteed to
+converge to the MLE.
+
+There are global methods, like simulated annealing or grid search,
+but these are computationally expensive. (Although one may use
+simulated annealing to find a good starting point for a more
+efficient method, like gradient ascent.) We could also do random
+restarts with different initial guesses, and choose the best
+solution found, but what we have found seems sufficient.
+
+### Using the `algebraic.mle` and `stats` packages
+
+We prefer to work with MLE object types, `mle`, which have
+various methods implemented for them, e.g., `confint` (computes
+the estimators confidence interval). The `mle` object and
+the associated functions are defined in the
+[algebraic.mle](https://github.com/queelius/algebraic.mle)
+package, which is available on GitHub.
+
+We combine this with a simple wrapper `numeric_mle` for the
+`stats` package's `optim` function to more efficiently compute the
+MLE of the log-likelihood function (it uses a quasi-Newton method to
+approximate the Newton-Raphson method):
+```{r,warning=F}
+library(stats)
+res <- optim(par = theta0, fn = ll, method = "L-BFGS-B",
+    lower = rep(1e-8,m), upper = rep(Inf,m),
+    control = list(fnscale = -1, maxit = 1000, trace = 1),
+    hessian = TRUE)
+estimate <- mle_numerical(res)
+```
+
+This is a constructor for `mle` objects.
+We can get a summary of the object with:
+```{r}
+summary(estimate)
+```
+
+We let `theta.hat` be given by the `point` method, which obtains the point
+$\hat{\theta}$.
+```{r}
+theta.hat <- point(estimate)
+```
+We see that
+$$
+\hat{\theta} = (`r as.numeric(theta.hat)`)'.
+$$
+Recall that the true parameter is $\theta = (`r theta`)'$.
+
+Due to sampling variability, different runs of the experiment
+will result in different outcomes, i.e., $\hat{\theta}$ has a
+sampling distribution.
+We see that $\hat{\theta} \neq \theta$, but it is reasonably
+close.
+We may measure this sampling variability using the variance-covariance
+matrix, bias, mean squared error (MSE), and confidence intervals.
+
+## Sampling distribution of the MLE
+The MLE $\hat{\theta}$ as a function of a random sample
+of masked data, and is thus a random vector.
+
+A primary statistic of an estimator is its *confidence interval*.
+A $(1-\alpha)100\%$ confidence interval for $\theta_j$ may be estimated with
+$\hat\theta_j \pm z_{1-\alpha/2} \sqrt{\hat{V}_{j j}}$.
+We provide a method for doing this calculation:
+```{r}
+confint(estimate)
+```
+
+Theoretically, $\hat{\theta}$ converges in distribution
+to the multivariate normal with a mean $\theta$ and we
+may estimate the variance-covariance with the inverse of the
+observed Fisher matrix, which is given by
+$$
+    J(\hat{\theta}) = -\nabla^2 l|_{\hat{\theta}}.
+$$
+Thus,
+$$
+    \hat{\theta} \sim \mathcal{N}(\theta,J^{-1}(\hat{\theta})).
+$$
+
+Asymptotically, $\hat{\theta}$ is the UMVUE, i.e.,
+it is unbiased and obtains the minimum sampling variance.
+An estimate of the variance-covariance may be obtained with:
+```{r}
+(V.hat <- vcov(estimate))
+```
+
+## Bias and mean squared error
+We would like to measure the accuracy and precision of $\hat{\theta}$.
+In statistical literature, the bias
+$$
+\operatorname{b}(\hat{\theta}) = E(\hat{\theta}) - \theta
+$$
+is a measure of accuracy and variance is a measure of precision.
+
+The mean squared error, denoted by $\operatorname{MSE}$, is a measure of
+estimator error that incorporates both the bias and the variance,
+$$
+\operatorname{MSE}(\hat{\theta}) =
+    \operatorname{trace}\bigl(\operatorname{vcov}(\hat{\theta})\bigr) +
+    \operatorname{b}^2(\hat{\theta}).
+$$
+
+Since $\hat{\theta}$ is asymptotically unbiased and minimum variance,
+$$
+\lim_{n \to \infty} \operatorname{MSE}(\hat{\theta}) =
+    \operatorname{trace}\bigl(\operatorname{vcov}(\hat{\theta})\bigr).
+$$
+Thus, for sufficiently large samples, $\operatorname{MSE}(\hat{\theta})$ is
+approximately given by the `trace` of the estimated variance-covariance matrix:
+```{r}
+(mse <- sum(diag(V.hat)))
+```
+
+If we have a sample of $n$ MLEs, $\hat{\theta}^{(1)},\ldots,\hat{\theta}^{(n)}$,
+then we may estimate both the bias and the MSE respectively with the statistics
+$$
+\hat{\operatorname{b}} = \frac{1}{n} \sum_{i=1} \hat{\theta}^{(i)} - \theta
+$$
+and
+$$
+\widehat{\operatorname{MSE}} = \frac{1}{n}
+    \sum_{i=1}^n (\hat{\theta}^{(i)} - \theta)
+                 (\hat{\theta}^{(i)} - \theta)'.
+$$
+We may then compare these statistics, $\hat{\operatorname{b}}$ and
+$\widehat{\operatorname{MSE}}$, with the asymptotic bias $({0})$ and the
+asymptotic $\operatorname{MSE}$.
+
+Let us compute estimates of the bias, variance-covariance, and mean squared
+error as a function of sample size $n$ using Monte Carlo simulation.
+Note that this is similar to the Bootstrap, except we know $\theta$.
+
+```{r, fig.width=5,fig.height=5}
+#stats1 <- readr::read_csv2("./data-raw/exp_series_stats_1.csv")
+```
+
+## Sensitivity analysis
+How sensitive is our MLE to sampling conditions? In particular, how
+sensitive is it when we vary the way the candidate sets are generated? 
+First, let's vary the parameter $p$ in the Bernoulli candidate model.
+
+The most informative sample when only changing $p$ is given by letting
+$p=0$, i.e., we know the exact component cause of failure.
+
+```{r}
+data.best <- comp_times %>%
+    md_series_lifetime_right_censoring(tau) %>%
+    md_bernoulli_cand_C1_C2_C3(p=0) %>%
+    md_cand_sampler()
+```
+
+Here's what the new sample looks like:
+```{r}
+print(md_boolean_matrix_to_charsets(data.best,drop_set=TRUE),drop_latent=TRUE)
+```
+It's the same as the previous sample, except that we see that we either have
+only empty candidate sets (the system was right-censored) or candidate sets
+that only contain the failed component (in order to satisfy the condition that
+the failed component must be in the candidate set).
+
+Let's compute the log-likelihood and MLEs for this new sample:
+```{r}
+ll.best <- md_loglike_exp_series_C1_C2_C3(data.best)
+estimate.best <- numerical_mle(ll.best,theta0=theta)
+as_tibble(confint(estimate.best)) %>% mutate(mle=point(estimate.best),theta=theta)
+```
+
+This is a very good estimate. How does this compare to the previous estimate where
+$p = .3$? Let's compare the lengths of the confidence intervals:
+```{r}
+ci <- confint(estimate)
+ci.best <- confint(estimate.best)
+
+length <- ci[,2] - ci[,1]
+length.best <- ci.best[,2] - ci.best[,1]
+diff <- point(estimate) - theta
+diff.best <- point(estimate.best) - theta
+tibble(theta=theta) %>%
+    mutate("CI length ratio (length(best)/length(old)"=length.best/length) %>%
+    mutate("mle(best)"=point(estimate.best)) %>%
+    mutate("mle(old)"=point(estimate)) %>%
+    mutate("error(mle(best))"=diff.best) %>%
+    mutate("error(mle(old))"=diff)
+```
+
+
+If *no* information is provided about the component cause of failure
+in a series system, then the estimator is not unique
+and does not converge to $\theta$.
+However, let's do it anyway:
+
+```{r}
+data.worst <- comp_times %>%
+    md_series_lifetime_right_censoring(tau) %>%
+    md_bernoulli_cand_C1_C2_C3(p=1) %>%
+    md_cand_sampler()
+
+ll.worst <- md_loglike_exp_series_C1_C2_C3(data.worst)
+estimate.worst <- numerical_mle(ll.worst,theta0=theta)
+as_tibble(confint(estimate.worst)) %>% mutate(mle=point(estimate.worst),theta=theta)
+```
+
+Here's what the new sample looks like:
+```{r}
+print(md_boolean_matrix_to_charsets(data.worst,drop_set=TRUE),drop_latent=TRUE)
+```
+
+
+## Estimating the variance-covariance using the Bootstrap method
+Alternatively, we could estimate $\theta$ with $B$ simulated draws from
+the MLEs that satisfy
+$$
+\operatorname{argmax}_{\theta \in \Omega} \ell(\theta|\mathcal{D_i})
+$$
+where $\mathcal{{D_i}}$ is a random sample from the empirical distribution
+$\{(S_i,\delta_i,C_i)\}_1^n$. We call this the *Bootstrap*.
+
+Assuming the above solution to the MLE equation is _unique_, this gives us a
+single point $\hat{\theta}_{(i)}$ when conditioned on the simulated masked
+data ${D_i}$.
+
+
+```{r  eval=F}
+bias(estimate)
+```
+
+
+### Sampling distribution of the MLE
+
+We know that
+$$
+\hat{\theta} \sim \mathcal{N}\bigl(\theta,J^{-1}(\theta)\bigr).
+$$
+We can estimate the sampling distribution of $\hat{\theta}$
+with $\mathcal{N}\bigl(\hat\theta,J^{-1}(\hat{\theta})\bigr)$.
+This makes it trivial to estimate any other function of
+$\theta$ by sampling from the approximation:
+
+
+In Figure 2, we show contour plots of the first two components for the MLE sample.
+
+```{r fig2, eval=F,echo=F, fig.align='center',fig.cap="Figure 2: Countour plots of the first two components of the 500 MLEs."}
+library(latex2exp)
+library(patchwork)
+library(mvtnorm)
+
+fig2.N <- 500
+fig2.theta.hats <- matrix(nrow=fig2.N,ncol=3)
+
+for (i in 1:fig2.N)
+{
+    fig2.md <- tibble(t1=rexp(n=n,rate=theta[1]),
+                      t2=rexp(n=n,rate=theta[2]),
+                      t3=rexp(n=n,rate=theta[3])) %>%
+    md_series_lifetime() %>%
+    md_bernoulli_candidate_C1_C2_C3(m=3,p=function(n) rep(.5,n))
+    fig2.theta.hats[i,] <- point(md_mle_exp_series_C1_C2_C3(md=fig2.md,theta0=theta))
+}
+
+fig2.plot1 <- ggplot(tibble(x=fig2.theta.hats[,1],y=fig2.theta.hats[,2]),aes(x=x,y=y)) +
+    xlim(c(2,4)) + ylim(c(2,4)) +
+    ggtitle("The empirical distribution.") +
+    geom_density_2d() +
+    xlab(TeX("$\\hat{\\lambda}_1$")) +
+    ylab(TeX("$\\hat{\\lambda}_2$"))
+
+
+fig2.vcov <- vcov(md_mle_exp_series_C1_C2_C3(md,theta))
+fig2.theta.hat.asym <- rmvnorm(fig2.N,theta,fig2.vcov)
+
+fig2.plot2 <- ggplot(tibble(x=fig2.theta.hat.asym[,1],y=fig2.theta.hat.asym[,2]),aes(x=x,y=y)) +
+    xlim(c(2,4)) + ylim(c(2,4)) +
+    ggtitle("The theoretical \n asymptotic distribution.") +
+    geom_density_2d() +
+    xlab(TeX("$\\hat{\\lambda}_1$")) +
+    ylab(TeX("$\\hat{\\lambda}_2$"))
+
+fig2.plot1+fig2.plot2
+```
+
+Estimating component cause
+==========================
+Another characteristic we may wish to estimate is the probability that a
+particular component in an observation caused the system failure.
+
+We wish to use as much information as possible to do this estimation.
+We consider three cases:
+
+1. We have masked data `data` with candidate sets and system failure times and seek
+   to estimate the node failure probabilities of observations in this data.
+   This case provides the most accurate estimates of the node probability failures,
+   as have both system failure times and candidate sets as predictors of the node
+   failure.
+
+2. We have a new observation of a system failure time and an estimate of $\theta$
+   from `data`. In this case, we cannot condition on candidate sets, since the
+   observation does not include that information. However, we do have a system
+   failure time.
+   
+3. We have an estimate of $\theta$ from `data` but wish to predict the node
+   failure of a system that has failed, but we do not know when it failed.
+
+We consider case 1 described above where we have masked data `data` that includes
+both candidate sets and system failure times.
+
+In this case, we are interested in
+$$
+    f_{K_i|C_i,T_i}(j|c_i,t_i,\theta) = \frac{h_j(t;{\theta_k})}{\sum_{j' \in c_i} h_{j'}(t_i;{\theta_{j'}})},
+$$
+which in the exponential series case simplifies to
+$$
+    f_{K_i|C_,T_i}(j|c_i,t_i,\theta) = \frac{{\theta_j}}{\sum_{j' \in c_i} {\theta_{j'}}}.
+$$
+
+We decorate `md` with this probability distribution with the decorator function
+`md_series_component_failure_probability`, which accepts masked data as input
+and returns the masked data with columns for component cause of failure
+probabilities given by `k1`,...,`km`.
+
+```{r  eval=F}
+#h <- list(function(t) theta.hat[1],
+#          function(t) theta.hat[2],
+#          function(t) theta.hat[3])
+#md %>% md_series_component_failure_probability_decorator(h)
+```
+
+We notice that every row over the columns `k1`, `k2`, and `k3`
+given a specific candidate set are the same.
+This is as expected, since in the case of the exponential series,
+the component failure rates are constant with respect to system
+failure time.
+
+If we already had an estimate of $\theta$ and we sought to predict
+the failed components from only system lifetime data, we would just let
+the candidate sets contain all of the component indexes.
+
+Also, observe that the component failure probabilities
+$$
+    \hat{ k}_i(\theta) = (\hat{k}_1,\hat{k}_2,\hat{k}_3)'
+$$
+is a random vector whose sampling distribution under the right conditions is a
+multivariate normal whose $j$\textsuperscript{th} component is given by
+$$
+    \hat{k}_j \sim \mathcal{N}(f_{K_i|T_i}(j|t_i,\theta),\Sigma_i).
+$$
+We can simulate $n$ draws from $\hat{\theta}$ and then apply the above statistic of
+interest, generating the data
+$$
+    \hat{ k}^{(1)},\ldots,\hat{ k}^{(n)}.
+$$

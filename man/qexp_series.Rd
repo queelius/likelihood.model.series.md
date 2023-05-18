@@ -4,16 +4,20 @@
 \alias{qexp_series}
 \title{Qunatile function for exponential series.}
 \usage{
-qexp_series(p, rates, lower.tail = T, log.p = F)
+qexp_series(p, rates, lower.tail = TRUE, log.p = FALSE)
 }
 \arguments{
-\item{p}{quantiles}
+\item{p}{Vector of quantiles.}
 
-\item{rates}{rate parameters for exponential component lifetimes}
+\item{rates}{Vector of rate parameters for exponential component lifetimes.}
 
-\item{lower.tail}{logical; if TRUE (default), probabilities are \code{P[X<=x]}, otherwise, \code{P[X > x]}.}
+\item{lower.tail}{Logical, if TRUE (default), probabilities are \code{P[X<=x]}
+otherwise, \code{P[X > x]}.}
 
-\item{log.p}{return the log of the survival function}
+\item{log.p}{Logical, if TRUE, vector of probabilities \code{p} are given as \code{log(p)}.}
+}
+\value{
+Quantiles corresponding to the given probabilities \code{p}.
 }
 \description{
 Qunatile function for exponential series.

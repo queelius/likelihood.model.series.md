@@ -4,14 +4,17 @@
 \alias{hazard_exp_series}
 \title{Hazard function for exponential series.}
 \usage{
-hazard_exp_series(t, rates, log.p = F)
+hazard_exp_series(t, rates, log.p = FALSE)
 }
 \arguments{
-\item{t}{series system lifetime}
+\item{t}{Vector of series system lifetimes.}
 
-\item{rates}{rate parameters for exponential component lifetimes}
+\item{rates}{Vector of rate parameters for exponential component lifetimes.}
 
-\item{log.p}{return the log of the hazard function}
+\item{log.p}{Logical; if TRUE, return the log of the hazard function.}
+}
+\value{
+The hazard function evaluated at the specified lifetimes.
 }
 \description{
 Hazard function for exponential series.

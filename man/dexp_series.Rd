@@ -4,7 +4,7 @@
 \alias{dexp_series}
 \title{pdf for exponential series.}
 \usage{
-dexp_series(t, rates, log = F)
+dexp_series(t, rates, log = FALSE)
 }
 \arguments{
 \item{t}{series system lifetime}

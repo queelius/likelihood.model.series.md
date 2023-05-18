@@ -31,8 +31,20 @@ md_candidate_set_C1_C2_C3 <- function(md,m,p)
     md %>% dplyr::bind_cols(x)
 }
 
+library(tidyverse)
+make_exp_series_sample <- function(n,rate,tau,p)
+{
+    m <- length(rate)
+    md <- data.frame(t1 = rexp(n,rate[1]))
+    for (j in 2:m)
+        md[[paste0("t",j)]] <- rexp(n,rate[j])
 
-
+    md %>% md_series_lifetime() %>%
+        md_series_lifetime_right_censoring(tau) %>%
+        md_candidate_set_C1_C2_C3(m,p)
+}
+samp <- make_exp_series_sample(n,rate.true,tau,p)
+md_mle_exp_series_C1_C2_C3(samp,rate.)
 # Create an empty vector to store the estimated parameter values
 rate.hats <- matrix(nrow=N,ncol=3)
 rate.mles <- list(length=N)

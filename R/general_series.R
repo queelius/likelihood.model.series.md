@@ -1,78 +1,16 @@
-
-
-
-#' Masked data approximately satisfies the following set of conditions:
-#' C1: \code{Pr(K[i] in C[i]) = 1}
-#' C2: \code{Pr(C[i]=c[i] | K[i]=j, T[i]=t[i]) = Pr(C[i]=c[i] | K[i]=j', T[i]=t[i])}
-#'     for any \code{j,j' in c[i]}.
-#' C3: masking probabilities are independent of theta
+#' General series
 #'
-#' @param md masked data
-#' @param nparams integer vector, we have m components, each of which may have a
-#'                different number of parameters. the j-th component has
-#'                \code{nparmas[j]} parameters.
-#' @param h list of hazard functions
-#' @param R list of survival functions, defaults to NULL, in which case we
-#'          generate the survival functions from \code{h}.
-#' @returns a log-likelihood function with respect to theta given \code{md}
-#' @importFrom md.tools md_decode_matrix
-#' @export
-md_loglike_general_series_C1_C2_C3 <- function(md,nparams,h,R = NULL)
-{
-    m <- length(h)
-    stopifnot(m > 0)
-    stopifnot(m==length(R))
-    if (is.null(R))
-    {
-        R <- list(length=m)
-        j <- 1
-        for (hj in h)
-        {
-            R[j] <- generate_survival_from_hazard(hj)
-            j <- j + 1
-        }
-    }
-    series_h <- hazard_general_series_helper(h,nparams)
-    series_R <- survival_general_series_helper(R,nparams)
+#' This file contains functions related to a general series distribution.
+#' Functions include simulation, pdf, cdf, quantile, and other related
+#' functions.
+#' 
+#' For parameter estimation from masked data, see the file \code{md_gen_series_mle.R}.
+#'
+#' @author Alex Towell
+#' @name General series
+#' @keywords distribution, series, statistics
+NULL
 
-    C <- md_decode_matrix(md,"x")
-    stopifnot(ncol(C)==m)
-    n <- nrow(md)
-    stopifnot(n > 0)
-
-    right_censoring <- "delta" %in% colnames(md)
-    stopifnot(!right_censoring || "s" %in% colnames(md))
-    t <- ifelse(right_censoring, md$s, md$t)
-
-    log.R <- function(t,theta)
-    {
-        sum <- 0
-        for (Rj in R)
-            sum <- sum + log(Rj(t,theta))
-        sum
-    }
-
-    function(theta)
-    {
-        stopifnot(length(theta)==sum(nparams))
-        res <- 0
-        for (i in 1:n)
-        {
-            if (right_censoring && md$delta[i])
-            {
-                res <- res + log.R(t[i],theta)
-            }
-            else #if (!right_censoring || (right_censoring && !md$delta[i]))
-            {
-                haz <- 0
-                for (j in (1:m)[C[i,]])
-                    haz <- haz + h[[j]](t[i],theta)
-                res <- res + log(haz) * log.R(t[i],theta)
-            }
-        }
-        res
-    }
-}
 
 
 #' Quantile function (inverse of the cdf) for a general series system.
@@ -89,7 +27,7 @@ md_loglike_general_series_C1_C2_C3 <- function(md,nparams,h,R = NULL)
 #' @param eps stopping condition, default is 1e-3
 #' @param t0 initial guess, default is 1
 #' @export
-qgeneral_series <- Vectorize(function(p,theta,nparams,h,R=NULL,eps=1e-3,t0=1)
+qgen_series <- Vectorize(function(p,theta,nparams,h,R=NULL,eps=1e-3,t0=1)
 {
     stopifnot(length(theta)==sum(nparams))
     stopifnot(eps > 0)
@@ -104,8 +42,8 @@ qgeneral_series <- Vectorize(function(p,theta,nparams,h,R=NULL,eps=1e-3,t0=1)
     }
     stopifnot(length(h)==length(R))
 
-    series_h <- hazard_general_series_helper(h,nparams)
-    series_R <- survival_general_series_helper(R,nparams)
+    series_h <- hazard_gen_series_helper(h,nparams)
+    series_R <- survival_gen_series_helper(R,nparams)
     t1 <- NULL
     repeat
     {
@@ -135,9 +73,9 @@ qgeneral_series <- Vectorize(function(p,theta,nparams,h,R=NULL,eps=1e-3,t0=1)
 #' @param h list of hazard functions
 #' @param R list of reliability functions, defaults to NULL (results in a numerical approximation from h)
 #' @export
-rgeneral_series <- function(n,theta,nparams,h,R=NULL)
+rgen_series <- function(n,theta,nparams,h,R=NULL)
 {
-    qgeneral_series(runif(n),theta,nparams,h,R)
+    qgen_series(runif(n),theta,nparams,h,R)
 }
 
 #' pdf for general series
@@ -150,12 +88,12 @@ rgeneral_series <- function(n,theta,nparams,h,R=NULL)
 #' @param h list of hazard functions
 #' @param R list of reliability functions
 #' @export
-dgeneral_series <- Vectorize(function(t,theta,nparams,h,R)
+dgen_series <- Vectorize(function(t,theta,nparams,h,R)
 {
     stopifnot(length(theta)==sum(nparams))
     stopifnot(length(h)==length(R))
-    series_h <- hazard_general_series_helper(h,nparams)
-    series_R <- survival_general_series_helper(R,nparams)
+    series_h <- hazard_gen_series_helper(h,nparams)
+    series_R <- survival_gen_series_helper(R,nparams)
     series_h(t,theta) / series_R(t,theta)
 }, vectorize.args="t")
 
@@ -168,11 +106,11 @@ dgeneral_series <- Vectorize(function(t,theta,nparams,h,R)
 #'                \code{nparmas[j]} parameters.
 #' @param R list of reliability functions
 #' @export
-pgeneral_series <- Vectorize(function(t,theta,nparams,R)
+pgen_series <- Vectorize(function(t,theta,nparams,R)
 {
     stopifnot(length(theta)==sum(nparams))
     stopifnot(length(h)==length(R))
-    series_R <- survival_general_series_helper(R,nparams)
+    series_R <- survival_gen_series_helper(R,nparams)
     1-series_R(t,theta)
 }, vectorize.args="t")
 
@@ -186,10 +124,10 @@ pgeneral_series <- Vectorize(function(t,theta,nparams,R)
 #' @param R list of reliability functions
 #' @note convert this into a generator over (t,theta)
 #' @export
-survival_general_series <- Vectorize(function(t,theta,nparams,R)
+survival_gen_series <- Vectorize(function(t,theta,nparams,R)
 {
     stopifnot(length(theta)==sum(nparams))
-    series_R <- survival_general_series_helper(R,nparams)
+    series_R <- survival_gen_series_helper(R,nparams)
     function(t,theta) series_R(t,theta)
 }, vectorize.args="t")
 
@@ -202,10 +140,10 @@ survival_general_series <- Vectorize(function(t,theta,nparams,R)
 #'                \code{nparams[j]} parameters.
 #' @param h list of hazard functions
 #' @export
-hazard_general_series <- Vectorize(function(t,theta,nparams,h)
+hazard_gen_series <- Vectorize(function(t,theta,nparams,h)
 {
     stopifnot(length(theta)==sum(nparams))
-    series_h <- hazard_general_series_helper(h,nparams)
+    series_h <- hazard_gen_series_helper(h,nparams)
     series_h(t,theta)
 }, vectorize.args="t")
 
