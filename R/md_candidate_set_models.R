@@ -128,7 +128,7 @@ md_bernoulli_cand_C1_C2_C3 <- function(md,p,compvar="t",qvar="q")
         #}
     }
 
-    data[,paste0(qvar,1:m)] <- NULL
+    md[,paste0(qvar,1:m)] <- NULL
     md %>% bind_cols(md_encode_matrix(Q,qvar)) %>% md_mark_latent(paste0(qvar,1:m))
 }
 

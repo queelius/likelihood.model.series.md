@@ -1,0 +1,503 @@
+---
+title: "Series system with exponentially distributed component lifetimes part 2"
+output:
+    rmarkdown::html_vignette:
+        toc: true
+vignette: >
+  %\VignetteIndexEntry{Series system with exponentially distributed component lifetimes part 2}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  echo = TRUE,
+  comment = "#>")
+
+library(series.system.estimation.masked.data)
+library(algebraic.mle)
+library(md.tools)
+library(tidyverse)
+library(devtools)
+options(digits=4)
+library(printr)
+```
+
+
+Components with exponentially distributed lifetimes part 2 {#expo}
+===========================================================
+Consider a series system in which the components have exponentially distributed
+lifetimes.
+The $j$\textsuperscript{th} component of the $i$\textsuperscript{th} has a
+lifetime distribution given by
+$$
+    T_{i j} \sim \operatorname{EXP}(\lambda_j)
+$$
+for $j=1,\ldots,m$.
+Thus, $\lambda = \bigl(\lambda_1,\ldots,\lambda_m\bigr)$.
+The random variable $T_{i j}$ has a reliability, pdf, and hazard function
+given respectively by
+\begin{align}
+    \label{eq:expo_reliability}
+    R_j(t;\lambda_j)     &= \exp(-\lambda_j t),\\
+    \label{eq:expo_pdf}
+    f_j(t;\lambda_j)     &= \lambda_j \exp(-\lambda_j t),\\
+    \label{eq:expo_haz}
+    h_j(\cdot;\lambda_j) &= \lambda_j
+\end{align}
+where $t > 0$ and $\lambda_j > 0$ is the failure rate (or inverse scale)
+parameter.
+
+The lifetime of the series system composed of $m$ components with exponentially
+distributed lifetimes has a reliability function given by
+\begin{equation}
+\label{eq:sys_expo_reliability_function}
+R(t;\lambda) = \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t\biggr)
+\end{equation}
+where $t > 0$.
+\begin{proof}
+By Theorem \ref{thm:sys_reliability_function},
+$$
+    R(t;\lambda) = \prod_{j=1}^{m} R_j(t;\lambda_j).
+$$
+Plugging in the component reliability functions given by
+Equation \eqref{eq:expo_reliability} obtains the result
+\begin{align*}
+R(t;\lambda) = \prod_{j=1}^{m}
+    &= \exp(-\lambda_j t)\\
+    &= \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t\biggr).
+\end{align*}
+\end{proof}
+
+A series system with exponentially distributed lifetimes is also 
+exponentially distributed.
+\begin{theorem}
+\label{thm:expo_series_family}
+The random lifetime $T_{i j}$ of a series system composed of $m$ components with 
+exponentially distributed lifetimes is exponentially distributed with a failure 
+rate that is the sum of the component failure rates,
+$$
+    T_i \sim \operatorname{EXP} \biggl(\sum_{j=1}^{m} \lambda_j\biggr).
+$$
+\end{theorem}
+\begin{proof}
+By Equation \eqref{eq:sys_expo_reliability_function}, the series system has a
+reliability function in the family of the exponential distribution with a
+failure rate that is the sum of the component failure rates.
+\end{proof}
+
+The series system's failure rate function is given by
+\begin{equation}
+\label{eq:expo_sys_failure_rate}
+h(\cdot;\lambda) = \sum_{j=1}^{m} \lambda_j
+\end{equation}
+whose proof follows from Theorem \ref{thm:sys_failure_rate}.
+
+We see that the failure rate $\lambda = \sum_{j=1}^n \lambda$ is *constant*,
+consistent with the the exponential distribution being the only continuous
+distribution that has a constant failure rate.
+
+The pdf of the series system is given by
+\begin{equation}
+\label{eq:expo_sys_pdf}
+f(t;\lambda) = \biggl( \sum_{j=1}^{m} {\lambda_j} \biggr) \exp
+    \biggl(-\sum_{j=1}^{m}{\lambda_j} t\biggr)
+\end{equation}
+where $t > 0$.
+\begin{proof}
+By definition,
+$$
+f(t;\lambda) = h(t;\lambda) R(t;\lambda).
+$$
+Plugging in the failure rate and reliability functions given respectively by
+Equations \eqref{eq:expo_sys_failure_rate} and \eqref{eq:expo_reliability} completes
+the proof.
+\end{proof}
+
+The conditional probability that component $k$ is the cause of a system failure
+at time $t$ is given by
+\begin{equation}
+\label{eq:expo_prob_K_given_S}
+f_{K_i|T_i}(k|t,\lambda) = f_{K_i}(k|\lambda) =
+    \frac{\lambda_k}{\sum_{p=1}^{m} \lambda_p}
+\end{equation}
+where $k \in \{1,\ldots,m\}$ and $t > 0$.
+\begin{proof}
+By Theorem \ref{thm:f_given_s_form_2},
+$$
+f_{K_i|T_i}(k;\lambda|t) = \frac{h_k(t;\lambda_k)}{h(t;\lambda)}.
+$$
+Plugging in the failure rate of the component indexed by $k$ and the failure
+rate of the system given respectively by Equations \eqref{eq:expo_sys_failure_rate}
+and \eqref{eq:expo_haz} completes the proof.
+\end{proof}
+
+Due to the constant failure rates of the components, $K_i$ and $T_i$ are
+mutually independent.
+The joint pdf of $K_i$ and $T_i$ is given by
+\begin{equation}
+\label{eq:expo_joint_k_s}
+f_{K_i,T_i}(k,t;\lambda) = \lambda_k \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t\biggr)
+\end{equation}
+where $k \in \{1,\ldots,m\}$ and $t > 0$.
+\begin{proof}
+By definition,
+$$
+f_{K_i,T_i}(k,t;\lambda) =
+    f_{K_i|T_i}(k;\lambda|t) f_{T_i}(t;\lambda).
+$$
+Plugging in the conditional probability and the marginal probability given
+respectively by Equations \eqref{eq:expo_prob_K_given_S} and
+\eqref{eq:expo_sys_pdf} completes the proof.
+\end{proof}
+
+## Maximum likelihood estimation
+The log-likelihood for our masked data model when we assume Conditions
+\ref{cond:c_contains_k}, \ref{cond:equal_prob_failure_cause}, and
+\ref{cond:masked_indept_theta} is given by
+\begin{equation}
+\label{eq:}
+\ell(\lambda) =
+    \sum_{i=1}^{n} (1-\delta_i) \log \biggl(\sum_{j \in c_i} \lambda_j \biggr) -
+    \biggl( \sum_{i=1}^{n} s_i \biggr)
+    \biggl( \sum_{j=1}^{m} \lambda_j \biggr).
+\end{equation}
+\begin{proof}
+By Equation \eqref{eq:loglike}, 
+$$
+\ell(\lambda) = \sum_{i=1}^n \log R(s_i;\lambda) + \sum_{i=1}^n (1-\delta_i)
+    \log \biggl\{ \sum_{k\in c_i} h_k(s_i;{\lambda_k}) \biggr\}.
+$$
+Plugging in the component failure rate and system reliability functions given
+respectively by Equations \eqref{eq:expo_haz} and
+\eqref{eq:sys_expo_reliability_function} and simplifying completes the proof.
+\end{proof}
+
+The set of solutions to the MLE equations must be stationary points, i.e., a
+point at which the score function of type $\mathbb{R}^m \mapsto \mathbb{R}^m$
+is zero.
+The $j$-th component of the output of the score function is given by
+\begin{equation}
+\label{eq:score_expo_j}
+\frac{\partial \ell}{\partial \lambda_p} = 
+  \sum_{i=1}^{n} \biggl( \sum_{j \in c_i} \lambda_j \biggr)^{-1}
+  1_{\{p \in c_i \text{ and } \delta_i = 0\}} - \sum_{i=1}^{n} s_i.
+\end{equation}
+
+We may find an MLE by solving the maximum likelihood equation \eqref{eq:mle_eq},
+i.e., a set of (stationary) points satisfying
+$$
+\frac{\partial \ell}{\partial \lambda_j}\Biggr|_{\hat\lambda_j} = 0
+$$
+for $j=1,\ldots,m$.
+We approximate a solution to this problem by using the iterative
+Newton-Raphson method as described in Section \ref{sec:iterative}.
+
+The Newton-Raphson method needs the observed information matrix, which is a
+function of $\lambda$ of type $\mathbb{R}^m \mapsto \mathbb{R}^{m \times m}$.
+The $(j,k)$-th element of $J(\lambda)$ is given by
+\begin{equation}
+\label{eq:info_expo}
+\frac{\partial^2 \ell}{\partial \lambda_j \partial \lambda_k} = 
+  \sum_{i=1}^{n} \biggl( \sum_{j \in c_i} \lambda_j \biggr)^{-2}
+  1_{\{j,k \in c_i \text{ and } \delta_i = 0\}}.
+\end{equation}
+
+## Simulation
+We wish to simulate a masked data set consisting with Conditions
+\ref{cond:c_contains_k}, \ref{cond:equal_prob_failure_cause}, and
+\ref{cond:masked_indept_theta}. We setup the parameters of this simulation with:
+```{r}
+# with probability q an observation will be right-censored
+q <- 0.25
+# true parameter value of series system
+lambda <- c(1,     # component 1 failure rate
+            1.1,
+            0.95,
+            1.15,
+            1.1)
+m <- length(lambda)
+```
+
+So, in our study, $\theta = (`r lambda`)'$.
+The component assigned to index $j$ has an exponentially distributed
+lifetime with a failure rate $\theta_j$, e.g., $\lambda_2 = `r lambda[2]`$ is the
+failure rate of the component indexed by $2$.
+
+Let's simulate generating the lifetimes of the $m = `r m`$ components for this series
+system:
+```{r}
+set.seed(7231) # set seed for reproducibility
+n <- 75
+comp_times <- matrix(nrow=n,ncol=m)
+for (j in 1:m)
+    comp_times[,j] <- rexp(n,lambda[j])
+comp_times <- md_encode_matrix(comp_times,"t")
+print(comp_times,n=4)
+
+# right censoring time
+tau <- rep(-(1/sum(lambda))*log(q),n)
+p <- .333
+```
+
+Next, we use the function `md_series_lifetime_right_censoring` to decorate the
+masked data with the right-censor-censoring time chosen by the probability
+$\Pr\{T_i > \tau\} = 0.75$:
+```{r}
+q <- 0.25
+tau <- rep(-(1/sum(lambda))*log(q),n)
+data <- comp_times %>% md_series_lifetime_right_censoring(tau)
+print(data,n=4,drop_latent=TRUE)
+```
+
+We simulate candidate sets using the Bernoulli candidate model with an
+appropriate set of parameters to satisfy conditions $C_1$, $C_2$, and $C_3$:
+```{r warning=F, message=F}
+p <- .3
+data <- data %>% md_bernoulli_cand_C1_C2_C3(p)
+print(data[,paste0("q",1:m)],n=4)
+```
+
+Now, to generate candidate sets, we sample from these probabilities:
+```{r}
+data <- data %>% md_cand_sampler()
+print(md_boolean_matrix_to_charsets(data,drop_set=TRUE),drop_latent=TRUE,n=6)
+```
+
+We see that after dropping latent (unobserved) columns, we only have the right
+censoring time, right censoring indicator, and the candidate sets. (Note that
+this time we showed the candidate sets in a more friendly way using
+`md_boolean_matrix_to_charsets`.)
+
+See Appendix A for more information about the `md_*` functions and see
+The above code produces a data frame `md` whose first $10$ rows are given by
+Table \@ref(tab:mytabl).
+```{r mytabl,echo=F, results='asis',tab.cap="The first 10 observations of simulated masked data for exponentially distributed component lifetimes",tab.label="mytabl"}
+md.tmp <- head(md,10)
+md.tmp$x1 <- as.integer(md.tmp$x1)
+md.tmp$x2 <- as.integer(md.tmp$x2)
+md.tmp$x3 <- as.integer(md.tmp$x3)
+md.tmp$delta <- as.integer(md.tmp$delta)
+knitr::kable(
+    md.tmp)
+    #caption="The first 10 observations of simulated masked data for exponentially distributed component lifetimes",
+    #label="tab:mytabl")
+```
+
+Now, we find the MLE with the following R code:
+```{r eval=F}
+loglike.exp <- md_loglike_exp_series_C1_C2_C3(md)
+lambda.hat <- algebraic.mle::mle_gradient_ascent(
+    l=loglike.exp,
+    theta0=lambda)
+points <- cbind(point(lambda.hat),as.matrix(lambda))
+colnames(points) <- c("MLE","Parameter")
+cbind(points,confint(lambda.hat))
+```
+
+In Section \ref{sec:acc_prec}, we consider various ways of analyzing the
+accuracy and precision of the MLE $\hat{\lambda}$.
+To do these estimations, we perform Bootstrapping to generate $R=1000$ MLEs.
+
+TODO: I show a bunch of different estimates, like bias and confidence intervals,
+using the Bootstrap method. I need to work on presenting only interesting
+estimates in a way that helps show what the MLE is like for small samples,
+then show how as the sample gets larger, we become consistent with the
+asymptotic theory of the MLE. So, basically a graph whose x-axis is
+sample size and whose y-axis is MSE or bias.
+
+```{r, eval=F, cache=T}
+N <- c(100,200,300,400,500)
+for (n in N)
+{
+    md <- tibble(t1=stats::rexp(n,rate=lambda[1]),
+                 t2=stats::rexp(n,rate=lambda[2]),
+                 t3=stats::rexp(n,rate=lambda[3])) %>%
+        md_series_lifetime() %>%
+        md_bernoulli_candidate_C1_C2_C3(m)
+    
+    loglike.exp <- md_loglike_exp_series_C1_C2_C3(md)
+    loglike.scr <- md_score_exp_series_C1_C2_C3(md)
+    mle.exp <- mle_gradient_ascent(l=loglike.exp,theta0=lambda,score=loglike.scr)
+    mle.boot <- mle_boot_loglike(mle=mle.exp,
+                                 loglike.gen=md_loglike_exp_series_C1_C2_C3,
+                                 data=md)
+    
+    cat("Sample size: ", n, "\n")
+    cat("---------------\n")
+    
+    print("Estimate of bias using Bootstrap:")
+    print(bias(mle.boot,lambda))
+    
+    print("Estimate of confidence intervals:")
+    print("Asymptotic")
+    print(confint(mle.exp))
+    print("Bootstrap")
+    print(confint(mle.boot))
+
+    print("Estimate of variance-covariance:")
+    print("Asymptotic")
+    print(vcov(mle.exp))
+    print("Bootstrap")
+    print(vcov(mle.boot))
+    
+    print("Estimate of MSE:")
+    print("Asymptotic")
+    print(mse(mle.exp))
+    print("Bootstrap")
+    print(mse(mle.boot,lambda))
+}
+```
+
+The asymptotic mean squared error of $\hat{\lambda}^{(1)},\ldots,\hat{\lambda}^{(N)}$
+is approximately equal to the trace of the inverse of the Fisher information
+matrix evaluated at $\lambda$, which is given by
+```{r,echo=F,eval=F}
+sum(diag(MASS::ginv(-numDeriv::hessian(md_loglike_exp_series_C1_C2_C3(md),lambda))))
+```
+
+## Candidate sets that generate non-unique MLEs
+In some cases, the MLE may be non-unique due to a small sample size.
+However, there are cases where as the sample size $n \to \infty$, the MLE
+remains non-unique, i.e., it is not guaranteed to converge to any value.
+One way in which this can occur for a series system with masked component causes
+of failure is given by the following setup.
+
+Let the exponential series system consist of $m=3$ components. Components
+$1$ and $2$ are on the same circuit board, and component $3$ is on another
+circuit board.
+Whenever the series system fails, the potential components that may have caused
+the failure is determined by replacing the entire circuit board.
+Thus, when compoent $1$ or $2$ fails, the series system is fixed by replacing
+the circuit board they both reside on, and thus the candidate set is 
+$\{1,2\}$. If component $3$ fails, the candidate set is $\{3\}$.
+In this case, the log-likelihood function is given by
+$$
+\ell(\lambda_1,\lambda_2,\lambda_3) = \eta_3 \log(\lambda_3) +
+    \eta_{1 2} \log(\lambda_1+\lambda_2) -
+    (\eta_3+\eta_{1 2}) \bar{s} (\lambda_1+\lambda_2+\lambda_3),
+$$
+where $\eta_3$ denotes the number of observations in which the candidate
+set is $\{3\}$ and $\eta_{1 2}$ denotes the number of observations in which
+the candidate set is $\{1,2\}$.
+
+Let $\hat{\lambda}_1 = 1$, $\hat{\lambda}_2 = 2$, and $\hat{\lambda}_3 = 3$.
+Then,
+$$
+\ell(1,2,3) = \eta_3 \log(3) +
+    \eta_{1 2} \log(1+2) -
+    (\eta_3+\eta_{1 2}) \bar{s}(1+2+3).
+$$
+However, if we interchange the values for $\hat{\lambda}_1$ and $\hat{\lambda}_2$,
+we get the same value for the log-likehood function.
+Thus, any time $(\hat{\lambda}_1,\hat{\lambda}_2,\hat{\lambda}_3)$ is an MLE, so
+is $(\hat{\lambda}_2,\hat{\lambda}_1,\hat{\lambda}_3)$.
+This is known as *non-identifiability*, which means that two or more values of
+the parameters result in the same likelihood of the observed data.
+
+To find an MLE, we take the derivative of $\ell$ with respect to the parameters,
+obtaining the simultaneous equations
+\begin{align}
+\hat\lambda_1 + \hat\lambda_2 &= \frac{\eta_{1 2}}{(\eta_{1 2} + \eta_3) \bar{s}}\\
+\hat\lambda_3                 &= \frac{\eta_3}{(\eta_{1 2} + \eta_3) \bar{s}}
+\end{align}
+We see that
+$$
+\hat\lambda_1 + \hat\lambda_2 =\frac{\eta_{1 2}}{(\eta_{1 2} + \eta_3) \bar{s}}
+$$
+defines a *line*, and thus any point on this line is an MLE of $\hat\lambda_1$
+and $\hat\lambda_2$.
+
+As a demonstration of this occurrence, we run $N = 500000$ simulations for an
+exponential series system with a true parameter $\lambda = (2,3,2.5)'$, starting
+at a random location with the parameter space $\Omega$.
+In Table \ref{mytable}, we show a small sample of the generated masked data.
+
+```{r mytable, echo=F,cache=T, eval=F}
+library(dplyr)
+library(ggplot2)
+library(series.system.estimation.masked.data)
+library(algebraic.mle)
+library(cowplot)
+
+n <- 10000
+m <- 3
+theta <- c(2,3,2.5)
+
+md_block_candidate_m3 <- function(md)
+{
+    block <- function(k)
+    {
+        if (k == 1)
+            return(c(T,T,F))
+        if (k == 2)
+            return(c(T,T,F))
+        if (k == 3)
+            return(c(F,F,T))
+    }
+
+    n <- nrow(md)
+    x <- matrix(nrow=n,ncol=3)
+    for (i in 1:n)
+        x[i,] <- block(md$k[i])
+
+    x <- tibble::as_tibble(x)
+    colnames(x) <- paste0("x",1:3)
+    md %>% dplyr::bind_cols(x)
+}
+
+md.nu <- tibble(t1=stats::rexp(n,theta[1]),
+                t2=stats::rexp(n,theta[2]),
+                t3=stats::rexp(n,theta[3])) %>%
+    md_series_lifetime() %>%
+    md_block_candidate_m3()
+
+md.nu.tmp <- md.nu
+md.nu.tmp$x1 <- as.integer(md.nu.tmp$x1)
+md.nu.tmp$x2 <- as.integer(md.nu.tmp$x2)
+md.nu.tmp$x3 <- as.integer(md.nu.tmp$x3)
+#head(round(md.nu.tmp,digits=3),n=10)
+
+knitr::kable(
+    head(md.nu.tmp,n=10),
+    caption="The first 10 observations of simulated masked data for exponentially distributed component lifetimes")
+```
+
+We find an MLE for each, and do density plots for $\hat\lambda_1$ and
+$\hat\lambda_2$ on the left side and $\hat\lambda_3$ on the right side in
+Figure \ref{fig:non-unique}.
+
+```{r non-unique, eval=F, fig.cap="The left figure shows the MLE for lambda1 and lambda2 is centered around the line lambda1 + lambda2 = 5, and the right figure shows that the MLE for lambda3 is highly concentrated around 2.5.",fig.show="hold",echo=F,warning=F,message=F,cache=T}
+loglike.nu.exp <- md_loglike_exp_series_C1_C2_C3(md.nu)
+N <- 1000
+loglikes <- numeric(N)
+theta.nus <- matrix(nrow=N,ncol=3)
+for (i in 1:N)
+{
+    theta.nu <- mle_gradient_ascent(
+        l=loglike.nu.exp,
+        theta0=runif(3,.1,10),
+        stop_cond=function(x,y) abs(max(x-y)) < 1e-5)
+
+    theta.nus[i,] <- point(theta.nu)
+    loglikes[i] <- loglike.nu.exp(point(theta.nu))
+}
+
+dat <- data.frame(data.frame(x=theta.nus[,1], y=theta.nus[,2],z=loglikes))
+plot1 <-ggplot(dat,aes(x=x,y=y)) +
+    #geom_density2d() +
+    geom_density_2d_filled() +
+    #geom_contour()+
+    labs(x="lambda1",y="lambda2") +
+    xlim(0,5) +
+    ylim(0,5)
+dat2 <- data.frame(data.frame(x=theta.nus[,3],z=loglikes))
+
+plot2 <-ggplot(dat2,aes(x=x)) +
+    geom_density() +
+    labs(x="lambda3") +
+    xlim(2,3)
+
+plot_grid(plot1, plot2, labels = "AUTO")
+```

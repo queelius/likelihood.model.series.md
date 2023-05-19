@@ -9,7 +9,7 @@ Functions include simulation, pdf, cdf, quantile, and other related
 functions.
 }
 \details{
-For parameter estimation from masked data, see the file \code{md_general_series_mle.R}.
+For parameter estimation from masked data, see the file \code{md_gen_series_mle.R}.
 }
 \author{
 Alex Towell

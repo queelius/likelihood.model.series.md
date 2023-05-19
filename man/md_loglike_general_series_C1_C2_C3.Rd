@@ -3,9 +3,10 @@
 \name{md_loglike_general_series_C1_C2_C3}
 \alias{md_loglike_general_series_C1_C2_C3}
 \title{Masked data approximately satisfies the following set of conditions:
-C1: \code{Pr(K[i] in C[i]) = 1}
-C2: \code{Pr(C[i]=c[i] | K[i]=j, T[i]=t[i]) = Pr(C[i]=c[i] | K[i]=j', T[i]=t[i])}
-for any \code{j,j' in c[i]}.
+C1: Pr(K\link{i} in C\link{i}) = 1
+C2: Pr(C\link{i}=c\link{i} | K\link{i}=j, T\link{i}=t\link{i}) =
+Pr(C\link{i}=c\link{i} | K\link{i}=j', T\link{i}=t\link{i})
+for any j,j' in c\link{i}.
 C3: masking probabilities are independent of theta}
 \usage{
 md_loglike_general_series_C1_C2_C3(md, nparams, h, R = NULL)
@@ -27,8 +28,9 @@ a log-likelihood function with respect to theta given \code{md}
 }
 \description{
 Masked data approximately satisfies the following set of conditions:
-C1: \code{Pr(K[i] in C[i]) = 1}
-C2: \code{Pr(C[i]=c[i] | K[i]=j, T[i]=t[i]) = Pr(C[i]=c[i] | K[i]=j', T[i]=t[i])}
-for any \code{j,j' in c[i]}.
+C1: Pr(K\link{i} in C\link{i}) = 1
+C2: Pr(C\link{i}=c\link{i} | K\link{i}=j, T\link{i}=t\link{i}) =
+Pr(C\link{i}=c\link{i} | K\link{i}=j', T\link{i}=t\link{i})
+for any j,j' in c\link{i}.
 C3: masking probabilities are independent of theta
 }

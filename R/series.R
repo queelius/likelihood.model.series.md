@@ -27,11 +27,9 @@ NULL
 #' @param eps stopping condition, default is 1e-3
 #' @param t0 initial guess, default is 1
 #' @export
-qgen_series <- Vectorize(function(p,theta,nparams,h,R=NULL,eps=1e-3,t0=1)
+qseries <- Vectorize(function(p,theta,nparams,h,R=NULL,eps=1e-3,t0=1)
 {
-    stopifnot(length(theta)==sum(nparams))
-    stopifnot(eps > 0)
-    stopifnot(all(p > 0))
+    stopifnot(length(theta) == sum(nparams), eps > 0, all(p > 0))
     m <- length(h)
 
     if (is.null(R))
@@ -73,7 +71,7 @@ qgen_series <- Vectorize(function(p,theta,nparams,h,R=NULL,eps=1e-3,t0=1)
 #' @param h list of hazard functions
 #' @param R list of reliability functions, defaults to NULL (results in a numerical approximation from h)
 #' @export
-rgen_series <- function(n,theta,nparams,h,R=NULL)
+rseries <- function(n,theta,nparams,h,R=NULL)
 {
     qgen_series(runif(n),theta,nparams,h,R)
 }

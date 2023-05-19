@@ -154,7 +154,6 @@ Each of these candidate sets has equal probability of occurring, and thus
 the probability of any particular candidate set is $1/2^(m-1)$.
 \end{proof}
 
-
 ### Bernoulli candidate set model #2
 
 Now, we remove condition $C_2$. We still assume conditions $C_1$ and $C_3$,
@@ -506,7 +505,7 @@ the failed component must be in the candidate set).
 Let's compute the log-likelihood and MLEs for this new sample:
 ```{r}
 ll.best <- md_loglike_exp_series_C1_C2_C3(data.best)
-estimate.best <- numerical_mle(ll.best,theta0=theta)
+estimate.best <- mle_numerical(ll.best, theta0=theta)
 as_tibble(confint(estimate.best)) %>% mutate(mle=point(estimate.best),theta=theta)
 ```
 
@@ -541,7 +540,7 @@ data.worst <- comp_times %>%
     md_cand_sampler()
 
 ll.worst <- md_loglike_exp_series_C1_C2_C3(data.worst)
-estimate.worst <- numerical_mle(ll.worst,theta0=theta)
+estimate.worst <- mle_numerical(ll.worst, theta0=theta)
 as_tibble(confint(estimate.worst)) %>% mutate(mle=point(estimate.worst),theta=theta)
 ```
 
