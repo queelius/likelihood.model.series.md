@@ -1,10 +1,10 @@
-Package: series.system.estimation.masked.data
+Package: md.series.system
 Title: Estimating Reliability of Components in Series from Masked Data
 Version: 0.9
 Authors@R: 
     person("Alexander", "Towell", , "lex@metafunctor.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6443-9897"))
-Description: Set of functions for providing MLEs for lifetime parameters of series systems and other related characteristics.
+Description: Set of functions for providing MLEs for lifetime parameters of latent components in series systems.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -32,5 +32,5 @@ Depends:
     R (>= 2.10)
 LazyData: true
 VignetteBuilder: knitr
-URL: https://queelius.github.io/series_system_estimation_masked_data/
-BugReports: https://queelius.github.io/series_system_estimation_masked_data/issues
+URL: https://queelius.github.io/md_series_system/
+BugReports: https://queelius.github.io/md_series_system/issues

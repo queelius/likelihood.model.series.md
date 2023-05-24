@@ -119,10 +119,10 @@ md_loglike_exp_series_C1_C2_C3 <- function(md,setvar="x",sysvar="t")
 }
 
 
-#' Generates a score function for an exponential series system (or competing risks)
-#' with respect to parameter `theta` for masked component failure (or masked
-#' competing risks) with candidate sets (risks) that approximately satisfy conditions
-#' C1, C2, and C3.
+#' Generates a score function for an exponential series system (or
+#' competing risks) with respect to parameter `theta` for masked component
+#' failure (or masked competing risks) with candidate sets (risks) that
+#' approximately satisfy conditions C1, C2, and C3.
 #'
 #' @param md right-censored failure-time data with masked competing risks
 #' @param setvar prefix of Boolean matrix encoding of candidate sets, defaults
@@ -169,9 +169,9 @@ md_score_exp_series_C1_C2_C3 <- function(md,setvar="x",sysvar="t")
     #}    
 }
 
-#' Generates the observed information matrix (FIM) for an exponential series system
-#' with respect to parameter `theta` for masked data with candidate sets
-#' that approximately satisfy conditions C1, C2, and C3.
+#' Generates the observed information matrix (FIM) for an exponential series
+#' system with respect to parameter `theta` for masked data with candidate
+#' sets that approximately satisfy conditions C1, C2, and C3.
 #'
 #' @param md masked data with candidate sets that meet the
 #'           regular candidate model

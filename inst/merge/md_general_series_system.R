@@ -9,7 +9,7 @@
 #' @seealso \code{\link{md_loglike_general_series_C1_C2_C3}},
 #'          \code{\link{md_score_general_series_C1_C2_C3}},
 #'          \code{\link{md_mle_general_series_C1_C2_C3}}
-NULL
+
 
 #' Masked data approximately satisfies the following set of conditions:
 #' C1: Pr(K[i] in C[i]) = 1
@@ -99,21 +99,18 @@ md_loglike_general_series_C1_C2_C3 <- function(
 #' C3: masking probabilities are independent of theta
 #'
 #' @param md masked data
-#' @param nparams integer vector, we have m components, each of which may have a
-#'                different number of parameters. the j-th component has
-#'                \code{nparmas[j]} parameters.
 #' @param h list of hazard functions
 #' @param R list of survival functions, defaults to NULL, in which case we
 #'          generate the survival functions from \code{h}.
 #' @returns a log-likelihood function with respect to theta given \code{md}
 #' @importFrom md.tools md_decode_matrix
 #' @export
-md_loglike_series_C1_C2_C3 <- function(
+md_loglike_general_series_C1_C2_C3 <- function(
     md,
-    nparams,
     h,
     R = NULL)
 {
+    # 
     n <- nrow(md)
     m <- length(h)
     stopifnot(n > 0, m > 0)
