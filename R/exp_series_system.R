@@ -4,7 +4,8 @@
 #' Functions include simulation, pdf, cdf, quantile, and other related
 #' functions for the Exponential series distribution.
 #' 
-#' For parameter estimation from masked data, see the file `md_exp_series_system.R`.
+#' For parameter estimation from masked data, see the file 
+#' `md_exp_series_system.R`.
 #'
 #' @name Exponential series
 #' @author Alex Towell

@@ -14,6 +14,5 @@ rweibull_series(n, scales, shapes)
 \item{shapes}{shape parameters for weibull component lifetimes}
 }
 \description{
-NOTE: \code{qweibull_series(p=runif(n),scales,shapes)} is around 6 times slow
-due to using newton's method to solve \code{F(t) - p = 0}.
+Sampler for weibull series.
 }

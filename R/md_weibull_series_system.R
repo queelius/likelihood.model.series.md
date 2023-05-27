@@ -35,12 +35,8 @@ NULL
 #'  - compute_converged logical, whether to compute convergence info
 #' @param ... pass additional arguments to `control`
 #' @return MLE of type `md_mle_weibull_series_C1_C2_C3`
-#' 
-#' @importFrom algebraic.mle mle_numerical
-#' @importFrom algebraic.mle sim_anneal
-#' @importFrom algebraic.mle newton_raphson
+#' @importFrom algebraic.mle mle_numerical sim_anneal mle
 #' @importFrom MASS ginv
-#' @importFrom algebraic.mle mle
 #' @export
 md_mle_weibull_series_C1_C2_C3 <- function(md, theta0, control = list(), ...) {
     defaults <- list(
@@ -64,21 +60,24 @@ md_mle_weibull_series_C1_C2_C3 <- function(md, theta0, control = list(), ...) {
         start <- sim_anneal(theta0, ll, control)
         theta0 <- start$par
     }
-
-    sol <- NULL
-    if (control$method == "newton-raphson") {
-        sol <- newton_raphson(par = theta0, fn = ll, control)
-    } else {
-        sol <- optim(par = theta0, fn = ll, method = control$method, control)
-    }
+    sol <- optim(
+        par = theta0,
+        fn = ll, hessian = TRUE,
+        method = control$method,
+        control)
 
     if (sol$convergence != 0) {
         warning("optimization did not converge")
     }
 
-    mle_sol <- mle_numerical(sol, control)
-    class(mle_sol) <- c("md_mle_weibull_series_C1_C2_C3", class(mle_sol))
-    mle_sol
+    mle_numerical(
+        sol = sol,
+        options = control,
+        superclasses = c(
+            "md_mle_weibull_series_C1_C2_C3",
+            "md_mle_weibull_series",
+            "md_mle_series",
+            "md_mle"))
 }
 
 #' Log-likelihood generator for Weibull series system on masked data,
@@ -132,9 +131,9 @@ md_loglike_weibull_series_C1_C2_C3 <- function(md)
 
 #' Score function generator (gradient of the log-likelihood) for Weibull series
 #' system on masked data, where the masked data is in the form of right-censored
-#' system lifetimes and masked component cause of failure. Note that if the right
-#' censoring indicator variable `delta` is missing, we assume that all system
-#' lifetimes are observed.
+#' system lifetimes and masked component cause of failure. Note that if the
+#' right censoring indicator variable `delta` is missing, we assume that all
+#' system lifetimes are observed.
 #'
 #' Masked component data `md` approximately satisfies the following conditions:
 #' C1: Pr(K in C) = 1

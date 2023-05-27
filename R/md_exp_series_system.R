@@ -33,57 +33,64 @@ NULL
 #' @param md right-censored masked data
 #' @param theta0 initial value for the MLE
 #' @param control list of control parameters
-#'  - eps convergence tolerance (default is 1e-6)
-#'  - keep_obs logical, keep observations if TRUE
-#'  - maxit integer, maximum number of iterations
-#'  - compute_converged logical, whether to compute convergence info
 #' @param ... pass additional arguments to `control`
 #' @return MLE of type `md_mle_exp_series_C1_C2_C3`
 #' 
-#' @importFrom algebraic.mle mle_numerical
-#' @importFrom algebraic.mle sim_anneal
-#' @importFrom algebraic.mle newton_raphson
+#' @importFrom algebraic.mle mle_numerical sim_anneal mle
 #' @importFrom MASS ginv
-#' @importFrom algebraic.mle mle
 #' @export
 md_mle_exp_series_C1_C2_C3 <- function(md, theta0, control = list(), ...) {
     defaults <- list(
         keep_obs = FALSE,
         maxit = 1000L,
-        compute_converged = FALSE,
-        use_simulated_annealing = TRUE,
         fnscale = -1,
         sysvar = "t",
         setvar = "x",
         method = "BFGS",
-        lower_bound = 1e-6, # should all be positive
-        sup = function(theta) all(theta >= control$lower_bound),
-        proj = function(theta) pmax(theta, control$lower_bound))
+        debug = 0,
+        REPORT = 1)
 
     control <- modifyList(defaults, control)
-    control <- modifyList(control, list(...))
+    optim_control_args <- c("fnscale", "parscale", "ndeps", "maxit", 
+                        "abstol", "reltol", "alpha", "beta", 
+                        "gamma", "REPORT", "trace", "warn.1d.Nelder-Mead")
+    optim_control <- control[names(control) %in% optim_control_args]
 
-    ll <- md_loglike_exp_series_C1_C2_C3(md, control$setvar, control$sysvar)
-    if (control$use_simulated_annealing) {
-        start <- sim_anneal(theta0, ll, control)
-        theta0 <- start$par
-    }
+    ll <- md_loglike_exp_series_C1_C2_C3(
+        md = md,
+        setvar = control$setvar,
+        sysvar = control$sysvar)
 
-    sol <- NULL
-    if (control$method == "newton-raphson") {
-        sol <- newton_raphson(par = theta0, fn = ll, control)
-    }
-    else {
-        sol <- optim(par = theta0, fn = ll, method = control$method, control)
-    }
+    ll.grad <- md_score_exp_series_C1_C2_C3(
+        md = md,
+        setvar = control$setvar,
+        sysvar = control$sysvar)
+
+    sol <- optim(
+        par = theta0,
+        fn = ll,
+        gr = ll.grad,
+        hessian = TRUE,
+        method = control$method,
+        control = optim_control,
+        ...)
 
     if (sol$convergence != 0) {
         warning("optimization did not converge")
     }
 
-    mle_sol <- mle_numerical(sol, control)
-    class(mle_sol) <- c("md_mle_exp_series_C1_C2_C3", class(mle_sol))
-    mle_sol
+    sol <- mle_numerical(
+        sol = sol,
+        options = control,
+        superclass = c("md_mle_exp_series_system_C1_C2_C3",
+                       "md_mle_series_system_C1_C2_C3",
+                       "md_mle_series_system",
+                       "md_mle"))
+    if (control$keep_obs) {
+        sol$obs <- md
+    }
+    sol$nobs <- nrow(md)
+    sol
 }
 
 #' Generates a log-likelihood for an exponential series system with respect to

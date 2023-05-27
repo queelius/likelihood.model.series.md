@@ -1,0 +1,36 @@
+
+
+---
+title: "Exponential series system - simulation study"
+author: "Alex Towell"
+date: "2023-03-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+```{r}
+#############################
+library(algebraic.mle)
+library(md.tools)
+library(dplyr)
+library(tibble)
+library(stats)
+
+###########################
+mle_solver <- function(data, ind) {
+    start <- sim_anneal(par = theta, fn = ll,
+        control = list(fnscale = -1, maxit = 10000L, trace = FALSE,
+                        t_init = 50, .001, alpha = 0.9,
+                        it_per_temp = 20L, sup = function(x) all(x > 0)))
+
+    theta.boot <- md_mle_exp_series_C1_C2_C3(
+        md = data[ind],
+        theta0 = start$par)
+}
+#mle_boot(mle_solver, data, R, ???)
+```

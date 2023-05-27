@@ -51,9 +51,6 @@ qweibull_series <- Vectorize(function(p,scales,shapes,eps=1e-3,t0=1)
 
 #' Sampler for weibull series.
 #'
-#' NOTE: \code{qweibull_series(p=runif(n),scales,shapes)} is around 6 times slow
-#' due to using newton's method to solve \code{F(t) - p = 0}.
-#'
 #' @param n sample size
 #' @param scales scale parameters for weibull component lifetimes
 #' @param shapes shape parameters for weibull component lifetimes
@@ -143,20 +140,3 @@ pweibull_series <- Vectorize(function(t,scales,shapes)
     stopifnot(all(scales > 0))
     ifelse(t < 0, 0, 1-exp(-sum((t/scales)^shapes)))
 }, vectorize.args="t")
-
-
-#' The cumulative distribution function for Weibull series
-#'
-#' @param scales scale parameters for Weibull component lifetimes
-#' @param shapes shape parameters for Weibull component lifetimes
-#' @param g function of system failure time \code{t}, some population
-#'          parameter of interest, such as the expected value or the variance.
-#'          defaults to expected value, \code{function(t) t}.
-#' @importFrom stats integrate
-#' @export
-param_weibull_series <- function(scales,shapes,g=function(t) t)
-{
-    integrate(f=function(t) g(t)*dweibull_series(t,scales,shapes),
-              lower=0,
-              upper=Inf)$value
-}

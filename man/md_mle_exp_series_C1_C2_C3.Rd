@@ -13,13 +13,7 @@ md_mle_exp_series_C1_C2_C3(md, theta0, control = list(), ...)
 
 \item{theta0}{initial value for the MLE}
 
-\item{control}{list of control parameters
-\itemize{
-\item eps convergence tolerance (default is 1e-6)
-\item keep_obs logical, keep observations if TRUE
-\item maxit integer, maximum number of iterations
-\item compute_converged logical, whether to compute convergence info
-}}
+\item{control}{list of control parameters}
 
 \item{...}{pass additional arguments to \code{control}}
 }

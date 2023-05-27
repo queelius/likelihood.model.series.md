@@ -4,9 +4,9 @@
 \alias{md_score_weibull_series_C1_C2_C3}
 \title{Score function generator (gradient of the log-likelihood) for Weibull series
 system on masked data, where the masked data is in the form of right-censored
-system lifetimes and masked component cause of failure. Note that if the right
-censoring indicator variable \code{delta} is missing, we assume that all system
-lifetimes are observed.}
+system lifetimes and masked component cause of failure. Note that if the
+right censoring indicator variable \code{delta} is missing, we assume that all
+system lifetimes are observed.}
 \usage{
 md_score_weibull_series_C1_C2_C3(md, sysvar = "t", setvar = "x")
 }

@@ -43,9 +43,9 @@ for (i in 1:N)
         t1=rweibull(n,wei.true[1],wei.true[2]),
         t2=rweibull(n,wei.true[3],wei.true[4]),
         t3=rweibull(n,wei.true[5],wei.true[6])) %>%
-        md_series_lifetime() %>%
         md_series_lifetime_right_censoring(tau) %>%
-        md_candidate_set_C1_C2_C3(3,p)
+        md_bernoulli_cand_C1_C2_C3(p) %>%
+        md_cand_sampler()
 
     # find the MLE of rate parameters
     # we help MLE method by initially guessing the true parameter

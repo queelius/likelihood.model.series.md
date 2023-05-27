@@ -13,6 +13,25 @@
 #' @author Alex Towell
 #' @name General series
 #' @keywords distribution, series, statistics
+NULL
+
+
+series_system_from_names <- function(dist_names, param_counts) {
+    comp <- comps[[i]]
+    
+    # Get the distribution function
+    sampler <- match.fun(paste0("r", comp$dist_name))
+    
+    # Get the parameters for this component
+    num_params <- comp$num_params
+    params <- theta[cur_index:(cur_index + num_params - 1)]
+    
+    # Update the current index for the next iteration
+    cur_index <- cur_index + num_params
+    
+    # Generate random lifetimes for this component
+    lifetimes[,i] <- do.call(sampler, c(list(n), as.list(params)))
+}
 
 #' General series system object constructor.
 #'
@@ -26,15 +45,20 @@
 series_system <- function(
     hazards,
     survivals,
+    samplers = NULL,
     param_counts) {
         stopifnot(length(hazards) == length(survivals),
                   length(hazards) == length(param_counts))
 
+        # TODO: use `algebraic.dist` package
         structure(
             list(hazards = hazards,
                  survivals = survivals,
+                 samplers = samplers,
                  param_counts = param_counts),
-            class = c("series_system", "dist"))
+            class = c("series_system",
+                      "latent_multivariate_dist", 
+                      "univariate_dist", "dist"))
 }
 
 #' Hazard function for a general series system.
@@ -56,13 +80,16 @@ hazard.series_system <- function(object) {
 #' @param object series_system object
 #' @return survival function
 #' @export
-survival.series_system <- function(object) {
+surv.series_system <- function(object) {
     stopifnot(is_series_system(object))
     S <- survival_series_helper(object$survivals,
                                 object$param_counts)
 
-    function(t, theta, ...) {
-        S(t, theta, ...)
+    function(t, theta = NULL, log = FALSE, ...) {
+        if (is.null(theta)) {
+            theta <- param(object)
+        }
+        S(t, theta, log, ...)
     }
 }
 
@@ -149,7 +176,7 @@ qseries_system <- Vectorize(function(
     options = list(), ...) {
 
         defaults <- list(
-            alpha0 = 1, # initial step size, default is 1
+            alpha = 1, # initial step size, default is 1
             tol = 1e-3, # eps stopping condition, default is 1e-3
             t0 = 1,     # initial guess, default is 1
             ...)
@@ -157,7 +184,7 @@ qseries_system <- Vectorize(function(
         options <- modifyList(defaults, options)
         stopifnot(
             length(theta) == nparams(object),
-            options$alpha0 > 0,
+            options$alpha > 0,
             options$tol > 0,
             options$t0 > 0,
             all(p > 0))
@@ -165,9 +192,10 @@ qseries_system <- Vectorize(function(
         h <- hazard(object)
         R <- survival(object)
         t1 <- NULL
+        # TODO: replace with stats::optim
         repeat
         {
-            r <- options$alpha0
+            r <- options$alpha
             repeat {
                 t1 <- t0 - r * (1 - R(t, theta)) /
                     (h(t, theta) * R(t, theta))
@@ -182,23 +210,24 @@ qseries_system <- Vectorize(function(
         t2
     }, vectorize.args = "p")
 
-#' Sample from a general series system of \code{m} components whose hazard
-#' and reliability functions are respectively given by \code{h} and \code{R}.
+#' Sample from a general series system.
 #'
 #' @param n sample size
-#' @param theta parameter vector
-#' @param object a `series` system object
+#' @param theta parameter vector, if NULL uses the values in `object`
+#' @param object a `series_system` object
 #' @param options list of options
 #' @param ... additional arguments to pass into `options`
 #' @export
-rseries_system <- function(n, theta, object, options, ...) {
+rseries_system <- function(n, theta = NULL, object, options, ...) {
 
     defaults <- list(
         include_latent = FALSE,
         ...)
     options <- modifyList(defaults, options)
 
-    stopifnot(is_series_object(object))
+    stopifnot(is_series_system(object))
+
+    #### previous: qgen_series(runif(n),theta,nparams,h,R)
 
     comps <- components(object)
 
@@ -233,47 +262,50 @@ rseries_system <- function(n, theta, object, options, ...) {
     data
 }
 
-#' pdf for general series
+#' pdf for general series system
 #'
 #' @param t series system lifetime
 #' @param theta parameter vector
 #' @param object series_system object
 #' @export
-dseries_system <- Vectorize(function(t, theta, object, log.p = FALSE) {
-    stopifnot(length(theta) == nparams(object))
+dseries_system <- Vectorize(function(t, theta, object, log = FALSE) {
+    stopifnot(length(theta)==sum(nparams))
+    stopifnot(length(h)==length(R))
+    h <- hazard(object)
+    R <- survival(object)
+    if (is.null(theta))
+        theta <- params(object)
+    
+    if (log)
+        return(h(t,theta,log=log) - R(t,theta,log=log))
+    else
+        return(h(t,theta,log=log) / R(t,theta,log=log))
+    
 }, vectorize.args="t")
 
 #' cdf for general series
 #'
 #' @param t series system lifetime
 #' @param theta parameter vector
-#' @param param_counts integer vector, we have m components,
-#'                     each of which may have a different
-#'                     number of parameters. the j-th component has
-#'                     `parma_counts[j]` parameters.
-#' @param R list of component reliability functions
+#' @param object series_system object
 #' @export
-pseries <- Vectorize(function(t, theta, param_counts, R)
+pseries_system <- Vectorize(function(t, theta, object)
 {
-    stopifnot(length(theta) == sum(param_counts))
-    Rsys <- survival_series_helper(R, param_counts)
-    Rsys(t, theta)
+    R <- surv(object)
+    1 - R(t, theta)
 }, vectorize.args="t")
 
 #' Survival function for general series
 #'
 #' @param t series system lifetime
 #' @param theta parameter vector
-#' @param nparams integer vector, we have m components, each of which may have a
-#'                different number of parameters. the j-th component has
-#'                \code{nparams[j]} parameters.
-#' @param R list of reliability functions
-#' @note convert this into a generator over (t,theta)
+#' @param object series_system object
+#' @param log logical, log of survival function
 #' @export
-survival_series <- Vectorize(function(t,theta,nparams,R) {
-    stopifnot(length(theta)==sum(nparams))
-    series_R <- survival_series_helper(R,nparams)
-    function(t,theta) series_R(t,theta)
+surv_series_system <- Vectorize(function(
+    t, theta = NULL, object, log = FALSE) {
+    R <- surv(object)
+    R(t, theta, log = log)
 }, vectorize.args="t")
 
 #' Hazard function for general series
@@ -285,9 +317,55 @@ survival_series <- Vectorize(function(t,theta,nparams,R) {
 #'                \code{nparams[j]} parameters.
 #' @param h list of hazard functions
 #' @export
-hazard_series <- Vectorize(function(t,theta,nparams,h) {
-    stopifnot(length(theta)==sum(nparams))
-    series_h <- hazard_series_helper(h,nparams)
-    series_h(t,theta)
-}, vectorize.args="t")
+hazard_series <- Vectorize(function(t, theta = NULL, object, log = FALSE) {
+    h <- hazard(object)
+    h(t,theta,log=log)
+}, vectorize.args = "t")
 
+
+
+
+
+
+
+
+
+
+hazard_general_series_helper <- function(
+    hazards,
+    param_counts) {
+
+    m <- length(hazards)
+    function(t, theta, log.p = FALSE) {
+        i0 <- 1
+        i1 <- param_counts[1]
+        v <- 0
+        for (j in 1:m) {
+            v <- v + hazards[[j]](t,
+                theta[i0:i1],
+                log.p = FALSE)
+            i0 <- i1 + 1
+            i1 <- i1 + param_counts[j]
+        }
+        ifelse(log.p, log(v), v)
+    }
+}
+
+survival_general_series_helper <- function(
+    survivals,
+    param_counts) {
+
+    m <- length(survivals)
+    function(t, theta, log.p = FALSE) {
+        i0 <- 1
+        i1 <- param_counts[1]
+        p <- ifelse(log.p, 0, 1)
+        for (j in 1:m) {
+            P <- survivals[[j]](t, theta[i0:i1], log.p = log.p)
+            p <- ifelse(log.p, p + P, p * P)
+            i0 <- i1 + 1
+            i1 <- i1 + param_counts[j]
+        }
+        p
+    }
+}
