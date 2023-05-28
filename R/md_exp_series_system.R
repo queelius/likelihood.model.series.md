@@ -70,7 +70,7 @@ md_mle_exp_series_C1_C2_C3 <- function(md, theta0, control = list(), ...) {
         par = theta0,
         fn = ll,
         gr = ll.grad,
-        hessian = TRUE,
+        hessian = FALSE,
         method = control$method,
         control = optim_control,
         ...)
@@ -78,6 +78,9 @@ md_mle_exp_series_C1_C2_C3 <- function(md, theta0, control = list(), ...) {
     if (sol$convergence != 0) {
         warning("optimization did not converge")
     }
+
+    control$hessian <- md_fim_exp_series_C1_C2_C3(
+        md = md, setvar = control$setvar, sysvar = control$sysvar)(sol$par)
 
     sol <- mle_numerical(
         sol = sol,

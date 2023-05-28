@@ -549,7 +549,7 @@ log-likelihood function.
 res <- optim(par = theta.start$par, fn = ll, method = "L-BFGS-B",
     lower = 1e-3, hessian = TRUE,
     control = list(fnscale = -1, maxit = 1000, trace = 1, REPORT = 1))
-    
+
 estimate <- mle_numerical(res)
 ```
 
@@ -637,25 +637,38 @@ An estimate of the variance-covariance may be obtained with:
 In Figure 2, we show contour plots of the first two components for the MLE sample.
 
 ```{r fig2, echo=F, fig.align='center',fig.cap="Figure 2: Countour plots of the first two components of the 500 MLEs."}
+
 library(latex2exp)
 library(patchwork)
 library(mvtnorm)
 
-fig2.N <- 500
-fig2.theta.hats <- matrix(nrow=fig2.N,ncol=3)
+generate_data <- function(n, theta, tau, p) {
+    m <- length(theta)
+    comp_times <- matrix(nrow=n,ncol=m)
+    for (j in 1:m)
+        comp_times[,j] <- rexp(n,theta[j])
+    comp_times <- md_encode_matrix(comp_times,"t")
 
-for (i in 1:fig2.N)
-{
-    fig2.md <- tibble(t1=rexp(n=n,rate=theta[1]),
-                      t2=rexp(n=n,rate=theta[2]),
-                      t3=rexp(n=n,rate=theta[3])) %>%
-    md_series_lifetime() %>%
-    md_bernoulli_cand_C1_C2_C3(m=3,p=function(n) rep(.5,n))
-    fig2.theta.hats[i,] <- point(md_mle_exp_series_C1_C2_C3(md=fig2.md,theta0=theta))
+    comp_times %>%
+        md_series_lifetime_right_censoring(tau) %>%
+        md_bernoulli_cand_C1_C2_C3(p) %>%
+        md_cand_sampler()
 }
 
-fig2.plot1 <- ggplot(tibble(x=fig2.theta.hats[,1],y=fig2.theta.hats[,2]),aes(x=x,y=y)) +
-    xlim(c(2,4)) + ylim(c(2,4)) +
+m <- length(theta)
+fig2.R <- 500 # replicates
+fig2.theta.hats <- matrix(nrow = fig2.R, ncol = m)
+
+for (i in 1:fig2.R)
+{
+    data <- generate_data(n = n, theta = theta, tau = tau, p = p)
+    fig2.theta.hats[i,] <- point(
+        md_mle_exp_series_C1_C2_C3(md = data, theta0 = theta))
+}
+
+fig2.plot1 <- ggplot(tibble(x = fig2.theta.hats[, 1],
+                            y = fig2.theta.hats[, 2]), aes(x = x,y = y)) +
+    xlim(c(2, 4)) + ylim(c(2, 4)) +
     ggtitle("The empirical distribution.") +
     geom_density_2d() +
     xlab(TeX("$\\hat{\\lambda}_1$")) +
@@ -748,6 +761,16 @@ bias(estimate)
 ```
 
 
+Simulation study
+================
+
+## Data generating process (DGP)
+
+## Results
+
+## Visualizations
+
+
 Candidate sets that generate non-unique MLEs {#sec:non-unique-mle}
 ============================================
 In some cases, the MLE may be non-unique due to a small sample size.
@@ -806,10 +829,10 @@ exponential series system with a true parameter $\lambda = (2,3,2.5)'$, starting
 at a random location with the parameter space $\Omega$.
 In Table \ref{mytable}, we show a small sample of the generated masked data.
 
-```{r mytable, echo=F,cache=T, eval=F}
+```{r mytable, echo=F, cache=T, eval=F}
 library(dplyr)
 library(ggplot2)
-library(series.system.estimation.masked.data)
+library(md_series_system)
 library(algebraic.mle)
 library(cowplot)
 

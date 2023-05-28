@@ -278,3 +278,207 @@ summary(theta.mle)
 theta
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r heat-map-se}
+df_long <- df %>% 
+  pivot_longer(
+    cols = matches("se[0-9]"),
+    names_to = "SE",
+    values_to = "Value"
+  )
+
+ggplot(df_long, aes(x = N, y = SE, fill = Value)) +
+  geom_tile() +
+  scale_fill_gradientn(colors = c("blue", "yellow", "red")) +
+  labs(x = "Sample Size (N)", y = "SE",
+       title = "SE Heatmap", fill = "SE Value")
+```
+
+```{r heat-map-ratio}
+df_long <- df_ratio %>% 
+  pivot_longer(
+    cols = matches("Ratio[0-9]"),
+    names_to = "Ratio",
+    values_to = "Value"
+  )
+
+ggplot(df_long, aes(x = N, y = Ratio, fill = Value)) +
+  geom_tile() +
+  scale_fill_gradientn(colors = c("blue", "yellow", "red")) +
+  labs(x = "Sample Size (N)", y = "Ratio",
+       title = "Ratio Heatmap", fill = "Ratio Value")
+```
+
+
+
+```{r violin-plot-se}
+ggplot(df_long, aes(x = SE, y = Value, fill = SE)) +
+    geom_violin() +
+    labs(x = "SE", y = "SE Value",
+        title = "SE Distribution", fill = "SE")
+```
+
+
+```{r box-plot-se}
+ggplot(df_long, aes(x = SE, y = Value, fill = SE)) +
+    geom_boxplot() +
+    labs(x = "SE", y = "SE Value",
+        title = "SE Distribution", fill = "SE")
+
+```
+
+
+
+
+
+```{r smoothed-plot}
+df_long <- df %>% pivot_longer(
+    # regex to match column names "se<digit>"
+    cols = matches("se[0-9]"),
+    names_to = "SE",
+    values_to = "Value")
+
+# Convert the "SE" column to a factor for better plotting
+df_long$SE <- as.factor(df_long$SE)
+ggplot(df_long, aes(x = N, y = Value, color = SE)) +
+    geom_point() +
+    geom_line() +
+    geom_smooth(method = "loess") + 
+    labs(x = "Sample Size (N)", y = "SE",
+        title = "SE vs Sample Size", color = "SE")
+
+```
+
+
+
+
+```{r se}
+df <- df %>% mutate(
+    Ratio1 = se_asym1/se1,
+    Ratio2 = se_asym2/se2,
+    Ratio3 = se_asym3/se3,
+    Ratio4 = se_asym4/se4,
+    Ratio5 = se_asym5/se5,
+    Ratio6 = se_asym6/se6,
+    Ratio7 = se_asym7/se7)
+
+ggplot(data = df) +
+    geom_line(aes(x = N, y = Ratio1, color = "lambda1")) +
+    geom_line(aes(x = N, y = Ratio1, color = "lambda2")) +
+    geom_line(aes(x = N, y = Ratio1, color = "lambda3")) +
+    geom_line(aes(x = N, y = Ratio1, color = "lambda4")) +
+    geom_line(aes(x = N, y = Ratio1, color = "lambda5")) +
+    geom_line(aes(x = N, y = Ratio6, color = "lambda6")) +
+    geom_line(aes(x = N, y = Ratio7, color = "lambda7")) +
+    geom_hline(yintercept = 1, linetype = "dashed") +
+    ylim(0, 2) +
+    labs(x = "Sample Size (N)", y = "Ratio of Asymptotic to Simulated SE",
+       title = "Ratio of Asymptotic to Monte Carlo SE vs Sample Size")
+```
+
+
+
+
+
+```{r}
+df_ratio <- df %>% mutate(
+    Ratio1 = se_asym1/se1,
+    Ratio2 = se_asym2/se2,
+    Ratio3 = se_asym3/se3,
+    Ratio4 = se_asym4/se4,
+    Ratio5 = se_asym5/se5,
+    Ratio6 = se_asym6/se6,
+    Ratio7 = se_asym7/se7)
+
+df_ratio_long <- df_ratio %>%
+    pivot_longer(
+        cols = matches("Ratio[0-9]"),
+        names_to = "Ratio",
+        values_to = "Value"
+    )
+
+ggplot(df_ratio_long, aes(x = N, y = Value, color = Ratio)) +
+    geom_point() +
+    geom_line() +
+    labs(x = "Sample Size (N)", y = "Ratio of Asymptotic to Simulated SE",
+       title = "Ratio of Asymptotic to Monte Carlo SE vs Sample Size", color = "Ratio")
+       
+df_long_SE <- df_ratio %>% pivot_longer(
+    # regex to match column names "se<digit>"
+    cols = matches("se[0-9]"),
+    names_to = "SE",
+    values_to = "Value")
+
+# Convert the "SE" column to a factor for better plotting
+df_long$SE <- as.factor(df_long$SE)
+df_long$Type <- "SE"
+df_ratio_long <- df %>%
+    pivot_longer(
+        cols = matches("Ratio[0-9]"),
+        names_to = "Ratio",
+        values_to = "Value"
+    )
+df_ratio_long$Type <- "Ratio"
+df_combined <- bind_rows(df_long, df_ratio_long)
+
+ggplot(df_combined, aes(x = N, y = Value, color = SE)) +
+    geom_point() +
+    geom_line() +
+    facet_wrap(~ Type, scales = "free") +
+    labs(x = "Sample Size (N)", y = "Value",
+        title = "Comparison", color = "Estimate")
+
+# Create a new column "Size" to categorize sample sizes
+cutoff <- 150
+df_combined <- df_combined %>%
+  mutate(Size = ifelse(N < cutoff, "Small", "Large")) 
+
+# Plot with an additional facet by "Size"
+ggplot(df_combined, aes(x = N, y = Value, color = SE)) +
+  geom_point() +
+  geom_line() +
+  facet_grid(Size ~ Type, scales = "free") +
+  labs(x = "Sample Size (N)", y = "Value",
+       title = "Comparison", color = "Estimate")
+
+library(gridExtra)
+cutoff <- 150
+# Split df_combined into two dataframes by sample size
+df_combined_small <- df_combined %>% filter(N < cutoff)
+df_combined_large <- df_combined %>% filter(N >= cutoff)
+
+# Create the two plots
+p1 <- ggplot(df_combined_small, aes(x = N, y = Value, color = SE)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~ Type, scales = "free") +
+  labs(x = "Sample Size (N < cutoff)", y = "Value",
+       title = "Comparison for Small Sample Sizes", color = "Estimate")
+
+p2 <- ggplot(df_combined_large, aes(x = N, y = Value, color = SE)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~ Type, scales = "free") +
+  labs(x = "Sample Size (N >= cutoff)", y = "Value",
+       title = "Comparison for Large Sample Sizes", color = "Estimate")
+
+# Arrange the plots side by side
+grid.arrange(p1, p2, ncol = 2)
+```

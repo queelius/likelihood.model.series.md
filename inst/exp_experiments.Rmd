@@ -9,6 +9,16 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+library(algebraic.mle)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(knitr)
+library(md.tools)
+library(md.series.system)
+```
+
 ## Introduction
 
 In the real world, systems are quite complex:
@@ -250,7 +260,7 @@ exp_experiment_3_gen(
 ```
 
 ## Visualize
-```{r visualize}
+```{r visualize-vary-sample-size}
 library(utils)
 library(ggplot2)
 library(tidyverse)
@@ -266,10 +276,12 @@ df_long <- df %>% pivot_longer(
 # Convert the "Coverage" column to a factor for better plotting
 df_long$Coverage <- as.factor(df_long$Coverage)
 
-# Plot
+# Plot, with a solid line for the asymptotic coverage probability
+# for 0.95% confidence level
 ggplot(df_long, aes(x = N, y = Value, color = Coverage)) +
   geom_point() +
   geom_line() +
+  geom_hline(yintercept = 0.95, linetype = "dashed") +
   labs(x = "Sample Size (N)", y = "Coverage Probability",
     title = "Coverage Probability vs Sample Size", color = "Coverage")
 
@@ -279,35 +291,320 @@ df_long <- df %>% pivot_longer(
     names_to = "Bias",
     values_to = "Value")
 
-# Convert the "Coverage" column to a factor for better plotting
+# Convert the "Bias" column to a factor for better plotting
 df_long$Bias <- as.factor(df_long$Bias)
 
-# Plot
+# Plot, with a solid blue line for the asymptotic zero bias
 ggplot(df_long, aes(x = N, y = Value, color = Bias)) +
   geom_point() +
   geom_line() +
-  labs(x = "Sample Size (N)", y = "Bias", title = "Bias vs Sample Size", color = "Bias")
-  #theme_minimal()
+  geom_hline(yintercept = 0, color = "blue", linetype = "dashed") +
+  labs(x = "Sample Size (N)", y = "Bias",
+       title = "Bias vs Sample Size", color = "Bias")
+```
+
+
+```{r fig.width=7, fig.height=5}
+cutoff <- 70
+df_small <- df %>% filter(N <= cutoff)
+df_large <- df %>% filter(N > cutoff)
+
+p1 <- ggplot(df_small) +
+  geom_point(aes(x = N, y = mse)) +
+  geom_line(aes(x = N, y = mse,
+                color = "Simulation")) +
+  geom_line(aes(x = N, y = mse_asym,
+                color = "Asymptotic"),
+            linetype = "dashed") +
+  labs(x = "Small Sample Size", y = "Mean Squared Error",
+       title = "Mean Squared Error vs Small Sample Size")
+
+p2 <- ggplot(df_large) +
+  geom_point(aes(x = N, y = mse)) +
+  geom_line(aes(x = N, y = mse,
+                color = "Simulation")) +
+  geom_line(aes(x = N, y = mse_asym,
+                color = "Asymptotic"),
+            linetype = "dashed") +
+  labs(x = "Large Sample Size", y = "Mean Squared Error",
+       title = "Mean Squared Error vs Large Sample Size")
+library(gridExtra)
+grid.arrange(p1, p2, ncol = 2)
+```
+
+
+
+
+
+```{r se2-grouped}
+df_long <- df %>% pivot_longer(
+    # regex to match column names "se<digit>"
+    cols = matches("se[0-9]"),
+    names_to = "SE",
+    values_to = "Value")
+
+# Convert the "SE" column to a factor for better plotting
+df_long$SE <- as.factor(df_long$SE)
+
+# Combine the two plots using facet
+df_long$Group <- ifelse(df_long$N <= 150, "N < 150", "N >= 150")
+ggplot(df_long, aes(x = N, y = Value, color = SE)) +
+    geom_point() +
+    geom_line() +
+    facet_wrap(~ Group, scales = "free") +
+    labs(x = "Sample Size (N)", y = "SE",
+        title = "SE vs Sample Size", color = "SE")
+```
+
+
+
+
+```{r fig.width=8, fig.height=6, fig.align="center", fig.cap="Ratio of SE to Asymptotic SE"}
+library(gridExtra)
+
+cutoff <- 70
+
+df_ratio <- df %>% mutate(
+    Ratio1 = se_asym1/se1,
+    Ratio2 = se_asym2/se2,
+    Ratio3 = se_asym3/se3,
+    Ratio4 = se_asym4/se4,
+    Ratio5 = se_asym5/se5,
+    Ratio6 = se_asym6/se6,
+    Ratio7 = se_asym7/se7) %>%
+    select(matches("Ratio[0-9]"), N) %>%
+    mutate(mean_ratio = rowMeans(select(., matches("Ratio[0-9]"))))
+df_ratio_small <- df_ratio %>% filter(N <= cutoff)
+df_ratio_large <- df_ratio %>% filter(N > cutoff)
+
+p3 <- ggplot(df_ratio_small, aes(x = N, y = mean_ratio)) +
+  geom_point() +
+  geom_line() +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  ylim(0, 7) +
+  labs(x = "Sample Size (N)", y = "Mean Ratio of Asymptotic to Simulated SE",
+       title = "Mean Ratio of Asymptotic to Simulated SE vs Small Sample Size")
+
+p4 <- ggplot(df_ratio_large, aes(x = N, y = mean_ratio)) +
+  geom_point() +
+  geom_line() +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  ylim(0, 7) +
+  labs(x = "Sample Size (N)", y = "Mean Ratio of Asymptotic to Simulated SE",
+       title = "Mean Ratio of Asymptotic to Simulated SE vs Large Sample Size")
+
+df_ratio_long <- df_ratio %>%
+    pivot_longer(
+        cols = matches("Ratio[0-9]"),
+        names_to = "Ratio",
+        values_to = "Value"
+    )
+
+
+# Split df_ratio_long into two dataframes by sample size
+df_ratio_long_small <- df_ratio_long %>% filter(N < cutoff)
+df_ratio_long_large <- df_ratio_long %>% filter(N >= cutoff)
+
+# Create the two plots
+p1 <- ggplot(df_ratio_long_small, aes(x = N, y = Value, color = Ratio)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Small Sample Size",
+       y = "Ratio of Asymptotic to Simulated SE",
+       title = "Ratio of Asymptotic to Monte Carlo SE vs Small Samples",
+       color = "Ratio")
+
+p2 <- ggplot(df_ratio_long_large, aes(x = N, y = Value, color = Ratio)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Large Sample Size",
+       y = "Ratio of Asymptotic to Simulated SE",
+       title = "Ratio of Asymptotic to Monte Carlo SE vs Large Samples",
+       color = "Ratio")
+
+# Arrange the plots side by side
+grid.arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
+```
+
+
+
+
+
+## Simulation study: varying $p$
+
+```{r bernoulli-exp}
+exp_experiment_4_gen <- function(
+    csv_filename,
+    R = 1000,
+    bernoulli_probs = c(.2, .3, .4, .5, .6, .7, .8, .9),
+    q = .25,
+    sample_size = 100,
+    append = TRUE,
+    use_aneal_start = TRUE) {
+
+    set.seed(32861) # set seed for reproducibility
+    theta <- c(1,   # component 1 failure rate
+            1.1,    # 2
+            0.98,   # 3
+            1.12,   # 4
+            1.05)   # 5
+
+    m <- length(theta)
+    tau <- -(1/sum(theta))*log(q)
+
+    if (!append) {
+        cnames <- c("R", "p", "tau", "N", paste0("bias",1:m), "mse",
+            paste0("se",1:m), paste0("se_asym",1:m), "mse_asym", "mse_asym_hat",
+            paste0("coverage",1:m))##
+
+        # Write column names first
+        write.table(t(cnames), file = csv_filename,
+            sep = ",", col.names = FALSE,
+            row.names = FALSE, append = FALSE, quote = FALSE)
+    }
+
+    for (i in 1:length(bernoulli_probs)) {
+        p <- bernoulli_probs[i]
+        cat("Starting simulations for Bernoulli probability", p, "\n")
+        mles <- matrix(nrow = R, ncol = m)
+
+        # For storing the lower and upper bounds of the confidence intervals
+        CI_lwr <- matrix(nrow = R, ncol = m)
+        CI_upr <- matrix(nrow = R, ncol = m)
+
+        j <- 1L
+        repeat {
+            data <- generate_data(sample_size, theta, tau, p)
+            theta.hat <- custom_solver(
+                data = data,
+                theta = theta,
+                extra_info = paste0("Replicate(", j, ")"),
+                annealing = use_aneal_start)
+            if (is.null(theta.hat)) {
+                next
+            }
+            if (j %% 10 == 0) {
+                cat("Sample size", sample_size, " | Replicate ", j,
+                    " | MLE ", point(theta.hat), "\n")
+            }
+            mles[j, ] <- point(theta.hat)
+
+            CI <- confint(theta.hat)
+            if (any(is.nan(CI)))
+            {
+                print("NaN in CI")
+                print(summary(theta.hat))
+            }
+            CI_lwr[j, ] <- CI[,1]
+            CI_upr[j, ] <- CI[,2]
+
+            j <- j + 1L
+            if (j > R) {
+                break
+            }
+        }
+
+        # compute asymptotics
+        theta.mle <- NULL
+        while (is.null(theta.mle)) {
+            data <- generate_data(sample_size, theta, tau, p)
+            theta.mle <- custom_solver(
+                data = data,
+                theta = theta,
+                extra_info = "asymptotics",
+                annealing = use_aneal_start)
+        }
+        SE.asym <- se(theta.mle)
+        MSE.asym <- mse(theta.hat, theta)
+        MSE.asym.hat <- mse(theta.mle)
+
+        # Calculate bias, MSE, and SE for each parameter
+        bias <- colMeans(mles) - theta
+        MSE <- sum(colMeans((mles - theta)^2))
+        sigma <- cov(mles) * ((sample_size - 1) / sample_size)
+        SE <- sqrt(diag(sigma))
+
+        # Compute coverage probabilities
+        coverage <- colMeans((CI_lwr <= theta) & (theta <= CI_upr))
+
+        datum <- c(R, p, tau, sample_size, bias, MSE, SE, SE.asym,
+            MSE.asym, MSE.asym.hat, coverage)
+        
+        write.table(t(datum), file = csv_filename, sep = ",", col.names = FALSE,
+            row.names = FALSE, append = TRUE)
+    }
+}
+```
+
+
+
+
+```{r run-bernoulli-exp, eval=F}
+exp_experiment_4_gen(
+    csv_filename = "exp_experiment_4.csv",
+    append = TRUE,
+    use_aneal_start = TRUE)
+```
+
+
+
+
+
+
+
+
+
+
+```{r visualize-vary-bernoulli-prob}
+library(utils)
+library(ggplot2)
+library(tidyverse)
+
+df <- read.csv("exp_experiment_4.csv")
+
+###################### coverage probability ##################
+df_long <- df %>% pivot_longer(
+    cols = starts_with("coverage"),
+    names_to = "Coverage",
+    values_to = "Value")
+
+# Convert the "Coverage" column to a factor for better plotting
+df_long$Coverage <- as.factor(df_long$Coverage)
+
+# Plot the coverage probabilities, with a solid line for the
+# 95% confidence level
+ggplot(df_long, aes(x = p, y = Value, color = Coverage)) +
+  geom_point() +
+  geom_line() +
+  geom_hline(yintercept = .95, linetype = "dashed") +
+  labs(x = "Bernoulli Probability (p)", y = "Coverage Probability",
+    title = "Coverage Probability vs Bernoulli Probability",
+    color = "Coverage")
+
+############# BIAS #############
+df_long <- df %>% pivot_longer(
+    cols = starts_with("bias"),
+    names_to = "Bias",
+    values_to = "Value")
+
+# Convert the "Bias" column to a factor for better plotting
+df_long$Bias <- as.factor(df_long$Bias)
+
+# Plot,
+ggplot(df_long, aes(x = p, y = Value, color = Bias)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Bernoulli Probability (p)", y = "Bias",
+       title = "Bias vs Bernoulli Pobability", color = "Bias")
 
 
 ggplot(df) +
-  geom_line(aes(x=N, y=bias1, color="Bias(1)")) +
-  geom_line(aes(x=N, y=bias2, color="Bias(2)")) +
-  geom_line(aes(x=N, y=bias3, color="Bias(3)")) +
-  geom_line(aes(x=N, y=bias4, color="Bias(4)")) +
-  geom_line(aes(x=N, y=bias5, color="Bias(5)")) +
-  geom_line(aes(x=N, y=bias6, color="Bias(6)")) +
-  geom_line(aes(x=N, y=bias7, color="Bias(7)")) +
-  labs(x = "Sample Size (N)", y = "Bias", title = "Bias vs Sample Size")
-
-############### MSE ###############
-
-ggplot(df) +
-  geom_point(aes(x=N, y=mse)) +
-  geom_line(aes(x=N, y=mse, color = "Simulation")) +
-  geom_line(aes(x=N,y=mse_asym,color="Asymptotic"),linetype="dashed") +
-  geom_line(aes(x=N,y=mse_asym_hat,color="Estimated Asymptotic"),linetype="dashed") +
-  labs(x = "Sample Size (N)", y = "Mean Squared Error", title = "Mean Squared Error vs Sample Size")
+  geom_point(aes(x = p, y = mse)) +
+  geom_line(aes(x = p, y = mse, color = "Simulation")) +
+  geom_line(aes(x = p, y = mse_asym,
+                color = "Asymptotic"), linetype="dashed") +
+  labs(x = "Bernoulli Probability (p)", y = "Mean Squared Error",
+       title = "Mean Squared Error vs Bernoulli Probability")
 
 
 ############## SE ###############
@@ -321,11 +618,11 @@ df_long <- df %>% pivot_longer(
 df_long$SE <- as.factor(df_long$SE)
 
 # Plot
-ggplot(df_long, aes(x = N, y = Value, color = SE)) +
+ggplot(df_long, aes(x = p, y = Value, color = SE)) +
   geom_point() +
   geom_line() +
-  labs(x = "Sample Size (N)", y = "SE", title = "SE vs Sample Size", color = "SE")
-  #theme_minimal()
+  labs(x = "Bernoulli Probability (p)", y = "SE",
+       title = "SE vs Bernoulli Probability", color = "SE")
 
 ############## SE asymptotics ###############
 df_long <- df %>% pivot_longer(
@@ -338,9 +635,16 @@ df_long <- df %>% pivot_longer(
 df_long$SE <- as.factor(df_long$SE)
 
 # Plot
-ggplot(df_long, aes(x = N, y = Value, color = SE)) +
+ggplot(df_long, aes(x = p, y = Value, color = SE)) +
   geom_point() +
   geom_line() +
-  labs(x = "Sample Size (N)", y = "SE", title = "SE vs Sample Size", color = "SE")
-  #theme_minimal()
+  labs(x = "Bernoulli Probability (p)", y = "SE",
+       title = "SE vs Bernoulli Probability", color = "SE")
 ```
+
+
+
+
+
+
+

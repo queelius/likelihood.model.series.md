@@ -1,6 +1,7 @@
 library(utils)
 library(ggplot2)
 library(tidyverse)
+library(algebraic.mle)
 
 df <- read.csv("exp_experiment_3.csv")
 
@@ -227,7 +228,8 @@ exp_experiment_3_gen <- function(
 }
 
 exp_experiment_3_gen(
-    csv_filename = "exp_experiment_3.csv",
+    csv_filename = "exp_experiment_3-1.csv",
+    sample_sizes = c(1000, 2000),
     #R = 1000, p = .333, q = .25,
     append = FALSE,
     use_aneal_start = TRUE)
