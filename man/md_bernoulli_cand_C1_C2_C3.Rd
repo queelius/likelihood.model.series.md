@@ -4,18 +4,27 @@
 \alias{md_bernoulli_cand_C1_C2_C3}
 \title{md_bernoulli_cand_C1_C2_C3}
 \usage{
-md_bernoulli_cand_C1_C2_C3(md, p, compvar = "t", qvar = "q")
+md_bernoulli_cand_C1_C2_C3(
+  md,
+  p,
+  compvar = "t",
+  qvar = "q",
+  deltavar = "delta"
+)
 }
 \arguments{
 \item{md}{masked data.}
 
-\item{p}{a parameter vector of probabilities}
+\item{p}{a vector of probabilities}
 
 \item{compvar}{column name of the component lifetime variables, defaults to
 \code{t}, e.g., \verb{t1, t2, ..., tm}.}
 
 \item{qvar}{column prefix for component probabilities, defaults to \code{q},
 e.g., \verb{q1, q2, ..., qm}.}
+
+\item{deltavar}{column name of the right-censoring indicator variable,
+defaults to \code{delta}.}
 }
 \description{
 Bernoulli candidate set model is a particular type of \emph{uninformed} model.
