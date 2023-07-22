@@ -53,8 +53,7 @@ exp_series_system_md_C1_C2_C3 <- function(rates = NULL) {
 #' @param cand.var prefix of Boolean matrix encoding of candidate sets, defaults
 #' to `x`, e.g., `x1,...,xm`.
 #' @return sufficient statistics
-exp_series_system_md_C1_C2_C3_mss <- 
-    function(df, sys.var = "t", cand.var = "x") {
+exp_series_system_md_C1_C2_C3_mss <- function(df, sys.var = "t", cand.var = "x") {
     n <- nrow(df)
     if (n == 0) {
         stop("df is empty")
@@ -197,9 +196,9 @@ score.exp_series_system_md_C1_C2_C3 <- function(model) {
 #' @importFrom md.tools md_decode_matrix
 #' @importFrom rlang .data
 #' @export
-hess_loglik.exp_series_system_md_C1_C2_C3 <- function(x, ...) {
+hess_loglik.exp_series_system_md_C1_C2_C3 <- function(model) {
 
-    md, options = list(), ...) {
+    
     n <- nrow(md)
     if (n == 0) {
         stop("md is empty")
@@ -245,10 +244,4 @@ hess_loglik.exp_series_system_md_C1_C2_C3 <- function(x, ...) {
         }
         I
     }
-}
-
-
-
-fim.exp_series_system_md_C1_C2_C3 <- function(x, data) {
-
 }

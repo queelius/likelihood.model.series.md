@@ -27,11 +27,19 @@ NULL
 #' @export
 series_system <- function(
     hazs,
-    survs,
     nparams,
+    survs = NULL,
     samps = NULL) {
-        stopifnot(length(hazs) == length(survs),
-                  length(hazs) == length(nparams))
+        stopifnot(length(hazs) == length(nparams))
+
+        if (is.null(survs)) {
+            survs <- lapply(hazs, function(h) {
+                function(t, theta, ...) {
+                    exp(-h(t, theta, ...))
+                }
+            })
+        }
+
         structure(
             list(hazs = hazs,
                  survs = survs,
@@ -128,8 +136,6 @@ nparams.series_system <- function(object) {
     sum(object$nparams)
 }
 
-
-
 #' Quantile function (inverse of the cdf) for a general series system.
 #' By definition, the quantile `p * 100%` is the value `t` that
 #' satisfies `F(t) - p = 0`. We solve for `t` using Newton's method.
@@ -140,7 +146,7 @@ nparams.series_system <- function(object) {
 #' @param options list of options
 #' @param ... additional arguments to pass into `options`
 #' @export
-quantile.series_system <- function(x, ...) {
+inv_cdf.series_system <- function(x, ...) {
 
     h <- hazard(x)
     R <- surv(x)
@@ -317,6 +323,34 @@ hazard.series_system <- function(x) {
         h(t, theta, log = log)
     }
 }
+
+
+#' cumulative hazard function for a component hazard function
+#' @param haz hazard function
+#' @export
+cum_haz <- function(haz) {
+    function(t, ...) {
+        integrate(haz, lower = 0, upper = t, ...)$value
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 hazard_general_series_helper <- function(

@@ -1,4 +1,4 @@
-#' Exponential series
+#' Exponential series systems
 #'
 #' This file contains functions related to the Exponential series distribution.
 #' Functions include simulation, pdf, cdf, quantile, and other related
