@@ -2,12 +2,10 @@
 % Please edit documentation in R/exp_series_system_md_C1_C2_C3.R
 \name{Exponential series likelihood model for masked component cause of
 failure (candidate sets) satisfying conditions C1, C2, and C3 with exact
-system failure time observations or if no component cause of failure,
-right-censoring.}
+system failure time observations.}
 \alias{Exponential series likelihood model for masked component cause of
 failure (candidate sets) satisfying conditions C1, C2, and C3 with exact
-system failure time observations or if no component cause of failure,
-right-censoring.}
+system failure time observations.}
 \alias{exp_series_system_md_C1_C2_C3}
 \title{Likelihood model for exponential series systems with masked component cause
 of failure with candidate sets that satisfy conditions C1, C2, and C3,
@@ -16,7 +14,7 @@ of the model and normally we will disentangle the two and model them
 as separate and independent contributions to the total likelihood model
 under consideration.}
 \usage{
-exp_series_system_md_C1_C2_C3(params = NULL)
+exp_series_system_md_C1_C2_C3(rates = NULL)
 }
 \description{
 Various functions are provided according to this model:
@@ -45,11 +43,8 @@ C3: masking probabilities are independent of \code{theta}
 As a special case, this model also includes exact component cause of failure
 data where the candidate set is a singleton.
 
-Furthermore, we also assume that the failure time is exactly known when
-a failure occurs, or the system was right-censored (no component cause
-of failure). Normally, you would use a separate likelihood model for
-right-censoring and then compose them together in as separate contributions
-to the total likelihood, but we include it here for convenience.
+In this likelihood model, we also assume that the failure time is exactly
+known.
 }
 \author{
 Alex Towell

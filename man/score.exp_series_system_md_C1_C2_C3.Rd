@@ -7,7 +7,7 @@ competing risks) with respect to parameter \code{theta} for masked component
 failure (or masked competing risks) with candidate sets (risks) that
 approximately satisfy conditions C1, C2, and C3.}
 \usage{
-score.exp_series_system_md_C1_C2_C3(md, options = list(), ...)
+score.exp_series_system_md_C1_C2_C3(model)
 }
 \arguments{
 \item{md}{right-censored failure-time data with masked competing risks}

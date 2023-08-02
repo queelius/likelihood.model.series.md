@@ -24,9 +24,9 @@ options(digits=4)
 ```
 
 
-The R package `md.series.system` is a framework for
+The R package `likelihood.md.series.system` is a framework for
 estimating the parameters of latent component lifetimes from *masked data*
-in a series system. The masked data comes from two sources:
+in a series system.
 
 Exponentially distributed component lifetimes {#expo}
 =====================================================

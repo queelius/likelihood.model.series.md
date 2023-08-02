@@ -4,10 +4,7 @@
 # TODOs
 
 - test new weibull series vectorize log-like function
-- generate analytic score function for weibull series
-    - use it to MC estimate FIM (average over DGP)
-- see if we can compute hessian/fim from jacobian of new analytic score more
-  accurately than hessian of log-like
+- use analytic score function for weibull series to MC estimate FIM (average over DGP)
 - once we estimate FIM (average over DGP), we can take a very large sample
   and perform a hypothesis test to see if the MLEs are compatible
   with the asymptotic theory.

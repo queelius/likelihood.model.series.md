@@ -7,7 +7,7 @@ system with respect to parameter \code{theta} for masked data with candidate
 sets that approximately satisfy conditions C1, C2, and C3 with exact
 failure times, or right-censoring (no component failure).}
 \usage{
-hess_loglik.exp_series_system_md_C1_C2_C3(md, options = list(), ...)
+hess_loglik.exp_series_system_md_C1_C2_C3(model)
 }
 \arguments{
 \item{md}{masked data with candidate sets that meet the

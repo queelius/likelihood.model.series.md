@@ -3,7 +3,7 @@
 export(dexp_series_system)
 export(hazard_exp_series_system)
 export(hess_loglik.exp_series_system_md_C1_C2_C3)
-export(loglike.exp_series_system_md_C1_C2_C3)
+export(loglik.exp_series_system_md_C1_C2_C3)
 export(md_bernoulli_cand_C1_C2_C3)
 export(md_cand_sampler)
 export(md_series_component_failure_probability_C1_C2)

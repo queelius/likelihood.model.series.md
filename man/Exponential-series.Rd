@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_series_system.R
 \name{Exponential series}
 \alias{Exponential series}
-\title{Exponential series}
+\title{Exponential series systems}
 \description{
 This file contains functions related to the Exponential series distribution.
 Functions include simulation, pdf, cdf, quantile, and other related

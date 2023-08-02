@@ -1,0 +1,113 @@
+The main function in the package is `series_system`, which fits a series system model to your data. Here's a basic example:
+
+```{r, eval = FALSE}
+library(md_series_system)
+
+# Fit a series system model
+fit <- series_system(
+  md_survival(
+   lifetime = t,
+   right_censoring = delta,
+   components = c(x1, x2, x3)),
+  distributions = c(
+   x1 = "exponential",
+   x2 = "weibull",
+   x3 = "pareto"),
+  conditions = c(1, 2, 3))
+```
+
+
+## Advanced Control
+A more detailed example that provides `control` for specifying how the
+maximum likelihood estimates are computed is shown below:
+```{r, eval = FALSE}
+# Example usage
+results <- series_system(
+   masked_survival(t, delta, c(x1,x2,x3)),
+   data = data,
+   control = list(
+      # if you don't specify distributions, the default is exponential.
+      # if all are exponential, then its same as calling `exp_series_system`
+      # same for `pareto` and `weibull`
+      distributions = list(
+         x1 = "exponential",
+         x2 = "weibull",
+         x3 = "pareto"),
+      # these three can be collectively referred to as 
+      # `candidates_uninformed_masking_mode`
+      conditions = c("candidates_contains_failure_mode",
+                        "candidates_independent_of_parameters",
+                        "candidates_equal_probability_mode"),
+      # if you don't specify fixed parameters, then the default is
+      # to estimate all parameters. this is good for hypothesis testing.
+      fixed_parameters = list(
+         x1 = list(rate = 3)),
+      initial = list( # initial values for the parameters. if not specified,
+                      # then the default is 1 for all parameters.
+         x2 = list(shape = 1, scale = 1),
+         x3 = list(shape = 1, scale = 1)),
+      use_simulated_annealing = TRUE,
+      bootstrap = TRUE))
+```
+
+In this example, `masked_survival(t, delta, c(x1, x2, x3))` represents the survival time of the system `t` with a right-censoring indicator `delta` and
+a set of components (latent) `x1`, `x2`, and `x3`.
+
+
+
+## Advanced Usage: Programmatic API
+
+For more flexibility, you can directly call the underlying functions that `series_system` uses. For example, if you want to create a log-likelihood function that satisfies conditions 1 and 2, you can use the `md_loglikelihood_series_system_candidate_set_C1_C2` function:
+
+```{r, eval = FALSE}
+# Example usage of programmatic API
+ll <- md_loglikelihood_series_system_candidate_set_C1_C2(
+  distributions = c(X1 = "exponential", X2 = "weibull", X3 = "pareto"),
+  data = data)
+```
+
+This function generates a log-likelihood function based on the provided distributions and conditions. You can then use this function for further analysis or optimization. This gives you more control and can be useful for more advanced or specialized use cases.
+
+Please refer to the package documentation for more information on the available functions and their parameters.
+
+
+
+
+```{r, eval = FALSE}
+# Fit the model and get an `md_series_system_mle` object
+fit <- series_system(
+  formula = masked_survival(t, delta, c(x1, x2, x3)), 
+  data = data,
+  distributions = c(x1 = "exponential", x2 = "weibull", x3 = "pareto")
+)
+
+# Use additional APIs
+compute(mle_object)
+predict(mle_object, new_data)
+confint(mle_object)
+bias(mle_object)
+mse(mle_object)
+sample(mle_object, method="asymptotic")
+sample(mle_object, method="bootstrap")
+```
+
+
+
+
+# Model Selection
+```{r, eval = FALSE}
+mle_object <- series_system(
+  formula = masked_survival(t, delta) ~ x1 * x2 * x3, 
+  data = data,
+  options = list(
+   distributions = list(
+      x1 = c("exponential", "pareto"),
+      x2 = c("weibull", "normal", "pareto"),   # choose the best distribution
+      x3 = c("pareto")),
+   model_selection = "AIC"),
+   optim_method = "BFGS",
+   optim_control = list(reltol = 1e-8),
+   use_simulated_annealing = TRUE,
+   sa_control = list(maxit = 1e5))
+```
+
