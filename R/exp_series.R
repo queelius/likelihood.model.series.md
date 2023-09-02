@@ -4,10 +4,7 @@
 #' Functions include simulation, pdf, cdf, quantile, and other related
 #' functions for the Exponential series distribution.
 #' 
-#' For parameter estimation from masked data, see the file 
-#' `md_exp_series_system.R`.
-#'
-#' @name Exponential series
+#' @name Exponential series system
 #' @author Alex Towell
 #' @keywords exponential, distribution, series, statistics
 NULL
@@ -22,7 +19,7 @@ NULL
 #' @return Quantiles corresponding to the given probabilities `p`.
 #' @importFrom stats qexp
 #' @export
-qexp_series_system <- function(p, rates, lower.tail = TRUE, log.p = FALSE) {
+qexp_series <- function(p, rates, lower.tail = TRUE, log.p = FALSE) {
     qexp(p, sum(rates), lower.tail, log.p)
 }
 
@@ -34,7 +31,7 @@ qexp_series_system <- function(p, rates, lower.tail = TRUE, log.p = FALSE) {
 #'         distribution.
 #' @importFrom stats rexp
 #' @export
-rexp_series_system <- function(n, rates, keep_latent = FALSE) {
+rexp_series <- function(n, rates, keep_latent = FALSE) {
 
     m <- length(rates)
 
@@ -58,7 +55,7 @@ rexp_series_system <- function(n, rates, keep_latent = FALSE) {
 #' @param log return the log of the pdf
 #' @importFrom stats dexp
 #' @export
-dexp_series_system <- function(t, rates, log = FALSE) {
+dexp_series <- function(t, rates, log = FALSE) {
     dexp(t, sum(rates), log)
 }
 
@@ -72,7 +69,7 @@ dexp_series_system <- function(t, rates, log = FALSE) {
 #' @return The cumulative probabilities evaluated at the specified lifetimes.
 #' @importFrom stats pexp
 #' @export
-pexp_series_system <- function(t, rates, lower.tail = TRUE, log.p = FALSE) {
+pexp_series <- function(t, rates, lower.tail = TRUE, log.p = FALSE) {
     pexp(t, sum(rates), lower.tail, log.p)
 }
 
@@ -84,7 +81,7 @@ pexp_series_system <- function(t, rates, lower.tail = TRUE, log.p = FALSE) {
 #' @return The survival function evaluated at the specified lifetimes.
 #' @importFrom stats pexp
 #' @export
-survival_exp_series_system <- function(t, rates, log.p = FALSE) {
+surv_exp_series <- function(t, rates, log.p = FALSE) {
     pexp(t, sum(rates), TRUE, log.p)
 }
 
@@ -95,7 +92,7 @@ survival_exp_series_system <- function(t, rates, log.p = FALSE) {
 #' @param log.p Logical; if TRUE, return the log of the hazard function.
 #' @return The hazard function evaluated at the specified lifetimes.
 #' @export
-hazard_exp_series_system <- function(t, rates, log.p = FALSE) {
+hazard_exp_series <- function(t, rates, log.p = FALSE) {
     ifelse(log.p,
         ifelse(t < 0, -Inf, sum(rates)),
         ifelse(t < 0, 0, sum(rates))
