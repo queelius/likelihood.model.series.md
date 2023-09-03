@@ -73,18 +73,6 @@ pexp_series <- function(t, rates, lower.tail = TRUE, log.p = FALSE) {
     pexp(t, sum(rates), lower.tail, log.p)
 }
 
-#' Survival function for exponential series.
-#'
-#' @param t Vector of series system lifetimes.
-#' @param rates Vector of rate parameters for exponential component lifetimes.
-#' @param log.p Logical; if TRUE, return the log of the survival function.
-#' @return The survival function evaluated at the specified lifetimes.
-#' @importFrom stats pexp
-#' @export
-surv_exp_series <- function(t, rates, log.p = FALSE) {
-    pexp(t, sum(rates), TRUE, log.p)
-}
-
 #' Hazard function for exponential series.
 #'
 #' @param t Vector of series system lifetimes.
@@ -97,4 +85,27 @@ hazard_exp_series <- function(t, rates, log.p = FALSE) {
         ifelse(t < 0, -Inf, sum(rates)),
         ifelse(t < 0, 0, sum(rates))
     )
+}
+
+
+#' Survival function for exponential series.
+#'
+#' @param t Vector of series system lifetimes.
+#' @param rates Vector of rate parameters for exponential component lifetimes.
+#' @param log.p Logical; if TRUE, return the log of the survival function.
+#' @return The survival function evaluated at the specified lifetimes.
+#' @importFrom stats pexp
+#' @export
+surv.exp_series <- function(t, rates, log.p = FALSE) {
+    pexp(t, sum(rates), TRUE, log.p)
+}
+
+#' Mean function for exponential series.
+#' 
+#' @param rates Vector of rate parameters for exponential component lifetimes.
+#' @return The mean of the exponential series distribution.
+#' @export
+#' @importFrom stats mean
+mean.exp_series <- function(rates) {
+    mean(rates)
 }

@@ -38,7 +38,7 @@
 exp_series_md_c1_c2_c3 <- function(rates = NULL) {
     structure(list(rates = rates),
               class = c("exp_series_md_c1_c2_c3",
-                        "series_md_c1_c2_c3",
+                        "series_md",
                         "likelihood_model"))
 }
 
@@ -58,29 +58,27 @@ exp_series_md_c1_c2_c3 <- function(rates = NULL) {
 #' @export
 loglik.exp_series_md_c1_c2_c3 <- function(model) {
     
-    function(df, theta, sys.var = "t", cand.var = "x", ...) {
+    function(df, theta, lifetime = "t", candset = "x", ...) {
         if (any(theta <= 0)) return(NA)
+        stopifnot(lifetime %in% colnames(df))
         n <- nrow(df)
         if (n == 0) {
             stop("df is empty")
         }
         
         f <- 0
-        stopifnot(sys.var %in% colnames(df))
-        sum.t <- sum(df[[sys.var]])
         C <- md_decode_matrix(df, candset)
         m <- ncol(C)
         if (m == 0) {
-            stop("no candidate sets wih prefix '", cand.var, "' found")
+            stop("No candidate sets wih prefix '", candset, "' found")
         }
-        f <- -sum.t * sum(theta)
+        f <- -sum(df[[lifetime]]) * sum(theta)
         for (i in seq_len(n)) {
             f <- f + log(sum(theta[C[i, ]]))
         }
         return(f)
     }
 }
-
 
 #' Generates a score function for an exponential series system (or
 #' competing risks) with respect to parameter `theta` for masked component
@@ -100,25 +98,25 @@ loglik.exp_series_md_c1_c2_c3 <- function(model) {
 #' @export
 score.exp_series_md_c1_c2_c3 <- function(model) {
     
-    function(df, theta, sys.var = "t", candset = "x") {
+    function(df, theta, lifetime = "t", candset = "x") {
         if (any(theta <= 0)) return(NA)
         n <- nrow(df)
         if (n == 0) {
             stop("df is empty")
         }
-        stopifnot(sys.var %in% colnames(df))
+        stopifnot(lifetime %in% colnames(df))
         C <- md_decode_matrix(df, candset)
         if (is.null(C)) {
-            stop("no candidate sets found")
+            stop("No candidate sets found")
         }
         m <- ncol(C)
         stopifnot(length(theta) == m)
-        v <- rep(-sum(df[[sys.var]]), m)
+        v <- rep(-sum(df[[lifetime]]), m)
         for (j in seq_len(m)) {
             for (i in seq_len(n)) {
                 # condition C1: Pr{K[i] in C[i]) = 1
-                if (df$C[i, j]) {
-                    v[j] <- v[j] + 1 / sum(theta[df$C[i, ]])
+                if (C[i, j]) {
+                    v[j] <- v[j] + 1 / sum(theta[C[i, ]])
                 }
             }
         }
@@ -143,32 +141,27 @@ score.exp_series_md_c1_c2_c3 <- function(model) {
 #'               to `x`, e.g., `x1,...,xm`.
 #' @importFrom md.tools md_decode_matrix
 #' @export
-hess_loglik.exp_series_md_C1_C2_C3 <- function(model) {
+hess_loglik.exp_series_md_c1_c2_c3 <- function(model) {
 
-    function(df, theta, sys.var = "t", candset = "x") {
+    function(df, theta, lifetime = "t", candset = "x") {
 
         if (any(theta <= 0)) return(NA)
-
         n <- nrow(df)
         if (n == 0) {
             stop("df is empty")
         }
-
-        stopifnot(sys.var %in% colnames(df))
-
-        df$C <- md_decode_matrix(df, candset)
-        m <- ncol(df$C)
+        C <- md_decode_matrix(df, candset)
+        m <- ncol(C)
         if (m == 0) {
-            stop("no candidate sets found")
-        }
+            stop("No candidate sets found")        }
         if (length(theta) != m) stop("length(theta) != m")
 
         I <- matrix(rep(0, m * m), nrow = m)
         for (j in 1:m) {
             for (k in 1:m) {
                 for (i in 1:n) {
-                    if (df$C[i, j] && df$C[i, k]) {
-                        I[j, k] <- I[j, k] + 1 / sum(theta[df$C[i, ]])^2
+                    if (C[i, j] && C[i, k]) {
+                        I[j, k] <- I[j, k] + 1 / sum(theta[C[i, ]])^2
                     }
                 }
             }
