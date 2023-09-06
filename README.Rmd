@@ -13,9 +13,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-# md_series_system
+# likelihood.model.series.md
 
-`md_series_system` is an R package for estimating the parameters of a series system model from masked data. It provides a flexible and intuitive interface for specifying the model and performing maximum likelihood estimation.
+This is an R package for estimating the parameters of a series system model from masked data.
+It provides a flexible and intuitive interface for specifying the model and performing maximum
+likelihood estimation.
 
 This R package provides a set of functions for
 generating MLEs for the lifetime parameters of the components in a series systems and other related characteristics from data that *masks* the component cause of failure, and also the system lifetime.
@@ -52,161 +54,50 @@ You can install the development version from GitHub with:
 
 ```r
 # install.packages("devtools")
-devtools::install_github("queelius/md_series_system")
+devtools::install_github("queelius/likelihood.model.series.md")
 ```
 
 ## Usage
 
-This package provides a comprehensive framework for maximum likelihood estimation (MLE) of series system parameters from masked data. It allows you to specify a formula, the data, the distributions for the components, and the conditions under which the MLEs are computed.
+This package provides a comprehensive framework for maximum likelihood estimation (MLE) of
+series system parameters from masked data.
+
+It is based on a likelihood contribution model, where each kind of masking of component failures
+in a series system of some kind and number of components is handled by a set of likelihood
+contributions. The likelihood contributions are then combined to form the likelihood model for
+the kind of data and series system under consideration.
+ 
+In general, masking models may characaterized by satisfy any (or none) of the following conditions:
+
+Condition 1: The probability that the failed component is in the candidate set is 1.
+Condition 2: Given a candidate set of potential causes of failure, when we condition on the
+component cause being any one of the components in the candidate set at the given system failure
+time, the probability of the candidate set is uniform. 
 
 
-The main function in the package is `series_system`, which fits a series system model to your data. Here's a basic example:
+We provide several kinds of masking models, including:
 
-```{r, eval = FALSE}
-library(md_series_system)
+1. Uninformed candidate sets that satisfy conditions 1, 2, and 3.
 
-# Fit a series system model
-fit <- series_system(
-  md_survival(
-   lifetime = t,
-   right_censoring = delta,
-   components = c(x1, x2, x3)),
-  distributions = c(
-   x1 = "exponential",
-   x2 = "weibull",
-   x3 = "pareto"),
-  conditions = c(1, 2, 3))
-```
+2. Candidate sets with relaxed conditions, e.g., informed candidate sets.
 
+Together, these masking models provide a flexible framework for handling a wide variety of
+masking situations.
 
-# Use additional APIs
+We also provide a method for analyzing the sensitivity of a likelihood model to violations of
+the masking assumptions. This is done by providing a set of likelihood models that are
+constructed by relaxing the masking assumptions in various ways. The likelihood models are
+then compared using the likelihood ratio test.
 
-Our `series_system` function not only estimates the parameters of your series system model, but also returns an `md_series_system_mle` object that is a subtype of `mle`. This object makes it easy to perform various analyses on your fitted model.
+Other kinds of data and censoring are handled separately by the general likelihood model as
+detailed in [likelihood.model](https://github.com/queelius/likelihood.model). This is the general
+framework for adding various kinds of contributions to the likelihood model. This package is
+focused on providing contributions for masking.
 
-
-```{r, eval = FALSE}
-aic(fit)
-bias(fit)
-mse(fit)
-vcov(fit)
-predict(fit, new_data)
-confint(fit)
-sample(fit, method = "asymptotic", n = 1000)
-```
-
-
-## Advanced Control
-A more detailed example that provides `control` for specifying how the
-maximum likelihood estimates are computed is shown below:
-```{r, eval = FALSE}
-# Example usage
-results <- series_system(
-   masked_survival(t, delta, c(x1,x2,x3)),
-   data = data,
-   control = list(
-      # if you don't specify distributions, the default is exponential.
-      # if all are exponential, then its same as calling `exp_series_system`
-      # same for `pareto` and `weibull`
-      distributions = list(
-         x1 = "exponential",
-         x2 = "weibull",
-         x3 = "pareto"),
-      # these three can be collectively referred to as 
-      # `candidates_uninformed_masking_mode`
-      conditions = c("candidates_contains_failure_mode",
-                        "candidates_independent_of_parameters",
-                        "candidates_equal_probability_mode"),
-      # if you don't specify fixed parameters, then the default is
-      # to estimate all parameters. this is good for hypothesis testing.
-      fixed_parameters = list(
-         x1 = list(rate = 3)),
-      initial = list( # initial values for the parameters. if not specified,
-                      # then the default is 1 for all parameters.
-         x2 = list(shape = 1, scale = 1),
-         x3 = list(shape = 1, scale = 1)),
-      use_simulated_annealing = TRUE,
-      bootstrap = TRUE))
-```
-
-In this example, `masked_survival(t, delta, c(x1, x2, x3))` represents the survival time of the system `t` with a right-censoring indicator `delta` and
-a set of components (latent) `x1`, `x2`, and `x3`.
-
-## Advanced Usage: Programmatic API
-
-For more flexibility, you can directly call the underlying functions that `series_system` uses. For example, if you want to create a log-likelihood function that satisfies conditions 1 and 2, you can use the `md_loglikelihood_series_system_candidate_set_C1_C2` function:
-
-```{r, eval = FALSE}
-# Example usage of programmatic API
-ll <- md_loglikelihood_series_system_candidate_set_C1_C2(
-  distributions = c(X1 = "exponential", X2 = "weibull", X3 = "pareto"),
-  data = data)
-```
-
-This function generates a log-likelihood function based on the provided distributions and conditions. You can then use this function for further analysis or optimization. This gives you more control and can be useful for more advanced or specialized use cases.
-
-Please refer to the package documentation for more information on the available functions and their parameters.
-
-
-## Maximum Likelihood Estimation and Further Analysis
-
-Once you have the log-likelihood function, you can use optimization routines like `stats::optim` to find the maximum likelihood estimate (MLE). Our package also provides convenient wrappers for the results of these routines, which offer additional functionality. Here's an example:
-
-```{r, eval = FALSE}
-# Estimate parameters using MLE
-optim_result <- stats::optim(
-  par = initial_guess,
-  fn = log_likelihood_func,
-  method = "BFGS"
-)
-
-# Wrap the result in our `mle` object
-mle_object <- mle_wrapper(optim_result)
-
-# Use additional APIs
-aic_value <- compute_aic(mle_object)
-predictions <- predict(mle_object, new_data)
-confidence_intervals <- compute_ci(mle_object)
-samples <- sample_from_asymptotic(mle_object)
-```
-
-In this example, we first use stats::optim to find the MLE of the parameters. Then, we wrap the result in our mle object using mle_wrapper. This object provides a suite of convenient methods for further analysis, such as compute_aic to calculate the Akaike Information Criterion (AIC), predict to generate predictions for new data, compute_ci to calculate confidence intervals, and sample_from_asymptotic to generate samples from the asymptotic MLE.
-
-
-```{r, eval = FALSE}
-# Fit the model and get an `md_series_system_mle` object
-fit <- series_system(
-  formula = masked_survival(t, delta, c(x1, x2, x3)), 
-  data = data,
-  distributions = c(x1 = "exponential", x2 = "weibull", x3 = "pareto")
-)
-
-# Use additional APIs
-compute(mle_object)
-predict(mle_object, new_data)
-confint(mle_object)
-bias(mle_object)
-mse(mle_object)
-sample(mle_object, method="asymptotic")
-sample(mle_object, method="bootstrap")
-```
-
-# Model Selection
-```{r, eval = FALSE}
-mle_object <- series_system(
-  formula = masked_survival(t, delta) ~ x1 * x2 * x3, 
-  data = data,
-  options = list(
-   distributions = list(
-      x1 = c("exponential", "pareto"),
-      x2 = c("weibull", "normal", "pareto"),   # choose the best distribution
-      x3 = c("pareto")),
-   model_selection = "AIC"),
-   optim_method = "BFGS",
-   optim_control = list(reltol = 1e-8),
-   use_simulated_annealing = TRUE,
-   sa_control = list(maxit = 1e5))
-```
-
+A *general series system* model, and other kinds of series systems, are also handled by external
+libraries, such as the [Dynamic Failure Rate](https://github.com/queelius/dfr_dist) library, which
+can be used to construct hazard functions for components that may depend on predictors, including time,
+any other covariates. 
 
 # Documentation
 For more detailed information on how to use this package and what each function does, please refer to the package documentation. The series_system function and its parameters are described in detail there.
