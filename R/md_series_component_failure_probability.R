@@ -18,7 +18,7 @@
 #' @importFrom md.tools md_decode_matrix
 #' @importFrom dplyr bind_cols
 #' @export
-md_series_component_failure_probability_C1_C2 <- function(md, h)
+md_series_component_failure_probability_c1_c2 <- function(md, h)
 {
     m <- length(h)
     C <- md_decode_matrix(md,"x")

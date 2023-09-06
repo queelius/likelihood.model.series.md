@@ -19,8 +19,9 @@ This is an R package for estimating the parameters of a series system model from
 It provides a flexible and intuitive interface for specifying the model and performing maximum
 likelihood estimation.
 
-This R package provides a set of functions for
-generating MLEs for the lifetime parameters of the components in a series systems and other related characteristics from data that *masks* the component cause of failure, and also the system lifetime.
+This R package provides a set of functions for generating MLEs for the lifetime
+parameters of the components in a series systems and other related characteristics
+from data that *masks* the component cause of failure, and also the system lifetime.
 
 Masked data comes in a variety of forms:
 
@@ -52,7 +53,7 @@ Masked data comes in a variety of forms:
 
 You can install the development version from GitHub with:
 
-```r
+```{r install, eval=FALSE}
 # install.packages("devtools")
 devtools::install_github("queelius/likelihood.model.series.md")
 ```
@@ -93,7 +94,94 @@ Other kinds of data and censoring are handled separately by the general likeliho
 detailed in [likelihood.model](https://github.com/queelius/likelihood.model). This is the general
 framework for adding various kinds of contributions to the likelihood model. This package is
 focused on providing contributions for masking.
+The `likelihood.model` package provides a robust API to work with likelihood models, e.g., for
+finding MLEs, bootstrapping confidence intervals, and so on.
 
+We also provide for data imputation, fake data, and so on. These are often based on the
+conditions the model assumes, and so are provided in this package.
+
+# API
+
+When we construct a likelihood contribution model, we so so by specifying
+the contributions of each observation type. For example, if we have
+a series system with three components, and we observe the system lifetime
+and the lifetimes of the first two components, we would specify the
+likelihood contributions as follows:
+
+```{r model-example, eval = FALSE}
+my_model <- likelihood_contr_model$new(
+    obs_type = function(df) {
+      ifelse(df$right_censoring,
+        "exact_fail_time_with_cand_set_c1_c2_c3",
+        "right_censored")
+    },
+
+    logliks = list(
+        ...
+    )
+)
+```
+
+Now, we may call, for instance, `fit(my_model, data)` to fit the model.
+We provide a default method for `fit` based on MLE, but you can also
+provide your own method, e.g., based on a customized algorithm for efficiently
+finding estimates for a particular type of series system for particular types
+of data.
+
+Regardless of the outcome, ideally it will return an `mle`-like object (from the
+[algebraic.mle](https://queelius.github.io/algebraic.mle) package),
+in which case a host of additional methods are available to you, such as
+`predict`, `confint`, `sample`, etc. This object makes it easy to perform various
+analyses on your fitted model.
+
+```{r, eval = FALSE}
+aic(fit)
+bias(fit)
+vcov(fit)
+predict(fit, new_data)
+confint(fit)
+sample(fit, method = "asymptotic", n = 1000)
+```
+
+Note that the `likelihood.model.series.md` package provides a number of
+likelihood contributions for common observation types. These are described
+in the package documentation. You can also provide your own likelihood
+contributions, and we provide a number of functions to make this easier.
+
+# Assumptions
+
+Some of the models in this package make explicit assumptions about the data.
+We provide various functions to help you check these assumptions, to
+impute data that satisfies these assumptions, and to generate fake data
+that satisfies these assumptions.
+
+Sometimes, we generate fake data to create an implicit prior distribution
+for the parameters.
+
+# Model Selection
+
+We provide some wrappers for model selection, such as AIC, BIC, and so on.
+We also provide specializations and constraint functions for the parameters.
+
+For example, we may have a strong belief that the components are Weibull distributed,
+and furthermore, that they are more or less on the same scale with slight differences
+in shape. In this case, we can simplify the model by assuming $\lambda_1 = \cdots = \lambda_m$
+and then only fitting $\hat\lambda$ and $\hat k_1, \ldots, \hat k_m$, reducing a
+$2m$ parameter model to a simpler $m+1$ parameter model. This is not an unrealistic
+assumption, since if a series system is well-designed, then the components should
+be more or less on the same scale (i.e., have approximately the same MTTF).
+
+
+# Bootstrapping Statistics of the MLE and Likleihood Mode
+
+To estimate various characteiristcs, such as the bias, BCa confidence intervals,
+etc, then bootstraping may be used. The `likelihood.md.series.systems` package
+relies upon the bootstrapping functionality in `boot` and `likelihood.model`,
+but provide special functions and methods that are particular to the masked data
+series system context.
+
+
+# Parametric Models
 A *general series system* model, and other kinds of series systems, are also handled by external
 libraries, such as the [Dynamic Failure Rate](https://github.com/queelius/dfr_dist) library, which
 can be used to construct hazard functions for components that may depend on predictors, including time,

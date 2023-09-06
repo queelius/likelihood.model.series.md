@@ -1,5 +1,3 @@
-#' md_bernoulli_cand_C1_C2_C3
-#'
 #' Bernoulli candidate set model is a particular type of *uninformed* model.
 #' Note that we do not generate candidate sets with this function. See
 #' `md_cand_sampler` for that.
@@ -20,7 +18,7 @@
 #' @importFrom md.tools md_decode_matrix md_encode_matrix
 #' @importFrom dplyr %>% bind_cols
 #' @export
-md_bernoulli_cand_C1_C2_C3 <- function(md, p,
+md_bernoulli_cand_c1_c2_c3 <- function(md, p,
     compvar = "t",
     qvar = "q",
     deltavar = "delta")

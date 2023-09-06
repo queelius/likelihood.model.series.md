@@ -1,10 +1,10 @@
 Package: likelihood.md.series.systems
-Title: Likelihood model for series systems with masked component cause of failure
+Title: Likelihood Models for Series Systems with Masked Component Cause of Failure
 Version: 0.9
 Authors@R: 
     person("Alexander", "Towell", , "lex@metafunctor.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6443-9897"))
-Description: Likelihood model API for lifetime systems with latent components in series.
+Description: Likelihood model API for lifetime systems with latent components in series using data with masked component cause of failures.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -19,11 +19,12 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     dplyr,
-    rlang,
     stats,
     tibble,
     md.tools,
     algebraic.mle,
+    algebraic.dist,
+    likelihood.model,
     cubature
 Remotes:
     github::queelius/md.tools,
