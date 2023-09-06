@@ -1,4 +1,4 @@
-Package: likelihood.md.series.systems
+Package: likelihood.model.series.md
 Title: Likelihood Models for Series Systems with Masked Component Cause of Failure
 Version: 0.9
 Authors@R: 
@@ -35,5 +35,5 @@ Depends:
     R (>= 2.10)
 LazyData: true
 VignetteBuilder: knitr
-URL: https://queelius.github.io/likelihood.md.series_systems/
-BugReports: https://queelius.github.io/likelihood.md.series.systems/issues
+URL: https://queelius.github.io/likelihood.model.series.md/
+BugReports: https://queelius.github.io/likelihood.model.series.md/issues

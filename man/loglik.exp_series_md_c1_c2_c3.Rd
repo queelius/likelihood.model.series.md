@@ -6,7 +6,7 @@
 respect to rate parameter for masked data with candidate sets that satisfy
 conditions C1, C2, and C3.}
 \usage{
-\method{loglik}{exp_series_md_c1_c2_c3}(model)
+loglik.exp_series_md_c1_c2_c3(model)
 }
 \value{
 log-likelihood function that takes the following arguments:
