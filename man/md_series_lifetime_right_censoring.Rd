@@ -7,27 +7,29 @@ indicators for a series system with the given data frame of
 component lifetimes.}
 \usage{
 md_series_lifetime_right_censoring(
-  md,
+  df,
   tau = Inf,
-  compvar = "t",
-  sysvar = NULL,
-  delta = "delta"
+  comp = "t",
+  lifetime = "t",
+  right_censoring_indicator = "delta"
 )
 }
 \arguments{
-\item{md}{a data frame with the indicated component times-to-failure}
+\item{df}{a data frame with the indicated component lifetimes}
 
 \item{tau}{vector of right-censoring times, defaults to
 \code{Inf} (no right censoring)}
 
-\item{compvar}{component lifetimes}
+\item{comp}{component lifetime prefix variable name, defaults to \code{t}, e.g.,
+\verb{t1, t2, t3}.}
 
-\item{sysvar}{right-censored system lifetime}
+\item{lifetime}{system lifetime variable name, defaults to \code{t}}
 
-\item{delta}{right-censoring indicator, defaults to "delta"}
+\item{right_censoring_indicator}{right-censoring indicator variable, defaults
+to \code{delta}}
 }
 \value{
-masked data with right-censoring related columns
+(masked) data frame with masked data as described in the paper
 }
 \description{
 Generates right-censored system failure times and right-censoring

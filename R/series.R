@@ -1,5 +1,3 @@
-#' General series system
-#'
 #' This file contains functions related to a general series distribution.
 #' Functions include simulation, pdf, cdf, quantile, and other related
 #' functions. It models the concept of an Algebraic Distribution, in that

@@ -13,15 +13,16 @@ knitr::opts_chunk$set(
 )
 ```
 
-# likelihood.model.series.md
+# R Package: `likelihood.model.series.md`
 
-This is an R package for estimating the parameters of a series system model from masked data.
-It provides a flexible and intuitive interface for specifying the model and performing maximum
-likelihood estimation.
+This is an R package for estimating the parameters of a series system model from
+masked data. It provides a flexible and intuitive interface for specifying the
+model and performing maximum likelihood estimation.
 
 This R package provides a set of functions for generating MLEs for the lifetime
-parameters of the components in a series systems and other related characteristics
-from data that *masks* the component cause of failure, and also the system lifetime.
+parameters of the components in a series systems and other related
+characteristics from data that *masks* the component cause of failure, and also
+the system lifetime.
 
 Masked data comes in a variety of forms:
 
@@ -54,26 +55,34 @@ Masked data comes in a variety of forms:
 You can install the development version from GitHub with:
 
 ```{r install, eval=FALSE}
-# install.packages("devtools")
 devtools::install_github("queelius/likelihood.model.series.md")
 ```
 
 ## Usage
 
-This package provides a comprehensive framework for maximum likelihood estimation (MLE) of
-series system parameters from masked data.
+This package provides a comprehensive framework for maximum likelihood
+estimation (MLE) of series system parameters from masked data.
 
-It is based on a likelihood contribution model, where each kind of masking of component failures
-in a series system of some kind and number of components is handled by a set of likelihood
-contributions. The likelihood contributions are then combined to form the likelihood model for
-the kind of data and series system under consideration.
+It is based on a likelihood contribution model, where each kind of masking of
+component failures in a series system of some kind and number of components is
+handled by a set of likelihood contributions. The likelihood contributions are
+then combined to form the likelihood model for the kind of data and series
+system under consideration.
  
-In general, masking models may characaterized by satisfy any (or none) of the following conditions:
+In general, masking models may characaterized by satisfy any (or none) of the
+following conditions:
 
-Condition 1: The probability that the failed component is in the candidate set is 1.
-Condition 2: Given a candidate set of potential causes of failure, when we condition on the
-component cause being any one of the components in the candidate set at the given system failure
-time, the probability of the candidate set is uniform. 
+Condition 1: The probability that the failed component is in the candidate set
+is 1.
+
+Condition 2: Given a candidate set of potential causes of failure, when we
+condition on the component cause being any one of the components in the
+candidate set at the given system failure time, the probability of the candidate
+set is uniform. 
+
+Condition 3: The distribution of candidate sets conditioned on a system failure
+time and a component cause of failure is independent of the system parameter
+vector.
 
 
 We provide several kinds of masking models, including:
@@ -82,23 +91,26 @@ We provide several kinds of masking models, including:
 
 2. Candidate sets with relaxed conditions, e.g., informed candidate sets.
 
-Together, these masking models provide a flexible framework for handling a wide variety of
-masking situations.
+Together, these masking models provide a flexible framework for handling a wide
+variety of masking situations.
 
-We also provide a method for analyzing the sensitivity of a likelihood model to violations of
-the masking assumptions. This is done by providing a set of likelihood models that are
-constructed by relaxing the masking assumptions in various ways. The likelihood models are
-then compared using the likelihood ratio test.
+We also provide a method for analyzing the sensitivity of a likelihood model to
+violations of the masking assumptions. This is done by providing a set of
+likelihood models that are constructed by relaxing the masking assumptions in
+various ways. The likelihood models are then compared using the likelihood ratio
+test.
 
-Other kinds of data and censoring are handled separately by the general likelihood model as
-detailed in [likelihood.model](https://github.com/queelius/likelihood.model). This is the general
-framework for adding various kinds of contributions to the likelihood model. This package is
-focused on providing contributions for masking.
-The `likelihood.model` package provides a robust API to work with likelihood models, e.g., for
-finding MLEs, bootstrapping confidence intervals, and so on.
+Other kinds of data and censoring are handled separately by the general
+likelihood model as detailed in
+[likelihood.model](https://github.com/queelius/likelihood.model). This is the
+general framework for adding various kinds of contributions to the likelihood
+model. This package is focused on providing contributions for masking. The
+`likelihood.model` package provides a robust API to work with likelihood models,
+e.g., for finding MLEs, bootstrapping confidence intervals, and so on.
 
-We also provide for data imputation, fake data, and so on. These are often based on the
-conditions the model assumes, and so are provided in this package.
+We also provide for data imputation, synthetic (implicit prior) data, and so on.
+These are often based on the conditions the model assumes, and so are provided
+in this package.
 
 # API
 
@@ -110,15 +122,15 @@ likelihood contributions as follows:
 
 ```{r model-example, eval = FALSE}
 my_model <- likelihood_contr_model$new(
-    obs_type = function(df) {
-      ifelse(df$right_censoring,
-        "exact_fail_time_with_cand_set_c1_c2_c3",
-        "right_censored")
-    },
+  obs_type = function(df) {
+    ifelse(df$right_censoring,
+           "exact_fail_time_with_cand_set_c1_c2_c3",
+           "right_censored")
+  },
 
-    logliks = list(
-        ...
-    )
+  logliks = list(
+    ...
+  )
 )
 ```
 
@@ -163,14 +175,14 @@ for the parameters.
 We provide some wrappers for model selection, such as AIC, BIC, and so on.
 We also provide specializations and constraint functions for the parameters.
 
-For example, we may have a strong belief that the components are Weibull distributed,
-and furthermore, that they are more or less on the same scale with slight differences
-in shape. In this case, we can simplify the model by assuming $\lambda_1 = \cdots = \lambda_m$
-and then only fitting $\hat\lambda$ and $\hat k_1, \ldots, \hat k_m$, reducing a
-$2m$ parameter model to a simpler $m+1$ parameter model. This is not an unrealistic
-assumption, since if a series system is well-designed, then the components should
-be more or less on the same scale (i.e., have approximately the same MTTF).
-
+For example, we may have a strong belief that the components are Weibull
+distributed, and furthermore, that they are more or less on the same scale with
+slight differences in shape. In this case, we can simplify the model by assuming
+$\lambda_1 = \cdots = \lambda_m$ and then only fitting $\hat\lambda$ and
+$\hat k_1, \ldots, \hat k_m$, reducing a $2m$ parameter model to a simpler $m+1$
+parameter model. This is not an unrealistic assumption, since if a series system
+is well-designed, then the components should be more or less on the same scale
+(i.e., have approximately the same MTTF).
 
 # Bootstrapping Statistics of the MLE and Likleihood Mode
 
@@ -182,14 +194,18 @@ series system context.
 
 
 # Parametric Models
-A *general series system* model, and other kinds of series systems, are also handled by external
-libraries, such as the [Dynamic Failure Rate](https://github.com/queelius/dfr_dist) library, which
-can be used to construct hazard functions for components that may depend on predictors, including time,
-any other covariates. 
+A *general series system* model, and other kinds of series systems, are also
+handled by external libraries, such as the
+[Dynamic Failure Rate](https://github.com/queelius/dfr_dist) library, which can
+be used to construct hazard functions for components that may depend on
+predictors, including time, any other covariates. 
 
 # Documentation
-For more detailed information on how to use this package and what each function does, please refer to the package documentation. The series_system function and its parameters are described in detail there.
+For more detailed information on how to use this package and what each function
+does, please refer to the package documentation. The series_system function and
+its parameters are described in detail there.
 
 # Contributing
-Contributions are welcome! Please open an issue or submit a pull request on GitHub if you find any bugs or if you'd like to suggest improvements.
+Contributions are welcome! Please open an issue or submit a pull request on
+GitHub if you find any bugs or if you'd like to suggest improvements.
 

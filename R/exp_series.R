@@ -105,7 +105,6 @@ surv.exp_series <- function(t, rates, log.p = FALSE) {
 #' @param rates Vector of rate parameters for exponential component lifetimes.
 #' @return The mean of the exponential series distribution.
 #' @export
-#' @importFrom stats mean
 mean.exp_series <- function(rates) {
     mean(rates)
 }

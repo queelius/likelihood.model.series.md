@@ -9,7 +9,7 @@ Pr(C\link{i}=c\link{i} | K\link{i}=j', T\link{i}=t\link{i})
 for any j,j' in c\link{i}.
 C3: masking probabilities are independent of theta}
 \usage{
-loglik.series_md_c1_c2_c3(model)
+\method{loglik}{series_md_c1_c2_c3}(model)
 }
 \arguments{
 \item{md}{masked data}

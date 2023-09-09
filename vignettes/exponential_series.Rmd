@@ -15,8 +15,10 @@ knitr::opts_chunk$set(
   echo = TRUE,
   comment = "#>")
 
-library(md.series.system)
+library(likelihood.model)
+library(likelihood.model.series.md)
 library(algebraic.mle)
+library(algebraic.dist)
 library(md.tools)
 library(tidyverse)
 library(devtools)
@@ -327,7 +329,7 @@ print(comp_times,n=4)
 Next, we use the function `md_series_lifetime_right_censoring` to decorate the
 masked data with the right-censor-censoring time chosen by the probability
 $\Pr\{T_i > \tau\} = 0.75$:
-```{r}
+```{r right-censoring}
 q <- 0.25
 tau <- rep(-(1/sum(theta))*log(q),n)
 data <- comp_times %>% md_series_lifetime_right_censoring(tau)
@@ -337,14 +339,14 @@ print(data,n=4,drop_latent=TRUE)
 ## Masked component cause of failure
 We simulate candidate sets using the Bernoulli candidate model with an
 appropriate set of parameters to satisfy conditions $C_1$, $C_2$, and $C_3$:
-```{r warning=F, message=F}
+```{r bernoulli-cand, warning=F, message=F}
 p <- .3
-data <- data %>% md_bernoulli_cand_C1_C2_C3(p)
+data <- data %>% md_bernoulli_cand_c1_c2_c3(p)
 print(data[,paste0("q",1:m)],n=4)
 ```
 
 Now, to generate candidate sets, we sample from these probabilities:
-```{r}
+```{r cand-sampler}
 data <- data %>% md_cand_sampler()
 print(md_boolean_matrix_to_charsets(data,drop_set=TRUE),drop_latent=TRUE,n=6)
 ```
@@ -353,6 +355,19 @@ We see that after dropping latent (unobserved) columns, we only have the right
 censoring time, right censoring indicator, and the candidate sets. (Note that
 this time we showed the candidate sets in a more friendly way using
 `md_boolean_matrix_to_charsets`.)
+
+Likelihood Model {#likelihood-model}
+================
+The likelihood model is a statistical model that describes the distribution of
+the observed data as a function of the parameters of interest.
+
+We construct a likelihood model for the masked data model with exponentially
+distributed component lifetimes with the following code:
+
+```{r likelihood-model}
+model <- exp_series_md_c1_c2_c3()
+```
+
 
 Maximum likelihood estimation {#mle}
 ====================================
@@ -419,8 +434,8 @@ $$
 $$
 
 We compute the log-likelihood function as a function of the masked data `data` with:
-```{r}
-ll <- md_loglike_exp_series_C1_C2_C3(data)
+```{r loglike-function}
+ll <- loglik(model)
 ```
 Note that `md_loglike_exp_series_C1_C2_c3` is implemented using minimally
 sufficient statistics, which improves the computational efficiency of
@@ -452,8 +467,8 @@ where $\eta$ is the learning rate.
 
 We'll show a simple way to solve this using gradient ascent.
 First, we need the gradient function.
-```{r,message=F,warning=F}
-grad <- md_score_exp_series_C1_C2_C3(data)
+```{r score-function, message=F, warning=F}
+grad <- score(model)
 ```
 This is a custom version for computing the gradient of the log-likelihood
 `md_loglike_exp_series_C1_C2_C3`. If `md_score_exp_series_C1_C2_C3` was
@@ -471,21 +486,24 @@ method. Thus, to guarantee convergence to a global maximum that is interior to
 the support of the parameter space (assuming one exists), a good initial guess
 near this point should be chosen. We use the global simulated annealing
 algorithm to find a good initial guess for the MLE.
-```{r,warning=F, cache=TRUE}
+```{r sim-anneal, warning=F, cache=TRUE}
 library(stats)
 theta0 <- rep(5, m)
-theta.start <- sim_anneal(par=theta0, fn = ll,
-    control = list(fnscale = -1, maxit = 1000L, trace = TRUE,
-                   t_init = 100, .1, alpha = 0.75, it_per_temp = 10L,
-                   sup = function(x) all(x > 0)))
+theta.start <- stats::optim(theta0, fn = function(theta) ll(data, theta),
+    method = "SANN",
+    control = list(fnscale = -1, maxit = 1000, trace = 1, REPORT = 1))
 
 print(theta.start$par)
 print(theta.start$value)
 ```
 
 
+```{r}
+
+```
+
 Let's plot the log-likelihood trace:
-```{r echo=FALSE, fig.width=8, fig.height=4, fig.align='center', fig.cap="Plot of the log-likelihood."}
+```{r trace-plot, echo=FALSE, fig.width=8, fig.height=4, fig.align='center', fig.cap="Plot of the log-likelihood."}
 logliks <- theta.start$trace_info[,"value"]
 iters <- theta.start$trace_info[,"it"]
 plot(logliks,type="l",xlab="Iteration",ylab="Log-likelihood")

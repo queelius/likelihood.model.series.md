@@ -30,11 +30,9 @@
 #' As a special case, this model also includes exact component cause of failure
 #' data where the candidate set is a singleton.
 #' 
-#' @author Alex Towell
-#' @name Exponential series likelihood model for masked component cause of
-#' failure (candidate sets) satisfying conditions C1, C2, and C3 with exact
-#' system failure time observations.
-#' @keywords exponential, distribution, series, statistics, masked data
+#' @param rates rate parameters for exponential component lifetimes
+#' @export
+#' @return likelihood model object
 exp_series_md_c1_c2_c3 <- function(rates = NULL) {
     structure(list(rates = rates),
               class = c("exp_series_md_c1_c2_c3",
