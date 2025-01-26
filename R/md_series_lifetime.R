@@ -1,3 +1,5 @@
+#' Masked data generation for series system lifetime data
+#' 
 #' Generates right-censored system failure times and right-censoring
 #' indicators for a series system with the given data frame of
 #' component lifetimes.
@@ -29,7 +31,5 @@ md_series_lifetime_right_censoring <- function(
     s <- apply(t, 1, min)
     df[, lifetime] <- ifelse(s < tau, s, tau)
     df[, right_censoring_indicator] <- s < tau
-    df %>%
-        md_mark_latent(paste0(comp, 1:(ncol(t)))) %>%
-        md_mark_latent(lifetime)
+    df %>% md_mark_latent(paste0(comp, 1:(ncol(t))))
 }

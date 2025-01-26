@@ -2,10 +2,7 @@
 % Please edit documentation in R/exp_series_md_c1_c2_c3.R
 \name{score.exp_series_md_c1_c2_c3}
 \alias{score.exp_series_md_c1_c2_c3}
-\title{Generates a score function for an exponential series system (or
-competing risks) with respect to parameter \code{theta} for masked component
-failure (or masked competing risks) with candidate sets (competing risks)
-that satisfy conditions C1, C2, and C3.}
+\title{Generates a score function for the \code{exp_series_md_c1_c2_c3} model.}
 \usage{
 score.exp_series_md_c1_c2_c3(model)
 }

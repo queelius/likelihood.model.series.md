@@ -1,0 +1,114 @@
+Let's plot the log-likelihood trace:
+```{r trace-plot, echo=FALSE, fig.width=8, fig.height=4, fig.align='center', fig.cap="Plot of the log-likelihood."}
+logliks <- theta.start$trace_info[,"value"]
+iters <- theta.start$trace_info[,"it"]
+plot(logliks,type="l",xlab="Iteration",ylab="Log-likelihood")
+```
+
+This looks like it's steadily increasing. No doubt, we could keep running the
+simulated annealing algorithm for longer to get a better initial guess, but
+this one is good enough for our purposes.
+
+Let's examine its convergence plots.
+
+```{r param_plots, echo=FALSE, fig.width=8, fig.height=4, fig.align='center', fig.cap="Convergence plot of the simulated annealing algorithm."}
+# Load required library
+library(ggplot2)
+
+# Convert the matrix to a data frame
+data_df <- as_tibble(theta.start$trace_info)
+data_df$best <- as.factor(data_df$best)
+# Reshape data for ggplot2
+library(reshape2)
+long_data <- melt(data_df,
+    id.vars = c("it", "value", "temp", "best"),
+    variable.name = "parameter",
+    value.name = "value_par")
+
+# Convergence plot (1)
+convergence_plot <- ggplot(data_df, aes(x = it, y = value, color = best)) +
+  geom_line() +
+  labs(title = "Convergence Plot",
+       x = "Iteration",
+       y = "Best Function Value") +
+  scale_color_discrete(name = "Best Value", labels = c("No", "Yes"))
+
+print(convergence_plot)
+
+# Parameter traces plot (3)
+parameter_traces_plot <- ggplot(long_data, aes(x = it, y = value_par, color = best)) +
+  geom_line() +
+  facet_wrap(~parameter, ncol = m, scales = "free_y") +
+  labs(title = "Parameter Traces",
+       x = "Iteration",
+       y = "Parameter Value") +
+  scale_color_discrete(name = "Best Value", labels = c("No", "Yes"))
+
+print(parameter_traces_plot)
+
+```
+
+These plots demonstrate the exploration vs. exploitation trade-off of the
+simulated annealing algorithm. Initially, the algorithm explores the parameter
+space quite liberally, accepting very poor solutions, but as the temperature
+decreases, it begins to be more selective, only accepting solutions that are
+better or at least not much worse than the current solution, and eventually
+it only accepts better solutions.
+
+Let's use this as our initial guess for quickly converging to a local (and
+likely global, given that we have a good initial guess) maximum of the
+log-likelihood function.
+
+```{r}
+res <- optim(par = theta.start$par, fn = ll, method = "L-BFGS-B",
+    lower = 1e-3, hessian = TRUE,
+    control = list(fnscale = -1, maxit = 1000, trace = 1, REPORT = 1))
+
+estimate <- mle_numerical(res)
+```
+
+This is a constructor for `mle` objects.
+We can get a summary of the object with:
+```{r}
+summary(estimate)
+```
+
+We let `theta.hat` be given by the `point` method, which obtains the point
+$\hat{\theta}$.
+```{r}
+(theta.hat <- point(estimate))
+```
+We see that
+$$
+\hat{\theta} = (`r as.numeric(theta.hat)`)'.
+$$
+Recall that the true parameter is $\theta = (`r theta`)'$.
+
+Due to sampling variability, different runs of the experiment
+will result in different outcomes, i.e., $\hat{\theta}$ has a
+sampling distribution.
+We see that $\hat{\theta} \neq \theta$, but it is reasonably
+close.
+We may measure this sampling variability using the variance-covariance
+matrix, bias, mean squared error (MSE), and confidence intervals.
+
+## Log-likelihood profile
+
+If we let the $\theta_2,\ldots,\theta_m$ in log-likelihood function be fixed
+at their maximum likelihood estimates, then we may profile the log-likelihood function over
+$\theta_1$ to get a better sense of the shape of the log-likelihood function.
+
+```{r,message=F,warning=F, echo=FALSE}
+prof <- function(theta1) { ll(c(theta1,theta.hat[2:m])) }
+prof.data <- tibble(x=seq(max(1e-3,theta.hat[1]-2),theta.hat[1]+2,.05))
+prof.data$y <- numeric(nrow(prof.data))
+for (i in 1:nrow(prof.data))
+    prof.data$y[i] <- prof(prof.data$x[i])
+prof.data %>% ggplot(aes(x=x,y=y)) + geom_line() +
+    geom_point(aes(x=theta.hat[1],prof(theta.hat[1]))) +
+    labs(x="theta1",y="Log-likelihood")
+```
+
+This seems to be a well-behaved loglikelihood profile, essentially quadratic
+in shape with a single maximum. We have some confidence that this is the MLE,
+but of course we could do more to verify this.

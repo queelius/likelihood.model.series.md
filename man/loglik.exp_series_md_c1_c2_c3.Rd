@@ -2,18 +2,16 @@
 % Please edit documentation in R/exp_series_md_c1_c2_c3.R
 \name{loglik.exp_series_md_c1_c2_c3}
 \alias{loglik.exp_series_md_c1_c2_c3}
-\title{Generates a log-likelihood function for an exponential series system with
-respect to rate parameter for masked data with candidate sets that satisfy
-conditions C1, C2, and C3.}
+\title{Generates a log-likelihood function for the \code{exp_series_md_c1_c2_c3} model.}
 \usage{
-\method{loglik}{exp_series_md_c1_c2_c3}(model)
+loglik.exp_series_md_c1_c2_c3(model)
 }
 \value{
 log-likelihood function that takes the following arguments:
 \itemize{
 \item \code{df}: masked data
 \item \code{theta}: rate / scale parameters of component lifetime distributions
-\item \code{sys.var}: system lifetime (optionally right-censored) column name,
+\item \code{lifetime}: system lifetime (optionally right-censored) column name,
 defaults to \code{t}
 \item \code{candset}: prefix of Boolean matrix encoding of candidate sets, defaults
 to \code{x}, e.g., \verb{x1,...,xm}.

@@ -2,9 +2,7 @@
 % Please edit documentation in R/exp_series_md_c1_c2_c3.R
 \name{exp_series_md_c1_c2_c3}
 \alias{exp_series_md_c1_c2_c3}
-\title{Likelihood model for exponential series systems with masked component cause
-of failure with candidate sets that satisfy conditions C1, C2, and C3,
-desribed below.}
+\title{Constructs a likelihood model for \code{exp_series_md_c1_c2_c3}.}
 \usage{
 exp_series_md_c1_c2_c3(rates = NULL)
 }
@@ -15,10 +13,14 @@ exp_series_md_c1_c2_c3(rates = NULL)
 likelihood model object
 }
 \description{
-This model satisfies the concept of a \code{likelihood_model} in the
-\code{likelihood_model} package by providing the following methods:
+Likelihood model for exponential series systems with masked component cause
+of failure with candidate sets that satisfy conditions C1, C2, and C3,
+desribed below.
 }
 \details{
+This model satisfies the concept of a \code{likelihood_model} in the
+\code{likelihood_model} package by providing the following methods:
+
 (1) \code{loglik.exp_series_md_c1_c2_c3}
 (2) \code{score.exp_series_md_c1_c2_c3}
 (3) \code{hess_loglik.exp_system_series_md_c1_c2_c3}

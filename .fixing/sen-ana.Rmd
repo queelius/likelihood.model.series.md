@@ -1,0 +1,88 @@
+
+Sensitivity analysis {#sensitivity}
+===================================
+How sensitive is our MLE to sampling conditions? In particular, how
+sensitive is it when we vary the way the candidate sets are generated? 
+First, let's vary the parameter $p$ in the Bernoulli candidate model.
+
+The most informative sample when only changing $p$ is given by letting
+$p=0$, i.e., we know the exact component cause of failure.
+
+```{r}
+data.best <- comp_times %>%
+    md_series_lifetime_right_censoring(tau) %>%
+    md_bernoulli_cand_C1_C2_C3(p=0) %>%
+    md_cand_sampler()
+```
+
+Here's what the new sample looks like:
+```{r}
+print(md_boolean_matrix_to_charsets(data.best,drop_set=TRUE),drop_latent=TRUE)
+```
+It's the same as the previous sample, except that we see that we either have
+only empty candidate sets (the system was right-censored) or candidate sets
+that only contain the failed component (in order to satisfy the condition that
+the failed component must be in the candidate set).
+
+Let's compute the log-likelihood and MLEs for this new sample:
+```{r eval=F}
+ll.best <- md_loglike_exp_series_C1_C2_C3(data.best)
+start.best <- algebraic.mle::sim_anneal(
+    fn=ll.best,
+    par=theta0,
+    options=list(
+        t_init=100,
+        t_end=.001,
+        alpha=.95,
+        maxit=10000,
+        it_per_temp=100,
+        fnscale=-1,
+        sup=function(theta) all(theta > 0),
+        trace=FALSE))
+
+sol <- stats::optim(par = start.best$value,
+    fn = ll.best, method = "BFGS", fnscale = -1)
+estimate.best <- mle_numerical(sol=sol)
+as_tibble(confint(estimate.best)) %>% mutate(mle=point(estimate.best),theta=theta)
+```
+
+This is a very good estimate. How does this compare to the previous
+estimate where $p = .3$? Let's compare the lengths of the confidence
+intervals:
+```{r eval=F}
+ci <- confint(estimate)
+ci.best <- confint(estimate.best)
+
+length <- ci[,2] - ci[,1]
+length.best <- ci.best[,2] - ci.best[,1]
+diff <- point(estimate) - theta
+diff.best <- point(estimate.best) - theta
+tibble(theta=theta) %>%
+    mutate("CI length ratio (length(best)/length(old)"=length.best/length) %>%
+    mutate("mle(best)"=point(estimate.best)) %>%
+    mutate("mle(old)"=point(estimate)) %>%
+    mutate("error(mle(best))"=diff.best) %>%
+    mutate("error(mle(old))"=diff)
+```
+
+
+If *no* information is provided about the component cause of failure
+in a series system, then the estimator is not unique
+and does not converge to $\theta$.
+However, let's do it anyway:
+
+```{r eval=F}
+data.worst <- comp_times %>%
+    md_series_lifetime_right_censoring(tau) %>%
+    md_bernoulli_cand_C1_C2_C3(p=1) %>%
+    md_cand_sampler()
+
+ll.worst <- md_loglike_exp_series_C1_C2_C3(data.worst)
+estimate.worst <- mle_numerical(ll.worst, theta0=theta)
+as_tibble(confint(estimate.worst)) %>% mutate(mle=point(estimate.worst),theta=theta)
+```
+
+Here's what the new sample looks like:
+```{r eval=F}
+print(md_boolean_matrix_to_charsets(data.worst,drop_set=TRUE),drop_latent=TRUE)
+```

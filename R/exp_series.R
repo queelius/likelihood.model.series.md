@@ -108,3 +108,11 @@ surv.exp_series <- function(t, rates, log.p = FALSE) {
 mean.exp_series <- function(rates) {
     mean(rates)
 }
+
+
+
+
+
+
+
+

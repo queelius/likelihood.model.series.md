@@ -4,7 +4,7 @@
 \alias{surv.exp_series}
 \title{Survival function for exponential series.}
 \usage{
-\method{surv}{exp_series}(t, rates, log.p = FALSE)
+surv.exp_series(t, rates, log.p = FALSE)
 }
 \arguments{
 \item{t}{Vector of series system lifetimes.}

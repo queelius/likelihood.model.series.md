@@ -2,10 +2,7 @@
 % Please edit documentation in R/exp_series_md_c1_c2_c3.R
 \name{hess_loglik.exp_series_md_c1_c2_c3}
 \alias{hess_loglik.exp_series_md_c1_c2_c3}
-\title{Generates the observed information matrix (FIM) for an exponential series
-system with respect to parameter \code{theta} for masked data with candidate
-sets that approximately satisfy conditions C1, C2, and C3 with exact
-failure times, or right-censoring (no component failure).}
+\title{Generates the observed information matrix for the \code{exp_series_md_c1_c2_c3} model.}
 \usage{
 hess_loglik.exp_series_md_c1_c2_c3(model)
 }

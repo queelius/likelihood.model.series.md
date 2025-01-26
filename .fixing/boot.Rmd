@@ -1,0 +1,90 @@
+Bootstrap stuff
+===============
+
+See Appendix A for more information about the `md_*` functions and see
+The above code produces a data frame `md` whose first $10$ rows are given by
+Table \@ref(tab:mytabl).
+```{r mytabl, eval=F, echo=F, results='asis',tab.cap="The first 10 observations of simulated masked data for exponentially distributed component lifetimes",tab.label="mytabl"}
+md.tmp <- head(md,10)
+md.tmp$x1 <- as.integer(md.tmp$x1)
+md.tmp$x2 <- as.integer(md.tmp$x2)
+md.tmp$x3 <- as.integer(md.tmp$x3)
+md.tmp$delta <- as.integer(md.tmp$delta)
+knitr::kable(
+    md.tmp)
+    #caption="The first 10 observations of simulated masked data for exponentially distributed component lifetimes",
+    #label="tab:mytabl")
+```
+
+Now, we find the MLE with the following R code:
+```{r eval=F}
+loglike.exp <- md_loglike_exp_series_C1_C2_C3(md)
+lambda.hat <- algebraic.mle::mle_gradient_ascent(
+    l=loglike.exp,
+    theta0=lambda)
+points <- cbind(point(lambda.hat),as.matrix(lambda))
+colnames(points) <- c("MLE","Parameter")
+cbind(points,confint(lambda.hat))
+```
+
+In Section \ref{sec:acc_prec}, we consider various ways of analyzing the
+accuracy and precision of the MLE $\hat{\lambda}$.
+To do these estimations, we perform Bootstrapping to generate $R=1000$ MLEs.
+
+TODO: I show a bunch of different estimates, like bias and confidence intervals,
+using the Bootstrap method. I need to work on presenting only interesting
+estimates in a way that helps show what the MLE is like for small samples,
+then show how as the sample gets larger, we become consistent with the
+asymptotic theory of the MLE. So, basically a graph whose x-axis is
+sample size and whose y-axis is MSE or bias.
+
+```{r, eval=F, cache=T}
+N <- c(100,200,300,400,500)
+for (n in N)
+{
+    md <- tibble(t1=stats::rexp(n,rate=lambda[1]),
+                 t2=stats::rexp(n,rate=lambda[2]),
+                 t3=stats::rexp(n,rate=lambda[3])) %>%
+        md_series_lifetime() %>%
+        md_bernoulli_candidate_C1_C2_C3(m)
+    
+    loglike.exp <- md_loglike_exp_series_C1_C2_C3(md)
+    loglike.scr <- md_score_exp_series_C1_C2_C3(md)
+    mle.exp <- mle_gradient_ascent(l=loglike.exp,theta0=lambda,score=loglike.scr)
+    mle.boot <- mle_boot_loglike(mle=mle.exp,
+                                 loglike.gen=md_loglike_exp_series_C1_C2_C3,
+                                 data=md)
+    
+    cat("Sample size: ", n, "\n")
+    cat("---------------\n")
+    
+    print("Estimate of bias using Bootstrap:")
+    print(bias(mle.boot,lambda))
+    
+    print("Estimate of confidence intervals:")
+    print("Asymptotic")
+    print(confint(mle.exp))
+    print("Bootstrap")
+    print(confint(mle.boot))
+
+    print("Estimate of variance-covariance:")
+    print("Asymptotic")
+    print(vcov(mle.exp))
+    print("Bootstrap")
+    print(vcov(mle.boot))
+    
+    print("Estimate of MSE:")
+    print("Asymptotic")
+    print(mse(mle.exp))
+    print("Bootstrap")
+    print(mse(mle.boot,lambda))
+}
+```
+
+The asymptotic mean squared error of $\hat{\lambda}^{(1)},\ldots,\hat{\lambda}^{(N)}$
+is approximately equal to the trace of the inverse of the Fisher information
+matrix evaluated at $\lambda$, which is given by
+```{r,echo=F,eval=F}
+sum(diag(MASS::ginv(-numDeriv::hessian(md_loglike_exp_series_C1_C2_C3(md),lambda))))
+```
+

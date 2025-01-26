@@ -2,9 +2,7 @@
 % Please edit documentation in R/md_series_lifetime.R
 \name{md_series_lifetime_right_censoring}
 \alias{md_series_lifetime_right_censoring}
-\title{Generates right-censored system failure times and right-censoring
-indicators for a series system with the given data frame of
-component lifetimes.}
+\title{Masked data generation for series system lifetime data}
 \usage{
 md_series_lifetime_right_censoring(
   df,

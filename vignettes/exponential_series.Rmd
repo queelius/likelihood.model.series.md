@@ -1,12 +1,14 @@
 ---
-title: "Series system with exponentially distributed component lifetimes"
+title: "Masked Data Likelihood Model: Components with Exponentially Distributed Lifetimes Arranged In Series Configuration"
 output:
     rmarkdown::html_vignette:
         toc: true
 vignette: >
-  %\VignetteIndexEntry{Series system with exponentially distributed component lifetimes}
+  %\VignetteIndexEntry{Masked Data Likelihood Model: Components with Exponentially Distributed Lifetimes Arranged In Series Configuration}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+header-includes:
+- \renewcommand{\v}[1]{\boldsymbol{#1}}
 ---
 
 ```{r setup, include = FALSE}
@@ -30,7 +32,7 @@ The R package `likelihood.md.series.system` is a framework for
 estimating the parameters of latent component lifetimes from *masked data*
 in a series system.
 
-Exponentially distributed component lifetimes {#expo}
+Exponentially Distributed Component Lifetimes {#expo}
 =====================================================
 Consider a series system in which the components have exponentially distributed
 lifetimes.
@@ -45,33 +47,32 @@ The random variable $T_{i j}$ has a reliability, pdf, and hazard function
 given respectively by
 \begin{align}
     \label{eq:expo_reliability}
-    R_j(t;\lambda_j)     &= \exp(-\lambda_j t),\\
+    R_j(t|\lambda_j)   &= \exp(-\lambda_j t),\\
     \label{eq:expo_pdf}
-    f_j(t;\lambda_j)     &= \lambda_j \exp(-\lambda_j t),\\
+    f_j(t|\lambda_j)   &= \lambda_j \exp(-\lambda_j t),\\
     \label{eq:expo_haz}
-    h_j(\cdot;\lambda_j) &= \lambda_j
+    h_j(\cdot|\lambda_j) &= \lambda_j
 \end{align}
-where $t > 0$ and $\lambda_j > 0$ is the failure rate (or inverse scale)
-parameter.
+where $t > 0$ is the lifetime and $\lambda_j > 0$ is the failure rate of the $j$-th component.
 
 The lifetime of the series system composed of $m$ components with exponentially
 distributed lifetimes has a reliability function given by
 \begin{equation}
 \label{eq:sys_expo_reliability_function}
-R(t;\lambda) = \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t\biggr)
+R_{T_i}(t_i|\v\lambda) = \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t_i\biggr)
 \end{equation}
 where $t > 0$.
 \begin{proof}
 By Theorem \ref{thm:sys_reliability_function},
 $$
-    R(t;\lambda) = \prod_{j=1}^{m} R_j(t;\lambda_j).
+    R_{T_i}(t_i;\v\lambda) = \prod_{j=1}^{m} R_j(t_i;\lambda_j).
 $$
 Plugging in the component reliability functions given by
 Equation \eqref{eq:expo_reliability} obtains the result
 \begin{align*}
-R(t;\lambda) = \prod_{j=1}^{m}
+R_{T_i}(t_i|\v\lambda) = \prod_{j=1}^{m}
     &= \exp(-\lambda_j t)\\
-    &= \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t\biggr).
+    &= \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t_i\biggr).
 \end{align*}
 \end{proof}
 
@@ -79,7 +80,7 @@ A series system with exponentially distributed lifetimes is also
 exponentially distributed.
 \begin{theorem}
 \label{thm:expo_series_family}
-The random lifetime $T_{i j}$ of a series system composed of $m$ components with 
+The random lifetime $T_i$ of a series system composed of $m$ components with 
 exponentially distributed lifetimes is exponentially distributed with a failure 
 rate that is the sum of the component failure rates,
 $$
@@ -95,25 +96,25 @@ failure rate that is the sum of the component failure rates.
 The series system's failure rate function is given by
 \begin{equation}
 \label{eq:expo_sys_failure_rate}
-h(\cdot;\lambda) = \sum_{j=1}^{m} \lambda_j
+h(\cdot|\v\lambda) = \sum_{j=1}^{m} \lambda_j
 \end{equation}
 whose proof follows from Theorem \ref{thm:sys_failure_rate}.
 
-We see that the failure rate $\lambda = \sum_{j=1}^n \lambda$ is *constant*,
+We see that the failure rate $\v\lambda = \sum_{j=1}^n \lambda$ is *constant*,
 consistent with the the exponential distribution being the only continuous
 distribution that has a constant failure rate.
 
 The pdf of the series system is given by
 \begin{equation}
 \label{eq:expo_sys_pdf}
-f(t;\lambda) = \biggl( \sum_{j=1}^{m} {\lambda_j} \biggr) \exp
-    \biggl(-\sum_{j=1}^{m}{\lambda_j} t\biggr)
+f_{T_i}(t_i|\v\lambda) = \biggl( \sum_{j=1}^{m} {\lambda_j} \biggr) \exp
+    \biggl(-\sum_{j=1}^{m}{\lambda_j} t_i\biggr)
 \end{equation}
-where $t > 0$.
+where $t_i > 0$ is the lifetime of the system.
 \begin{proof}
 By definition,
 $$
-f(t;\lambda) = h(t;\lambda) R(t;\lambda).
+f_{T_i}(t_i|\v\lambda) = h_{T_i}(t_i|\v\lambda) R_{T_i}(t_i|\v\lambda).
 $$
 Plugging in the failure rate and reliability functions given respectively by
 Equations \eqref{eq:expo_sys_failure_rate} and \eqref{eq:expo_reliability} completes
@@ -124,14 +125,14 @@ The conditional probability that component $k$ is the cause of a system failure
 at time $t$ is given by
 \begin{equation}
 \label{eq:expo_prob_K_given_S}
-f_{K_i|T_i}(k|t,\lambda) = f_{K_i}(k|\lambda) =
+f_{K_i|T_i}(k|t,\v\lambda) = f_{K_i}(k|\v\lambda) =
     \frac{\lambda_k}{\sum_{p=1}^{m} \lambda_p}
 \end{equation}
 where $k \in \{1,\ldots,m\}$ and $t > 0$.
 \begin{proof}
 By Theorem \ref{thm:f_given_s_form_2},
 $$
-f_{K_i|T_i}(k;\lambda|t) = \frac{h_k(t;\lambda_k)}{h(t;\lambda)}.
+f_{K_i|T_i}(k|t,\v\lambda) = \frac{h_k(t|\lambda_k)}{h_{T_i}(t;\v\lambda)}.
 $$
 Plugging in the failure rate of the component indexed by $k$ and the failure
 rate of the system given respectively by Equations \eqref{eq:expo_sys_failure_rate}
@@ -143,22 +144,22 @@ mutually independent.
 The joint pdf of $K_i$ and $T_i$ is given by
 \begin{equation}
 \label{eq:expo_joint_k_s}
-f_{K_i,T_i}(k,t;\lambda) = \lambda_k \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t\biggr)
+f_{K_i,T_i}(k,t|\v\lambda) = \lambda_k \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t\biggr)
 \end{equation}
 where $k \in \{1,\ldots,m\}$ and $t > 0$.
 \begin{proof}
 By definition,
 $$
-f_{K_i,T_i}(k,t;\lambda) =
-    f_{K_i|T_i}(k;\lambda|t) f_{T_i}(t;\lambda).
+f_{K_i,T_i}(k,t|\v\lambda) =
+    f_{K_i|T_i}(k|t,\v\lambda) f_{T_i}(t|\v\lambda).
 $$
 Plugging in the conditional probability and the marginal probability given
 respectively by Equations \eqref{eq:expo_prob_K_given_S} and
 \eqref{eq:expo_sys_pdf} completes the proof.
 \end{proof}
 
-Statistical model
-=================
+Likelihood Model {#likelihood-model}
+====================================
 
 In this study, the system is a series system with $m$
 components. The true DGP for the system lifetime is in the
@@ -166,9 +167,9 @@ exponential series system family, i.e., the component lifetimes are
 exponentially and independently distributed and we denote the
 true parameter value by $\theta$.
 
-The principle object of study is $\theta$, which in the case of
+The principle object of study is $\v\lambda, which in the case of
 the exponential series system family consists of $m$ rate (scale)
-parameters for each component lifetime, $\lambda_1, \ldots, \lambda_m$.
+parameters for each component lifetime, $\v\lambda = (\lambda_1, \ldots, \lambda_m)'$.
 
 We are interested in estimating the $\theta$ from masked data.
 The masking comes in two independent forms:
@@ -318,7 +319,7 @@ Let's simulate generating the lifetimes of the $m = `r m`$ components for this s
 system:
 ```{r}
 set.seed(7231) # set seed for reproducibility
-n <- 75
+n <- 7500
 comp_times <- matrix(nrow=n,ncol=m)
 for (j in 1:m)
     comp_times[,j] <- rexp(n,theta[j])
@@ -436,6 +437,7 @@ $$
 We compute the log-likelihood function as a function of the masked data `data` with:
 ```{r loglike-function}
 ll <- loglik(model)
+print(ll)
 ```
 Note that `md_loglike_exp_series_C1_C2_c3` is implemented using minimally
 sufficient statistics, which improves the computational efficiency of
@@ -469,6 +471,7 @@ We'll show a simple way to solve this using gradient ascent.
 First, we need the gradient function.
 ```{r score-function, message=F, warning=F}
 grad <- score(model)
+print(grad)
 ```
 This is a custom version for computing the gradient of the log-likelihood
 `md_loglike_exp_series_C1_C2_C3`. If `md_score_exp_series_C1_C2_C3` was
@@ -484,107 +487,40 @@ To solve the MLE equation, we use the `optim` function in R and the method
 `BFGS`, which is a quasi-Newton method, which is a second-order local search
 method. Thus, to guarantee convergence to a global maximum that is interior to
 the support of the parameter space (assuming one exists), a good initial guess
-near this point should be chosen. We use the global simulated annealing
-algorithm to find a good initial guess for the MLE.
-```{r sim-anneal, warning=F, cache=TRUE}
+near this point should be chosen.
+
+```{r bfgs, warning=F, cache=TRUE, eval=F}
 library(stats)
-theta0 <- rep(5, m)
-theta.start <- stats::optim(theta0, fn = function(theta) ll(data, theta),
-    method = "SANN",
-    control = list(fnscale = -1, maxit = 1000, trace = 1, REPORT = 1))
-
-print(theta.start$par)
-print(theta.start$value)
+theta0 <- rep(1, m)
+theta.hat <- stats::optim(theta0, fn = ll,
+    method = "L-BFGS-B", lower = 1e-3, hessian = TRUE,
+    control = list(fnscale = -1, maxit = 1000))
 ```
 
 
-```{r}
 
+```{r, eval=F}
+
+print(theta.hat$par)
+print(theta.hat$value)
+
+estimate <- algebraic.mle::mle_numerical(res)
 ```
 
-Let's plot the log-likelihood trace:
-```{r trace-plot, echo=FALSE, fig.width=8, fig.height=4, fig.align='center', fig.cap="Plot of the log-likelihood."}
-logliks <- theta.start$trace_info[,"value"]
-iters <- theta.start$trace_info[,"it"]
-plot(logliks,type="l",xlab="Iteration",ylab="Log-likelihood")
-```
-
-This looks like it's steadily increasing. No doubt, we could keep running the
-simulated annealing algorithm for longer to get a better initial guess, but
-this one is good enough for our purposes.
-
-Let's examine its convergence plots.
-
-```{r param_plots, echo=FALSE, fig.width=8, fig.height=4, fig.align='center', fig.cap="Convergence plot of the simulated annealing algorithm."}
-# Load required library
-library(ggplot2)
-
-# Convert the matrix to a data frame
-data_df <- as_tibble(theta.start$trace_info)
-data_df$best <- as.factor(data_df$best)
-# Reshape data for ggplot2
-library(reshape2)
-long_data <- melt(data_df,
-    id.vars = c("it", "value", "temp", "best"),
-    variable.name = "parameter",
-    value.name = "value_par")
-
-# Convergence plot (1)
-convergence_plot <- ggplot(data_df, aes(x = it, y = value, color = best)) +
-  geom_line() +
-  labs(title = "Convergence Plot",
-       x = "Iteration",
-       y = "Best Function Value") +
-  scale_color_discrete(name = "Best Value", labels = c("No", "Yes"))
-
-print(convergence_plot)
-
-# Parameter traces plot (3)
-parameter_traces_plot <- ggplot(long_data, aes(x = it, y = value_par, color = best)) +
-  geom_line() +
-  facet_wrap(~parameter, ncol = m, scales = "free_y") +
-  labs(title = "Parameter Traces",
-       x = "Iteration",
-       y = "Parameter Value") +
-  scale_color_discrete(name = "Best Value", labels = c("No", "Yes"))
-
-print(parameter_traces_plot)
-
-```
-
-These plots demonstrate the exploration vs. exploitation trade-off of the
-simulated annealing algorithm. Initially, the algorithm explores the parameter
-space quite liberally, accepting very poor solutions, but as the temperature
-decreases, it begins to be more selective, only accepting solutions that are
-better or at least not much worse than the current solution, and eventually
-it only accepts better solutions.
-
-Let's use this as our initial guess for quickly converging to a local (and
-likely global, given that we have a good initial guess) maximum of the
-log-likelihood function.
-
-```{r}
-res <- optim(par = theta.start$par, fn = ll, method = "L-BFGS-B",
-    lower = 1e-3, hessian = TRUE,
-    control = list(fnscale = -1, maxit = 1000, trace = 1, REPORT = 1))
-
-estimate <- mle_numerical(res)
-```
-
-This is a constructor for `mle` objects.
+Note that `mle_numerical` is a constructor for `mle` objects.
 We can get a summary of the object with:
-```{r}
+```{r, eval=F}
 summary(estimate)
 ```
 
 We let `theta.hat` be given by the `point` method, which obtains the point
 $\hat{\theta}$.
-```{r}
-(theta.hat <- point(estimate))
+```{r eval=F}
+(theta.hat <- param(estimate))
 ```
 We see that
 $$
-\hat{\theta} = (`r as.numeric(theta.hat)`)'.
+\hat{\theta} = ...
 $$
 Recall that the true parameter is $\theta = (`r theta`)'$.
 
@@ -596,593 +532,4 @@ close.
 We may measure this sampling variability using the variance-covariance
 matrix, bias, mean squared error (MSE), and confidence intervals.
 
-## Log-likelihood profile
 
-If we let the $\theta_2,\ldots,\theta_m$ in log-likelihood function be fixed
-at their maximum likelihood estimates, then we may profile the log-likelihood function over
-$\theta_1$ to get a better sense of the shape of the log-likelihood function.
-
-```{r,message=F,warning=F, echo=FALSE}
-prof <- function(theta1) { ll(c(theta1,theta.hat[2:m])) }
-prof.data <- tibble(x=seq(max(1e-3,theta.hat[1]-2),theta.hat[1]+2,.05))
-prof.data$y <- numeric(nrow(prof.data))
-for (i in 1:nrow(prof.data))
-    prof.data$y[i] <- prof(prof.data$x[i])
-prof.data %>% ggplot(aes(x=x,y=y)) + geom_line() +
-    geom_point(aes(x=theta.hat[1],prof(theta.hat[1]))) +
-    labs(x="theta1",y="Log-likelihood")
-```
-
-This seems to be a well-behaved loglikelihood profile, essentially quadratic
-in shape with a single maximum. We have some confidence that this is the MLE,
-but of course we could do more to verify this.
-
-
-Sampling distribution of the MLE {#sec:sampling-distribution}
-================================
-The MLE $\hat{\theta}$ as a function of a random sample
-of masked data, and is thus a random vector.
-
-A primary statistic of an estimator is its *confidence interval*.
-A $(1-\alpha)100\%$ confidence interval for $\theta_j$ may be estimated with
-$\hat\theta_j \pm z_{1-\alpha/2} \sqrt{\hat{V}_{j j}}$.
-We provide a method for doing this calculation:
-```{r}
-confint(estimate)
-```
-
-Theoretically, $\hat{\theta}$ converges in distribution
-to the multivariate normal with a mean $\theta$ and 
-variance-covariance matrix $J^{-1}(\theta)$.
-We may estimate $\theta$ with $\hat\theta$A and we may estimate the
-variance-covariance with the inverse of the
-observed Fisher matrix, which is given by
-$$
-    J(\hat{\theta}) = -\nabla^2 l|_{\hat{\theta}}.
-$$
-Thus, approximately,
-$$
-    \hat{\theta} \sim \mathcal{N}(\theta,J^{-1}(\hat{\theta})).
-$$
-
-Asymptotically, $\hat{\theta}$ is the UMVUE, i.e.,
-it is unbiased and obtains the minimum sampling variance.
-An estimate of the variance-covariance may be obtained with:
-```{r}
-(V.hat <- vcov(estimate))
-```
-
-In Figure 2, we show contour plots of the first two components for the MLE sample.
-
-```{r fig2, echo=F, fig.align='center',fig.cap="Figure 2: Countour plots of the first two components of the 500 MLEs."}
-
-library(latex2exp)
-library(patchwork)
-library(mvtnorm)
-
-generate_data <- function(n, theta, tau, p) {
-    m <- length(theta)
-    comp_times <- matrix(nrow=n,ncol=m)
-    for (j in 1:m)
-        comp_times[,j] <- rexp(n,theta[j])
-    comp_times <- md_encode_matrix(comp_times,"t")
-
-    comp_times %>%
-        md_series_lifetime_right_censoring(tau) %>%
-        md_bernoulli_cand_C1_C2_C3(p) %>%
-        md_cand_sampler()
-}
-
-m <- length(theta)
-fig2.R <- 500 # replicates
-fig2.theta.hats <- matrix(nrow = fig2.R, ncol = m)
-
-for (i in 1:fig2.R)
-{
-    data <- generate_data(n = n, theta = theta, tau = tau, p = p)
-    fig2.theta.hats[i,] <- point(
-        md_mle_exp_series_C1_C2_C3(md = data, theta0 = theta))
-}
-
-fig2.plot1 <- ggplot(tibble(x = fig2.theta.hats[, 1],
-                            y = fig2.theta.hats[, 2]), aes(x = x,y = y)) +
-    xlim(c(2, 4)) + ylim(c(2, 4)) +
-    ggtitle("The empirical distribution.") +
-    geom_density_2d() +
-    xlab(TeX("$\\hat{\\lambda}_1$")) +
-    ylab(TeX("$\\hat{\\lambda}_2$"))
-
-fig2.plot1
-```
-
-```{r eval=F}
-fig2.vcov <- vcov(md_mle_exp_series_C1_C2_C3(md,theta))
-fig2.theta.hat.asym <- rmvnorm(fig2.N,theta,fig2.vcov)
-
-fig2.plot2 <- ggplot(tibble(x=fig2.theta.hat.asym[,1],y=fig2.theta.hat.asym[,2]),aes(x=x,y=y)) +
-    xlim(c(2,4)) + ylim(c(2,4)) +
-    ggtitle("The theoretical \n asymptotic distribution.") +
-    geom_density_2d() +
-    xlab(TeX("$\\hat{\\lambda}_1$")) +
-    ylab(TeX("$\\hat{\\lambda}_2$"))
-
-fig2.plot1+fig2.plot2
-```
-
-
-## Bias and mean squared error
-We would like to measure the accuracy and precision of $\hat{\theta}$.
-In statistical literature, the bias
-$$
-\operatorname{b}(\hat{\theta}) = E(\hat{\theta}) - \theta
-$$
-is a measure of accuracy and variance is a measure of precision.
-
-The mean squared error, denoted by $\operatorname{MSE}$, is a measure of
-estimator error that incorporates both the bias and the variance,
-$$
-\operatorname{MSE}(\hat{\theta}) =
-    \operatorname{trace}\bigl(\operatorname{vcov}(\hat{\theta})\bigr) +
-    \operatorname{b}^2(\hat{\theta}).
-$$
-
-Since $\hat{\theta}$ is asymptotically unbiased and minimum variance,
-$$
-\lim_{n \to \infty} \operatorname{MSE}(\hat{\theta}) =
-    \operatorname{trace}\bigl(\operatorname{vcov}(\hat{\theta})\bigr).
-$$
-Thus, for sufficiently large samples, $\operatorname{MSE}(\hat{\theta})$ is
-approximately given by the `trace` of the estimated variance-covariance matrix:
-```{r}
-(mse <- sum(diag(V.hat)))
-```
-
-If we have a sample of $n$ MLEs, $\hat{\theta}^{(1)},\ldots,\hat{\theta}^{(n)}$,
-then we may estimate both the bias and the MSE respectively with the statistics
-$$
-\hat{\operatorname{b}} = \frac{1}{n} \sum_{i=1} \hat{\theta}^{(i)} - \theta
-$$
-and
-$$
-\widehat{\operatorname{MSE}} = \frac{1}{n}
-    \sum_{i=1}^n (\hat{\theta}^{(i)} - \theta)
-                 (\hat{\theta}^{(i)} - \theta)'.
-$$
-We may then compare these statistics, $\hat{\operatorname{b}}$ and
-$\widehat{\operatorname{MSE}}$, with the asymptotic bias $({0})$ and the
-asymptotic $\operatorname{MSE}$.
-
-Let us compute estimates of the bias, variance-covariance, and mean squared
-error as a function of sample size $n$ using Monte Carlo simulation.
-Note that this is similar to the Bootstrap, except we know $\theta$.
-
-```{r, fig.width=5,fig.height=5}
-#stats1 <- readr::read_csv2("./data-raw/exp_series_stats_1.csv")
-```
-
-## Estimating the variance-covariance using the Bootstrap method
-Alternatively, we could estimate $\theta$ with $B$ simulated draws from
-the MLEs that satisfy
-$$
-\operatorname{argmax}_{\theta \in \Omega} \ell(\theta|\mathcal{D_i})
-$$
-where $\mathcal{{D_i}}$ is a random sample from the empirical distribution
-$\{(S_i,\delta_i,C_i)\}_1^n$. We call this the *Bootstrap*.
-
-Assuming the above solution to the MLE equation is _unique_, this gives us a
-single point $\hat{\theta}_{(i)}$ when conditioned on the simulated masked
-data ${D_i}$.
-
-
-```{r  eval=F}
-bias(estimate)
-```
-
-
-Simulation study
-================
-
-## Data generating process (DGP)
-
-## Results
-
-## Visualizations
-
-
-Candidate sets that generate non-unique MLEs {#sec:non-unique-mle}
-============================================
-In some cases, the MLE may be non-unique due to a small sample size.
-However, there are cases where as the sample size $n \to \infty$, the MLE
-remains non-unique, i.e., it is not guaranteed to converge to any value.
-One way in which this can occur for a series system with masked component causes
-of failure is given by the following setup.
-
-Let the exponential series system consist of $m=3$ components. Components
-$1$ and $2$ are on the same circuit board, and component $3$ is on another
-circuit board.
-Whenever the series system fails, the potential components that may have caused
-the failure is determined by replacing the entire circuit board.
-Thus, when compoent $1$ or $2$ fails, the series system is fixed by replacing
-the circuit board they both reside on, and thus the candidate set is 
-$\{1,2\}$. If component $3$ fails, the candidate set is $\{3\}$.
-In this case, the log-likelihood function is given by
-$$
-\ell(\lambda_1,\lambda_2,\lambda_3) = \eta_3 \log(\lambda_3) +
-    \eta_{1 2} \log(\lambda_1+\lambda_2) -
-    (\eta_3+\eta_{1 2}) \bar{s} (\lambda_1+\lambda_2+\lambda_3),
-$$
-where $\eta_3$ denotes the number of observations in which the candidate
-set is $\{3\}$ and $\eta_{1 2}$ denotes the number of observations in which
-the candidate set is $\{1,2\}$.
-
-Let $\hat{\lambda}_1 = 1$, $\hat{\lambda}_2 = 2$, and $\hat{\lambda}_3 = 3$.
-Then,
-$$
-\ell(1,2,3) = \eta_3 \log(3) +
-    \eta_{1 2} \log(1+2) -
-    (\eta_3+\eta_{1 2}) \bar{s}(1+2+3).
-$$
-However, if we interchange the values for $\hat{\lambda}_1$ and $\hat{\lambda}_2$,
-we get the same value for the log-likehood function.
-Thus, any time $(\hat{\lambda}_1,\hat{\lambda}_2,\hat{\lambda}_3)$ is an MLE, so
-is $(\hat{\lambda}_2,\hat{\lambda}_1,\hat{\lambda}_3)$.
-This is known as *non-identifiability*, which means that two or more values of
-the parameters result in the same likelihood of the observed data.
-
-To find an MLE, we take the derivative of $\ell$ with respect to the parameters,
-obtaining the simultaneous equations
-\begin{align}
-\hat\lambda_1 + \hat\lambda_2 &= \frac{\eta_{1 2}}{(\eta_{1 2} + \eta_3) \bar{s}}\\
-\hat\lambda_3                 &= \frac{\eta_3}{(\eta_{1 2} + \eta_3) \bar{s}}
-\end{align}
-We see that
-$$
-\hat\lambda_1 + \hat\lambda_2 =\frac{\eta_{1 2}}{(\eta_{1 2} + \eta_3) \bar{s}}
-$$
-defines a *line*, and thus any point on this line is an MLE of $\hat\lambda_1$
-and $\hat\lambda_2$.
-
-As a demonstration of this occurrence, we run $N = 500000$ simulations for an
-exponential series system with a true parameter $\lambda = (2,3,2.5)'$, starting
-at a random location with the parameter space $\Omega$.
-In Table \ref{mytable}, we show a small sample of the generated masked data.
-
-```{r mytable, echo=F, cache=T, eval=F}
-library(dplyr)
-library(ggplot2)
-library(md_series_system)
-library(algebraic.mle)
-library(cowplot)
-
-n <- 10000
-m <- 3
-theta <- c(2,3,2.5)
-
-md_block_candidate_m3 <- function(md)
-{
-    block <- function(k)
-    {
-        if (k == 1)
-            return(c(T,T,F))
-        if (k == 2)
-            return(c(T,T,F))
-        if (k == 3)
-            return(c(F,F,T))
-    }
-
-    n <- nrow(md)
-    x <- matrix(nrow=n,ncol=3)
-    for (i in 1:n)
-        x[i,] <- block(md$k[i])
-
-    x <- tibble::as_tibble(x)
-    colnames(x) <- paste0("x",1:3)
-    md %>% dplyr::bind_cols(x)
-}
-
-md.nu <- tibble(t1=stats::rexp(n,theta[1]),
-                t2=stats::rexp(n,theta[2]),
-                t3=stats::rexp(n,theta[3])) %>%
-    md_series_lifetime() %>%
-    md_block_candidate_m3()
-
-md.nu.tmp <- md.nu
-md.nu.tmp$x1 <- as.integer(md.nu.tmp$x1)
-md.nu.tmp$x2 <- as.integer(md.nu.tmp$x2)
-md.nu.tmp$x3 <- as.integer(md.nu.tmp$x3)
-#head(round(md.nu.tmp,digits=3),n=10)
-
-knitr::kable(
-    head(md.nu.tmp,n=10),
-    caption="The first 10 observations of simulated masked data for exponentially distributed component lifetimes")
-```
-
-We find an MLE for each, and do density plots for $\hat\lambda_1$ and
-$\hat\lambda_2$ on the left side and $\hat\lambda_3$ on the right side in
-Figure \ref{fig:non-unique}.
-
-```{r non-unique, eval=F, fig.cap="The left figure shows the MLE for lambda1 and lambda2 is centered around the line lambda1 + lambda2 = 5, and the right figure shows that the MLE for lambda3 is highly concentrated around 2.5.",fig.show="hold",echo=F,warning=F,message=F,cache=T}
-loglike.nu.exp <- md_loglike_exp_series_C1_C2_C3(md.nu)
-N <- 1000
-loglikes <- numeric(N)
-theta.nus <- matrix(nrow=N,ncol=3)
-for (i in 1:N)
-{
-    theta.nu <- mle_gradient_ascent(
-        l=loglike.nu.exp,
-        theta0=runif(3,.1,10),
-        stop_cond=function(x,y) abs(max(x-y)) < 1e-5)
-
-    theta.nus[i,] <- point(theta.nu)
-    loglikes[i] <- loglike.nu.exp(point(theta.nu))
-}
-
-dat <- data.frame(data.frame(x=theta.nus[,1], y=theta.nus[,2],z=loglikes))
-plot1 <-ggplot(dat,aes(x=x,y=y)) +
-    #geom_density2d() +
-    geom_density_2d_filled() +
-    #geom_contour()+
-    labs(x="lambda1",y="lambda2") +
-    xlim(0,5) +
-    ylim(0,5)
-dat2 <- data.frame(data.frame(x=theta.nus[,3],z=loglikes))
-
-plot2 <-ggplot(dat2,aes(x=x)) +
-    geom_density() +
-    labs(x="lambda3") +
-    xlim(2,3)
-
-plot_grid(plot1, plot2, labels = "AUTO")
-```
-
-
-Bootstrap stuff
-===============
-
-See Appendix A for more information about the `md_*` functions and see
-The above code produces a data frame `md` whose first $10$ rows are given by
-Table \@ref(tab:mytabl).
-```{r mytabl, eval=F, echo=F, results='asis',tab.cap="The first 10 observations of simulated masked data for exponentially distributed component lifetimes",tab.label="mytabl"}
-md.tmp <- head(md,10)
-md.tmp$x1 <- as.integer(md.tmp$x1)
-md.tmp$x2 <- as.integer(md.tmp$x2)
-md.tmp$x3 <- as.integer(md.tmp$x3)
-md.tmp$delta <- as.integer(md.tmp$delta)
-knitr::kable(
-    md.tmp)
-    #caption="The first 10 observations of simulated masked data for exponentially distributed component lifetimes",
-    #label="tab:mytabl")
-```
-
-Now, we find the MLE with the following R code:
-```{r eval=F}
-loglike.exp <- md_loglike_exp_series_C1_C2_C3(md)
-lambda.hat <- algebraic.mle::mle_gradient_ascent(
-    l=loglike.exp,
-    theta0=lambda)
-points <- cbind(point(lambda.hat),as.matrix(lambda))
-colnames(points) <- c("MLE","Parameter")
-cbind(points,confint(lambda.hat))
-```
-
-In Section \ref{sec:acc_prec}, we consider various ways of analyzing the
-accuracy and precision of the MLE $\hat{\lambda}$.
-To do these estimations, we perform Bootstrapping to generate $R=1000$ MLEs.
-
-TODO: I show a bunch of different estimates, like bias and confidence intervals,
-using the Bootstrap method. I need to work on presenting only interesting
-estimates in a way that helps show what the MLE is like for small samples,
-then show how as the sample gets larger, we become consistent with the
-asymptotic theory of the MLE. So, basically a graph whose x-axis is
-sample size and whose y-axis is MSE or bias.
-
-```{r, eval=F, cache=T}
-N <- c(100,200,300,400,500)
-for (n in N)
-{
-    md <- tibble(t1=stats::rexp(n,rate=lambda[1]),
-                 t2=stats::rexp(n,rate=lambda[2]),
-                 t3=stats::rexp(n,rate=lambda[3])) %>%
-        md_series_lifetime() %>%
-        md_bernoulli_candidate_C1_C2_C3(m)
-    
-    loglike.exp <- md_loglike_exp_series_C1_C2_C3(md)
-    loglike.scr <- md_score_exp_series_C1_C2_C3(md)
-    mle.exp <- mle_gradient_ascent(l=loglike.exp,theta0=lambda,score=loglike.scr)
-    mle.boot <- mle_boot_loglike(mle=mle.exp,
-                                 loglike.gen=md_loglike_exp_series_C1_C2_C3,
-                                 data=md)
-    
-    cat("Sample size: ", n, "\n")
-    cat("---------------\n")
-    
-    print("Estimate of bias using Bootstrap:")
-    print(bias(mle.boot,lambda))
-    
-    print("Estimate of confidence intervals:")
-    print("Asymptotic")
-    print(confint(mle.exp))
-    print("Bootstrap")
-    print(confint(mle.boot))
-
-    print("Estimate of variance-covariance:")
-    print("Asymptotic")
-    print(vcov(mle.exp))
-    print("Bootstrap")
-    print(vcov(mle.boot))
-    
-    print("Estimate of MSE:")
-    print("Asymptotic")
-    print(mse(mle.exp))
-    print("Bootstrap")
-    print(mse(mle.boot,lambda))
-}
-```
-
-The asymptotic mean squared error of $\hat{\lambda}^{(1)},\ldots,\hat{\lambda}^{(N)}$
-is approximately equal to the trace of the inverse of the Fisher information
-matrix evaluated at $\lambda$, which is given by
-```{r,echo=F,eval=F}
-sum(diag(MASS::ginv(-numDeriv::hessian(md_loglike_exp_series_C1_C2_C3(md),lambda))))
-```
-
-
-
-Sensitivity analysis {#sensitivity}
-===================================
-How sensitive is our MLE to sampling conditions? In particular, how
-sensitive is it when we vary the way the candidate sets are generated? 
-First, let's vary the parameter $p$ in the Bernoulli candidate model.
-
-The most informative sample when only changing $p$ is given by letting
-$p=0$, i.e., we know the exact component cause of failure.
-
-```{r}
-data.best <- comp_times %>%
-    md_series_lifetime_right_censoring(tau) %>%
-    md_bernoulli_cand_C1_C2_C3(p=0) %>%
-    md_cand_sampler()
-```
-
-Here's what the new sample looks like:
-```{r}
-print(md_boolean_matrix_to_charsets(data.best,drop_set=TRUE),drop_latent=TRUE)
-```
-It's the same as the previous sample, except that we see that we either have
-only empty candidate sets (the system was right-censored) or candidate sets
-that only contain the failed component (in order to satisfy the condition that
-the failed component must be in the candidate set).
-
-Let's compute the log-likelihood and MLEs for this new sample:
-```{r eval=F}
-ll.best <- md_loglike_exp_series_C1_C2_C3(data.best)
-start.best <- algebraic.mle::sim_anneal(
-    fn=ll.best,
-    par=theta0,
-    options=list(
-        t_init=100,
-        t_end=.001,
-        alpha=.95,
-        maxit=10000,
-        it_per_temp=100,
-        fnscale=-1,
-        sup=function(theta) all(theta > 0),
-        trace=FALSE))
-
-sol <- stats::optim(par = start.best$value,
-    fn = ll.best, method = "BFGS", fnscale = -1)
-estimate.best <- mle_numerical(sol=sol)
-as_tibble(confint(estimate.best)) %>% mutate(mle=point(estimate.best),theta=theta)
-```
-
-This is a very good estimate. How does this compare to the previous
-estimate where $p = .3$? Let's compare the lengths of the confidence
-intervals:
-```{r eval=F}
-ci <- confint(estimate)
-ci.best <- confint(estimate.best)
-
-length <- ci[,2] - ci[,1]
-length.best <- ci.best[,2] - ci.best[,1]
-diff <- point(estimate) - theta
-diff.best <- point(estimate.best) - theta
-tibble(theta=theta) %>%
-    mutate("CI length ratio (length(best)/length(old)"=length.best/length) %>%
-    mutate("mle(best)"=point(estimate.best)) %>%
-    mutate("mle(old)"=point(estimate)) %>%
-    mutate("error(mle(best))"=diff.best) %>%
-    mutate("error(mle(old))"=diff)
-```
-
-
-If *no* information is provided about the component cause of failure
-in a series system, then the estimator is not unique
-and does not converge to $\theta$.
-However, let's do it anyway:
-
-```{r eval=F}
-data.worst <- comp_times %>%
-    md_series_lifetime_right_censoring(tau) %>%
-    md_bernoulli_cand_C1_C2_C3(p=1) %>%
-    md_cand_sampler()
-
-ll.worst <- md_loglike_exp_series_C1_C2_C3(data.worst)
-estimate.worst <- mle_numerical(ll.worst, theta0=theta)
-as_tibble(confint(estimate.worst)) %>% mutate(mle=point(estimate.worst),theta=theta)
-```
-
-Here's what the new sample looks like:
-```{r eval=F}
-print(md_boolean_matrix_to_charsets(data.worst,drop_set=TRUE),drop_latent=TRUE)
-```
-
-Estimating component cause
-==========================
-Another characteristic we may wish to estimate is the probability that a
-particular component in an observation caused the system failure.
-
-We wish to use as much information as possible to do this estimation.
-We consider three cases:
-
-1. We have masked data `data` with candidate sets and system failure times and seek
-   to estimate the node failure probabilities of observations in this data.
-   This case provides the most accurate estimates of the node probability failures,
-   as have both system failure times and candidate sets as predictors of the node
-   failure.
-
-2. We have a new observation of a system failure time and an estimate of $\theta$
-   from `data`. In this case, we cannot condition on candidate sets, since the
-   observation does not include that information. However, we do have a system
-   failure time.
-   
-3. We have an estimate of $\theta$ from `data` but wish to predict the node
-   failure of a system that has failed, but we do not know when it failed.
-
-We consider case 1 described above where we have masked data `data` that includes
-both candidate sets and system failure times.
-
-In this case, we are interested in
-$$
-    f_{K_i|C_i,T_i}(j|c_i,t_i,\theta) = \frac{h_j(t;{\theta_k})}{\sum_{j' \in c_i} h_{j'}(t_i;{\theta_{j'}})},
-$$
-which in the exponential series case simplifies to
-$$
-    f_{K_i|C_,T_i}(j|c_i,t_i,\theta) = \frac{{\theta_j}}{\sum_{j' \in c_i} {\theta_{j'}}}.
-$$
-
-We decorate `md` with this probability distribution with the decorator function
-`md_series_component_failure_probability`, which accepts masked data as input
-and returns the masked data with columns for component cause of failure
-probabilities given by `k1`,...,`km`.
-
-```{r  eval=F}
-#h <- list(function(t) theta.hat[1],
-#          function(t) theta.hat[2],
-#          function(t) theta.hat[3])
-#md %>% md_series_component_failure_probability_decorator(h)
-```
-
-We notice that every row over the columns `k1`, `k2`, and `k3`
-given a specific candidate set are the same.
-This is as expected, since in the case of the exponential series,
-the component failure rates are constant with respect to system
-failure time.
-
-If we already had an estimate of $\theta$ and we sought to predict
-the failed components from only system lifetime data, we would just let
-the candidate sets contain all of the component indexes.
-
-Also, observe that the component failure probabilities
-$$
-    \hat{ k}_i(\theta) = (\hat{k}_1,\hat{k}_2,\hat{k}_3)'
-$$
-is a random vector whose sampling distribution under the right conditions is a
-multivariate normal whose $j$\textsuperscript{th} component is given by
-$$
-    \hat{k}_j \sim \mathcal{N}(f_{K_i|T_i}(j|t_i,\theta),\Sigma_i).
-$$
-We can simulate $n$ draws from $\hat{\theta}$ and then apply the above statistic of
-interest, generating the data
-$$
-    \hat{ k}^{(1)},\ldots,\hat{ k}^{(n)}.
-$$

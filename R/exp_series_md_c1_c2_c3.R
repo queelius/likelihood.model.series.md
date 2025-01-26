@@ -1,3 +1,5 @@
+#' Constructs a likelihood model for `exp_series_md_c1_c2_c3`.
+#' 
 #' Likelihood model for exponential series systems with masked component cause
 #' of failure with candidate sets that satisfy conditions C1, C2, and C3,
 #' desribed below. 
@@ -41,6 +43,8 @@ exp_series_md_c1_c2_c3 <- function(rates = NULL) {
 }
 
 
+#' Generates a log-likelihood function for the `exp_series_md_c1_c2_c3` model.
+#' 
 #' Generates a log-likelihood function for an exponential series system with
 #' respect to rate parameter for masked data with candidate sets that satisfy 
 #' conditions C1, C2, and C3.
@@ -48,8 +52,8 @@ exp_series_md_c1_c2_c3 <- function(rates = NULL) {
 #' @return log-likelihood function that takes the following arguments:
 #'  - `df`: masked data
 #'  - `theta`: rate / scale parameters of component lifetime distributions
-#'  - `sys.var`: system lifetime (optionally right-censored) column name,
-#'               defaults to `t`
+#'  - `lifetime`: system lifetime (optionally right-censored) column name,
+#'                defaults to `t`
 #'  - `candset`: prefix of Boolean matrix encoding of candidate sets, defaults
 #'               to `x`, e.g., `x1,...,xm`.
 #' @importFrom md.tools md_decode_matrix
@@ -78,6 +82,8 @@ loglik.exp_series_md_c1_c2_c3 <- function(model) {
     }
 }
 
+#' Generates a score function for the `exp_series_md_c1_c2_c3` model.
+#' 
 #' Generates a score function for an exponential series system (or
 #' competing risks) with respect to parameter `theta` for masked component
 #' failure (or masked competing risks) with candidate sets (competing risks)
@@ -122,6 +128,8 @@ score.exp_series_md_c1_c2_c3 <- function(model) {
     }
 }
 
+#' Generates the observed information matrix for the `exp_series_md_c1_c2_c3` model.
+#' 
 #' Generates the observed information matrix (FIM) for an exponential series
 #' system with respect to parameter `theta` for masked data with candidate
 #' sets that approximately satisfy conditions C1, C2, and C3 with exact
