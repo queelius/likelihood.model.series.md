@@ -1,5 +1,10 @@
-#' cumulative hazard function for a component hazard function
+#' Cumulative hazard function for a component hazard function
+#'
+#' Creates a cumulative hazard function from a hazard function by integrating.
+#'
 #' @param haz hazard function
+#' @return A function that computes the cumulative hazard at time t
+#' @importFrom stats integrate
 #' @export
 cum_haz <- function(haz) {
     function(t, ...) {

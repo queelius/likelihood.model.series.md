@@ -2,13 +2,16 @@
 % Please edit documentation in R/utils.R
 \name{cum_haz}
 \alias{cum_haz}
-\title{cumulative hazard function for a component hazard function}
+\title{Cumulative hazard function for a component hazard function}
 \usage{
 cum_haz(haz)
 }
 \arguments{
 \item{haz}{hazard function}
 }
+\value{
+A function that computes the cumulative hazard at time t
+}
 \description{
-cumulative hazard function for a component hazard function
+Creates a cumulative hazard function from a hazard function by integrating.
 }

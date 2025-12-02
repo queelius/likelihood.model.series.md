@@ -11,7 +11,8 @@ pexp_series(t, rates, lower.tail = TRUE, log.p = FALSE)
 
 \item{rates}{Vector of rate parameters for exponential component lifetimes.}
 
-\item{lower.tail}{Logical; if TRUE (default), probabilities are \verb{P[X <= x], otherwise, }P\link{X > x}`.}
+\item{lower.tail}{Logical; if TRUE (default), probabilities are P(X <= x),
+otherwise, P(X > x).}
 
 \item{log.p}{Logical; if TRUE, return the log of the cdf.}
 }

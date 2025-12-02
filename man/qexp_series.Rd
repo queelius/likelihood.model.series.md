@@ -11,8 +11,8 @@ qexp_series(p, rates, lower.tail = TRUE, log.p = FALSE)
 
 \item{rates}{Vector of rate parameters for exponential component lifetimes.}
 
-\item{lower.tail}{Logical, if TRUE (default), probabilities are \code{P[X<=x]}
-otherwise, \code{P[X > x]}.}
+\item{lower.tail}{Logical, if TRUE (default), probabilities are P(X <= x),
+otherwise, P(X > x).}
 
 \item{log.p}{Logical, if TRUE, vector of probabilities \code{p} are given as \code{log(p)}.}
 }

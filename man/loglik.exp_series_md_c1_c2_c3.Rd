@@ -2,23 +2,26 @@
 % Please edit documentation in R/exp_series_md_c1_c2_c3.R
 \name{loglik.exp_series_md_c1_c2_c3}
 \alias{loglik.exp_series_md_c1_c2_c3}
-\title{Generates a log-likelihood function for the \code{exp_series_md_c1_c2_c3} model.}
+\title{Log-likelihood method for \code{exp_series_md_c1_c2_c3} model.}
 \usage{
-loglik.exp_series_md_c1_c2_c3(model)
+\method{loglik}{exp_series_md_c1_c2_c3}(model, ...)
+}
+\arguments{
+\item{model}{the likelihood model object}
+
+\item{...}{additional arguments (passed to returned function)}
 }
 \value{
 log-likelihood function that takes the following arguments:
 \itemize{
-\item \code{df}: masked data
-\item \code{theta}: rate / scale parameters of component lifetime distributions
-\item \code{lifetime}: system lifetime (optionally right-censored) column name,
-defaults to \code{t}
-\item \code{candset}: prefix of Boolean matrix encoding of candidate sets, defaults
-to \code{x}, e.g., \verb{x1,...,xm}.
+\item \code{df}: masked data frame
+\item \code{par}: rate / scale parameters of component lifetime distributions
+\item \code{lifetime}: system lifetime column name (default from model)
+\item \code{candset}: prefix of Boolean matrix encoding candidate sets (default from model)
 }
 }
 \description{
-Generates a log-likelihood function for an exponential series system with
-respect to rate parameter for masked data with candidate sets that satisfy
+Returns a log-likelihood function for an exponential series system with
+respect to rate parameters for masked data with candidate sets that satisfy
 conditions C1, C2, and C3.
 }

@@ -15,7 +15,7 @@ md_bernoulli_cand_c1_c2_c3(
 \arguments{
 \item{df}{masked data.}
 
-\item{p}{a vector of probabilities (p\link{j} is the probability that the jth
+\item{p}{a vector of probabilities (\code{p[j]} is the probability that the jth
 system will include a non-failed component in its candidate set,
 assuming the jth system is not right-censored).}
 

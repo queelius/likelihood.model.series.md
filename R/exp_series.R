@@ -13,8 +13,8 @@ NULL
 #'
 #' @param p Vector of quantiles.
 #' @param rates Vector of rate parameters for exponential component lifetimes.
-#' @param lower.tail Logical, if TRUE (default), probabilities are `P[X<=x]`
-#'                   otherwise, `P[X > x]`.
+#' @param lower.tail Logical, if TRUE (default), probabilities are P(X <= x),
+#'                   otherwise, P(X > x).
 #' @param log.p Logical, if TRUE, vector of probabilities `p` are given as `log(p)`.
 #' @return Quantiles corresponding to the given probabilities `p`.
 #' @importFrom stats qexp
@@ -23,12 +23,20 @@ qexp_series <- function(p, rates, lower.tail = TRUE, log.p = FALSE) {
     qexp(p, sum(rates), lower.tail, log.p)
 }
 
-#' Survival function for exponential series.
+#' Random number generation for exponential series.
+#'
+#' Generates random variates from an exponential series distribution.
 #'
 #' @param n Integer, number of observations to generate.
 #' @param rates Vector of rate parameters for exponential component lifetimes.
-#' @return A vector of random variates from the specified exponential series
-#'         distribution.
+#' @param keep_latent Logical; if TRUE, returns a matrix with system lifetimes
+#'                    in the first column and individual component lifetimes in
+#'                    subsequent columns. If FALSE (default), returns only
+#'                    system lifetimes.
+#' @return If `keep_latent = FALSE`, a vector of random variates from the
+#'         exponential series distribution. If `keep_latent = TRUE`, a matrix
+#'         with system lifetime in the first column and component lifetimes
+#'         in columns 2 through m+1.
 #' @importFrom stats rexp
 #' @export
 rexp_series <- function(n, rates, keep_latent = FALSE) {
@@ -63,8 +71,8 @@ dexp_series <- function(t, rates, log = FALSE) {
 #'
 #' @param t Vector of series system lifetimes.
 #' @param rates Vector of rate parameters for exponential component lifetimes.
-#' @param lower.tail Logical; if TRUE (default), probabilities are `P[X <= x],
-#'                   otherwise, `P[X > x]`.
+#' @param lower.tail Logical; if TRUE (default), probabilities are P(X <= x),
+#'                   otherwise, P(X > x).
 #' @param log.p Logical; if TRUE, return the log of the cdf.
 #' @return The cumulative probabilities evaluated at the specified lifetimes.
 #' @importFrom stats pexp
@@ -101,12 +109,18 @@ surv.exp_series <- function(t, rates, log.p = FALSE) {
 }
 
 #' Mean function for exponential series.
-#' 
-#' @param rates Vector of rate parameters for exponential component lifetimes.
-#' @return The mean of the exponential series distribution.
+#'
+#' Computes the expected value of a series system with exponentially distributed
+#' component lifetimes. For a series system with component rates λ₁,...,λₘ,
+#' the system lifetime is exponential with rate Σλⱼ, so E[T] = 1/Σλⱼ.
+#'
+#' @param x An object of class `exp_series` (a vector of rate parameters).
+#' @param ... Additional arguments (ignored, for S3 generic compatibility).
+#' @return The mean of the exponential series distribution (1/sum of rates).
+#' @method mean exp_series
 #' @export
-mean.exp_series <- function(rates) {
-    mean(rates)
+mean.exp_series <- function(x, ...) {
+    1 / sum(x)
 }
 
 

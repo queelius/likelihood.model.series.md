@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_series.R
 \name{rexp_series}
 \alias{rexp_series}
-\title{Survival function for exponential series.}
+\title{Random number generation for exponential series.}
 \usage{
 rexp_series(n, rates, keep_latent = FALSE)
 }
@@ -10,11 +10,18 @@ rexp_series(n, rates, keep_latent = FALSE)
 \item{n}{Integer, number of observations to generate.}
 
 \item{rates}{Vector of rate parameters for exponential component lifetimes.}
+
+\item{keep_latent}{Logical; if TRUE, returns a matrix with system lifetimes
+in the first column and individual component lifetimes in
+subsequent columns. If FALSE (default), returns only
+system lifetimes.}
 }
 \value{
-A vector of random variates from the specified exponential series
-distribution.
+If \code{keep_latent = FALSE}, a vector of random variates from the
+exponential series distribution. If \code{keep_latent = TRUE}, a matrix
+with system lifetime in the first column and component lifetimes
+in columns 2 through m+1.
 }
 \description{
-Survival function for exponential series.
+Generates random variates from an exponential series distribution.
 }

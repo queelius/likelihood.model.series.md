@@ -4,14 +4,18 @@
 \alias{mean.exp_series}
 \title{Mean function for exponential series.}
 \usage{
-\method{mean}{exp_series}(rates)
+\method{mean}{exp_series}(x, ...)
 }
 \arguments{
-\item{rates}{Vector of rate parameters for exponential component lifetimes.}
+\item{x}{An object of class \code{exp_series} (a vector of rate parameters).}
+
+\item{...}{Additional arguments (ignored, for S3 generic compatibility).}
 }
 \value{
-The mean of the exponential series distribution.
+The mean of the exponential series distribution (1/sum of rates).
 }
 \description{
-Mean function for exponential series.
+Computes the expected value of a series system with exponentially distributed
+component lifetimes. For a series system with component rates λ₁,...,λₘ,
+the system lifetime is exponential with rate Σλⱼ, so E\link{T} = 1/Σλⱼ.
 }

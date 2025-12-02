@@ -4,18 +4,24 @@
 \alias{exp_series_md_c1_c2_c3}
 \title{Constructs a likelihood model for \code{exp_series_md_c1_c2_c3}.}
 \usage{
-exp_series_md_c1_c2_c3(rates = NULL)
+exp_series_md_c1_c2_c3(rates = NULL, lifetime = "t", candset = "x")
 }
 \arguments{
-\item{rates}{rate parameters for exponential component lifetimes}
+\item{rates}{rate parameters for exponential component lifetimes (optional,
+used as initial values for MLE if provided)}
+
+\item{lifetime}{column name for system lifetime, defaults to \code{"t"}}
+
+\item{candset}{column prefix for candidate set indicators, defaults to \code{"x"}}
 }
 \value{
-likelihood model object
+likelihood model object with class
+\code{c("exp_series_md_c1_c2_c3", "series_md", "likelihood_model")}
 }
 \description{
 Likelihood model for exponential series systems with masked component cause
 of failure with candidate sets that satisfy conditions C1, C2, and C3,
-desribed below.
+described below.
 }
 \details{
 This model satisfies the concept of a \code{likelihood_model} in the
@@ -23,7 +29,7 @@ This model satisfies the concept of a \code{likelihood_model} in the
 
 (1) \code{loglik.exp_series_md_c1_c2_c3}
 (2) \code{score.exp_series_md_c1_c2_c3}
-(3) \code{hess_loglik.exp_system_series_md_c1_c2_c3}
+(3) \code{hess_loglik.exp_series_md_c1_c2_c3}
 
 These are useful for doing maximum likelihood estimation, hypothesis
 testing (e.g., likelihood ratio test), estimation of asymptotic sampling
@@ -45,4 +51,10 @@ C3: masking probabilities are independent of \code{theta}
 
 As a special case, this model also includes exact component cause of failure
 data where the candidate set is a singleton.
+}
+\examples{
+# Create model and fit to data using generic dispatch
+model <- exp_series_md_c1_c2_c3()
+# solver <- fit(model)
+# mle <- solver(data, par = c(1, 1, 1))
 }

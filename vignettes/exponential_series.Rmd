@@ -17,14 +17,12 @@ knitr::opts_chunk$set(
   echo = TRUE,
   comment = "#>")
 
-library(likelihood.model)
+# likelihood.model.series.md re-exports generics from likelihood.model
+# (loglik, score, hess_loglik, fit, assumptions, fim)
 library(likelihood.model.series.md)
-library(algebraic.mle)
-library(algebraic.dist)
-library(md.tools)
-library(tidyverse)
-library(devtools)
-options(digits=4)
+library(md.tools)  # for md_encode_matrix, md_boolean_matrix_to_charsets
+library(dplyr)     # for %>% pipe operator
+options(digits = 4)
 ```
 
 
@@ -434,14 +432,19 @@ $$
     \sum_{i=1}^{n} (1-\delta_i)\log\left(\sum_{j \in c_i} \theta_j\right).
 $$
 
-We compute the log-likelihood function as a function of the masked data `data` with:
+We compute the log-likelihood function using generic dispatch:
 ```{r loglike-function}
 ll <- loglik(model)
-print(ll)
 ```
-Note that `md_loglike_exp_series_C1_C2_c3` is implemented using minimally
-sufficient statistics, which improves the computational efficiency of
-evaluating the log-likelihood.
+
+The returned function `ll(df, par)` evaluates the log-likelihood at parameter
+`par` given data `df`. For example, at the true parameter value:
+```{r loglike-eval}
+ll(data, theta)
+```
+
+Note that the implementation uses minimally sufficient statistics, which
+improves computational efficiency.
 
 The log-likelihood function contains the maximum amount of information
 about parameter $\theta$ given the sample of masked data `data` satisfying
@@ -467,61 +470,58 @@ $$
 $$
 where $\eta$ is the learning rate.
 
-We'll show a simple way to solve this using gradient ascent.
-First, we need the gradient function.
-```{r score-function, message=F, warning=F}
+We can also obtain the score (gradient) function via generic dispatch:
+```{r score-function, message=FALSE, warning=FALSE}
 grad <- score(model)
-print(grad)
 ```
-This is a custom version for computing the gradient of the log-likelihood
-`md_loglike_exp_series_C1_C2_C3`. If `md_score_exp_series_C1_C2_C3` was
-not implemented, a simple numerical approximation of the gradient could be
-computed instead. More more advanced techniques, like auto-gradient type packages,
-may also be used, but for relatively small samples, it may not be worth the
-time.
+
+The score at the true parameter should be close to zero (at the MLE, it is exactly zero):
+```{r score-eval}
+grad(data, theta)
+```
+
+The `likelihood.model` framework provides analytical score and Hessian
+implementations when available, falling back to numerical differentiation
+otherwise.
 
 In what follows, we use [algebraic.mle](https://github.com/queelius/algebraic.mle)
 to help solve the MLE equations and display various properties of the solution.
 
-To solve the MLE equation, we use the `optim` function in R and the method
-`BFGS`, which is a quasi-Newton method, which is a second-order local search
-method. Thus, to guarantee convergence to a global maximum that is interior to
-the support of the parameter space (assuming one exists), a good initial guess
-near this point should be chosen.
+To solve the MLE equation, we use the generic `fit()` function, which dispatches
+to `fit.likelihood_model` for any object with `"likelihood_model"` in its class.
+The `fit()` function returns a solver that uses `optim` internally with the
+BFGS method by default.
 
-```{r bfgs, warning=F, cache=TRUE, eval=F}
-library(stats)
+```{r fit-model, warning=FALSE, cache=TRUE}
+# Get the solver from the model using generic dispatch
+solver <- fit(model)
+
+# Solve for MLE with initial guess
 theta0 <- rep(1, m)
-theta.hat <- stats::optim(theta0, fn = ll,
-    method = "L-BFGS-B", lower = 1e-3, hessian = TRUE,
-    control = list(fnscale = -1, maxit = 1000))
+estimate <- solver(data, par = theta0, method = "Nelder-Mead")
 ```
 
+The result is an `mle` object from the `algebraic.mle` package with rich
+accessor methods:
 
-
-```{r, eval=F}
-
-print(theta.hat$par)
-print(theta.hat$value)
-
-estimate <- algebraic.mle::mle_numerical(res)
+```{r mle-results}
+# Print summary with confidence intervals
+print(estimate)
 ```
 
-Note that `mle_numerical` is a constructor for `mle` objects.
-We can get a summary of the object with:
-```{r, eval=F}
-summary(estimate)
+We can access specific components of the MLE:
+```{r mle-accessors}
+# Point estimate
+theta.hat <- estimate$theta.hat
+cat("MLE:", round(theta.hat, 4), "\n")
+
+# Standard errors
+cat("SE:", round(estimate$sigma, 4), "\n")
+
+# Log-likelihood at MLE
+cat("Log-likelihood:", round(estimate$loglike, 4), "\n")
 ```
 
-We let `theta.hat` be given by the `point` method, which obtains the point
-$\hat{\theta}$.
-```{r eval=F}
-(theta.hat <- param(estimate))
-```
-We see that
-$$
-\hat{\theta} = ...
-$$
 Recall that the true parameter is $\theta = (`r theta`)'$.
 
 Due to sampling variability, different runs of the experiment
