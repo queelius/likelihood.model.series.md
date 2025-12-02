@@ -444,3 +444,189 @@ distribution. We see that $\widehat{\theta} \neq \theta$, but it is
 reasonably close. We may measure this sampling variability using the
 variance-covariance matrix, bias, mean squared error (MSE), and
 confidence intervals.
+
+### Monte Carlo simulation study
+
+To understand the sampling properties of the MLE, we conduct a Monte
+Carlo simulation study. We repeatedly:
+
+1.  Generate masked data from the true model
+2.  Fit the likelihood model to obtain $\widehat{\theta}$
+3.  Compute asymptotic confidence intervals
+
+From the collection of estimates, we can compute:
+
+- **Bias**:
+  $\text{E}\left\lbrack \widehat{\theta} \right\rbrack - \theta$
+- **Variance**: $\text{Var}\left\lbrack \widehat{\theta} \right\rbrack$
+- **MSE**:
+  $\text{E}\left\lbrack \left( \widehat{\theta} - \theta \right)^{2} \right\rbrack = \text{Bias}^{2} + \text{Var}$
+- **Coverage probability**: Proportion of CIs containing the true value
+
+``` r
+set.seed(7231)
+
+# Simulation parameters
+B <- 200       # Number of Monte Carlo replications
+alpha <- 0.05  # Significance level for CIs
+
+# Storage for results
+estimates <- matrix(NA, nrow = B, ncol = m)
+se_estimates <- matrix(NA, nrow = B, ncol = m)
+ci_lower <- matrix(NA, nrow = B, ncol = m)
+ci_upper <- matrix(NA, nrow = B, ncol = m)
+converged <- logical(B)
+```
+
+``` r
+for (b in 1:B) {
+    # Generate component lifetimes
+    comp_times_b <- matrix(nrow = n, ncol = m)
+    for (j in 1:m) {
+        comp_times_b[, j] <- rexp(n, theta[j])
+    }
+    comp_times_b <- md_encode_matrix(comp_times_b, "t")
+
+    # Apply masking pipeline
+    data_b <- comp_times_b %>%
+        md_series_lifetime_right_censoring(tau) %>%
+        md_bernoulli_cand_c1_c2_c3(p) %>%
+        md_cand_sampler()
+
+    # Fit model
+    tryCatch({
+        result_b <- solver(data_b, par = theta0, method = "Nelder-Mead")
+        estimates[b, ] <- result_b$theta.hat
+        se_estimates[b, ] <- sqrt(diag(result_b$sigma))
+
+        # Asymptotic Wald CIs
+        z <- qnorm(1 - alpha/2)
+        ci_lower[b, ] <- result_b$theta.hat - z * sqrt(diag(result_b$sigma))
+        ci_upper[b, ] <- result_b$theta.hat + z * sqrt(diag(result_b$sigma))
+        converged[b] <- result_b$converged
+    }, error = function(e) {
+        converged[b] <<- FALSE
+    })
+}
+
+cat("Convergence rate:", mean(converged, na.rm = TRUE), "\n")
+#> Convergence rate: 0.99
+```
+
+#### Bias, Variance, and MSE
+
+``` r
+# Compute summary statistics (only for converged runs)
+valid <- converged & !is.na(estimates[, 1])
+est_valid <- estimates[valid, , drop = FALSE]
+
+bias <- colMeans(est_valid) - theta
+variance <- apply(est_valid, 2, var)
+mse <- bias^2 + variance
+rmse <- sqrt(mse)
+
+# Create results table
+results_df <- data.frame(
+    Component = 1:m,
+    True = theta,
+    Mean_Est = colMeans(est_valid),
+    Bias = bias,
+    Variance = variance,
+    MSE = mse,
+    RMSE = rmse,
+    Rel_Bias_Pct = 100 * bias / theta
+)
+
+knitr::kable(results_df, digits = 4,
+             caption = "Monte Carlo Results: Bias, Variance, and MSE",
+             col.names = c("Component", "True θ", "Mean θ̂", "Bias",
+                          "Variance", "MSE", "RMSE", "Rel. Bias %"))
+```
+
+| Component | True θ | Mean θ̂ |    Bias | Variance |    MSE |   RMSE | Rel. Bias % |
+|----------:|-------:|-------:|--------:|---------:|-------:|-------:|------------:|
+|         1 |   1.00 | 1.0026 |  0.0026 |   0.0020 | 0.0020 | 0.0453 |      0.2627 |
+|         2 |   1.10 | 1.0972 | -0.0028 |   0.0023 | 0.0023 | 0.0484 |     -0.2516 |
+|         3 |   0.95 | 0.9461 | -0.0039 |   0.0017 | 0.0017 | 0.0414 |     -0.4146 |
+|         4 |   1.15 | 1.1516 |  0.0016 |   0.0019 | 0.0019 | 0.0437 |      0.1421 |
+|         5 |   1.10 | 1.0967 | -0.0033 |   0.0023 | 0.0023 | 0.0483 |     -0.3024 |
+
+Monte Carlo Results: Bias, Variance, and MSE
+
+#### Confidence Interval Coverage
+
+The asymptotic $(1 - \alpha)$% Wald confidence interval is:
+$${\widehat{\theta}}_{j} \pm z_{1 - \alpha/2} \cdot \text{SE}\left( {\widehat{\theta}}_{j} \right)$$
+
+We assess coverage probability: the proportion of intervals that contain
+the true parameter value.
+
+``` r
+# Compute coverage for each component
+coverage <- numeric(m)
+for (j in 1:m) {
+    valid_j <- valid & !is.na(ci_lower[, j]) & !is.na(ci_upper[, j])
+    covered <- (ci_lower[valid_j, j] <= theta[j]) & (theta[j] <= ci_upper[valid_j, j])
+    coverage[j] <- mean(covered)
+}
+
+# Mean CI width
+mean_width <- colMeans(ci_upper[valid, ] - ci_lower[valid, ], na.rm = TRUE)
+
+coverage_df <- data.frame(
+    Component = 1:m,
+    True = theta,
+    Coverage = coverage,
+    Nominal = 1 - alpha,
+    Mean_Width = mean_width
+)
+
+knitr::kable(coverage_df, digits = 4,
+             caption = paste0("Coverage Probability of ", 100*(1-alpha), "% Confidence Intervals"),
+             col.names = c("Component", "True θ", "Coverage", "Nominal", "Mean Width"))
+```
+
+| Component | True θ | Coverage | Nominal | Mean Width |
+|----------:|-------:|---------:|--------:|-----------:|
+|         1 |   1.00 |   0.9495 |    0.95 |     0.1721 |
+|         2 |   1.10 |   0.9343 |    0.95 |     0.1770 |
+|         3 |   0.95 |   0.9596 |    0.95 |     0.1694 |
+|         4 |   1.15 |   0.9545 |    0.95 |     0.1794 |
+|         5 |   1.10 |   0.9444 |    0.95 |     0.1769 |
+
+Coverage Probability of 95% Confidence Intervals
+
+#### Sampling Distribution Visualization
+
+``` r
+# Plot sampling distributions
+par(mfrow = c(1, min(m, 5)), mar = c(4, 4, 2, 1))
+for (j in 1:min(m, 5)) {
+    hist(est_valid[, j], breaks = 20, probability = TRUE,
+         main = paste0("Component ", j),
+         xlab = expression(hat(theta)[j]),
+         col = "lightblue", border = "white")
+    abline(v = theta[j], col = "red", lwd = 2, lty = 2)
+    abline(v = mean(est_valid[, j]), col = "blue", lwd = 2)
+    legend("topright", legend = c("True", "Mean Est."),
+           col = c("red", "blue"), lty = c(2, 1), lwd = 2, cex = 0.7)
+}
+```
+
+![](exponential_series_files/figure-html/sampling-dist-plot-1.png)
+
+#### Summary
+
+The Monte Carlo simulation demonstrates that the MLE for the exponential
+series system with masked data:
+
+1.  **Is approximately unbiased** - the bias is small relative to the
+    true parameter values
+2.  **Has well-characterized variance** - consistent with asymptotic
+    theory
+3.  **Achieves nominal coverage** - the $(1 - \alpha)$% confidence
+    intervals contain the true value approximately $(1 - \alpha)$% of
+    the time
+
+These properties validate the use of this likelihood model for inference
+about component failure rates from masked series system data.

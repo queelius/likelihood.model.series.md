@@ -652,6 +652,311 @@ but it is reasonably close. We may measure this sampling variability
 using the variance-covariance matrix, bias, mean squared error (MSE),
 and confidence intervals.</p>
 </div>
+<div class="section level3">
+<h3 id="monte-carlo-simulation-study">Monte Carlo simulation study<a class="anchor" aria-label="anchor" href="#monte-carlo-simulation-study"></a>
+</h3>
+<p>To understand the sampling properties of the MLE, we conduct a Monte
+Carlo simulation study. We repeatedly:</p>
+<ol style="list-style-type: decimal">
+<li>Generate masked data from the true model</li>
+<li>Fit the likelihood model to obtain
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>θ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\theta}</annotation></semantics></math>
+</li>
+<li>Compute asymptotic confidence intervals</li>
+</ol>
+<p>From the collection of estimates, we can compute:</p>
+<ul>
+<li>
+<strong>Bias</strong>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">E</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">]</mo></mrow><mo>−</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">\text{E}[\hat{\theta}] - \theta</annotation></semantics></math>
+</li>
+<li>
+<strong>Variance</strong>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Var</mtext><mrow><mo stretchy="true" form="prefix">[</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\text{Var}[\hat{\theta}]</annotation></semantics></math>
+</li>
+<li>
+<strong>MSE</strong>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">E</mtext><mrow><mo stretchy="true" form="prefix">[</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo>−</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msup><mtext mathvariant="normal">Bias</mtext><mn>2</mn></msup><mo>+</mo><mtext mathvariant="normal">Var</mtext></mrow><annotation encoding="application/x-tex">\text{E}[(\hat{\theta} - \theta)^2] = \text{Bias}^2 + \text{Var}</annotation></semantics></math>
+</li>
+<li>
+<strong>Coverage probability</strong>: Proportion of CIs containing
+the true value</li>
+</ul>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7231</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulation parameters</span></span>
+<span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fl">200</span>       <span class="co"># Number of Monte Carlo replications</span></span>
+<span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fl">0.05</span>  <span class="co"># Significance level for CIs</span></span>
+<span></span>
+<span><span class="co"># Storage for results</span></span>
+<span><span class="va">estimates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">NA</span>, nrow <span class="op">=</span> <span class="va">B</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
+<span><span class="va">se_estimates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">NA</span>, nrow <span class="op">=</span> <span class="va">B</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
+<span><span class="va">ci_lower</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">NA</span>, nrow <span class="op">=</span> <span class="va">B</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
+<span><span class="va">ci_upper</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">NA</span>, nrow <span class="op">=</span> <span class="va">B</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
+<span><span class="va">converged</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/logical.html" class="external-link">logical</a></span><span class="op">(</span><span class="va">B</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">b</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">B</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="co"># Generate component lifetimes</span></span>
+<span>    <span class="va">comp_times_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="va">n</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
+<span>    <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">m</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="va">comp_times_b</span><span class="op">[</span>, <span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="op">}</span></span>
+<span>    <span class="va">comp_times_b</span> <span class="op">&lt;-</span> <span class="fu">md_encode_matrix</span><span class="op">(</span><span class="va">comp_times_b</span>, <span class="st">"t"</span><span class="op">)</span></span>
+<span></span>
+<span>    <span class="co"># Apply masking pipeline</span></span>
+<span>    <span class="va">data_b</span> <span class="op">&lt;-</span> <span class="va">comp_times_b</span> <span class="op">%&gt;%</span></span>
+<span>        <span class="fu"><a href="../reference/md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>        <span class="fu"><a href="../reference/md_bernoulli_cand_c1_c2_c3.html">md_bernoulli_cand_c1_c2_c3</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>        <span class="fu"><a href="../reference/md_cand_sampler.html">md_cand_sampler</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span>    <span class="co"># Fit model</span></span>
+<span>    <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
+<span>        <span class="va">result_b</span> <span class="op">&lt;-</span> <span class="fu">solver</span><span class="op">(</span><span class="va">data_b</span>, par <span class="op">=</span> <span class="va">theta0</span>, method <span class="op">=</span> <span class="st">"Nelder-Mead"</span><span class="op">)</span></span>
+<span>        <span class="va">estimates</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">theta.hat</span></span>
+<span>        <span class="va">se_estimates</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">result_b</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span>        <span class="co"># Asymptotic Wald CIs</span></span>
+<span>        <span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">alpha</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span></span>
+<span>        <span class="va">ci_lower</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">theta.hat</span> <span class="op">-</span> <span class="va">z</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">result_b</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">ci_upper</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">theta.hat</span> <span class="op">+</span> <span class="va">z</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">result_b</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">converged</span><span class="op">[</span><span class="va">b</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">converged</span></span>
+<span>    <span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="va">converged</span><span class="op">[</span><span class="va">b</span><span class="op">]</span> <span class="op">&lt;&lt;-</span> <span class="cn">FALSE</span></span>
+<span>    <span class="op">}</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Convergence rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">converged</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Convergence rate: 0.99</span></span></code></pre></div>
+<div class="section level4">
+<h4 id="bias-variance-and-mse">Bias, Variance, and MSE<a class="anchor" aria-label="anchor" href="#bias-variance-and-mse"></a>
+</h4>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Compute summary statistics (only for converged runs)</span></span>
+<span><span class="va">valid</span> <span class="op">&lt;-</span> <span class="va">converged</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">estimates</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">est_valid</span> <span class="op">&lt;-</span> <span class="va">estimates</span><span class="op">[</span><span class="va">valid</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">bias</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">est_valid</span><span class="op">)</span> <span class="op">-</span> <span class="va">theta</span></span>
+<span><span class="va">variance</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">est_valid</span>, <span class="fl">2</span>, <span class="va">var</span><span class="op">)</span></span>
+<span><span class="va">mse</span> <span class="op">&lt;-</span> <span class="va">bias</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="va">variance</span></span>
+<span><span class="va">rmse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">mse</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create results table</span></span>
+<span><span class="va">results_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>    Component <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">m</span>,</span>
+<span>    True <span class="op">=</span> <span class="va">theta</span>,</span>
+<span>    Mean_Est <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">est_valid</span><span class="op">)</span>,</span>
+<span>    Bias <span class="op">=</span> <span class="va">bias</span>,</span>
+<span>    Variance <span class="op">=</span> <span class="va">variance</span>,</span>
+<span>    MSE <span class="op">=</span> <span class="va">mse</span>,</span>
+<span>    RMSE <span class="op">=</span> <span class="va">rmse</span>,</span>
+<span>    Rel_Bias_Pct <span class="op">=</span> <span class="fl">100</span> <span class="op">*</span> <span class="va">bias</span> <span class="op">/</span> <span class="va">theta</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">results_df</span>, digits <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>             caption <span class="op">=</span> <span class="st">"Monte Carlo Results: Bias, Variance, and MSE"</span>,</span>
+<span>             col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Component"</span>, <span class="st">"True θ"</span>, <span class="st">"Mean θ̂"</span>, <span class="st">"Bias"</span>,</span>
+<span>                          <span class="st">"Variance"</span>, <span class="st">"MSE"</span>, <span class="st">"RMSE"</span>, <span class="st">"Rel. Bias %"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<caption>Monte Carlo Results: Bias, Variance, and MSE</caption>
+<colgroup>
+<col width="14%">
+<col width="10%">
+<col width="10%">
+<col width="11%">
+<col width="13%">
+<col width="10%">
+<col width="10%">
+<col width="17%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">Component</th>
+<th align="right">True θ</th>
+<th align="right">Mean θ̂</th>
+<th align="right">Bias</th>
+<th align="right">Variance</th>
+<th align="right">MSE</th>
+<th align="right">RMSE</th>
+<th align="right">Rel. Bias %</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">1.00</td>
+<td align="right">1.0026</td>
+<td align="right">0.0026</td>
+<td align="right">0.0020</td>
+<td align="right">0.0020</td>
+<td align="right">0.0453</td>
+<td align="right">0.2627</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">1.10</td>
+<td align="right">1.0972</td>
+<td align="right">-0.0028</td>
+<td align="right">0.0023</td>
+<td align="right">0.0023</td>
+<td align="right">0.0484</td>
+<td align="right">-0.2516</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">0.95</td>
+<td align="right">0.9461</td>
+<td align="right">-0.0039</td>
+<td align="right">0.0017</td>
+<td align="right">0.0017</td>
+<td align="right">0.0414</td>
+<td align="right">-0.4146</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">1.15</td>
+<td align="right">1.1516</td>
+<td align="right">0.0016</td>
+<td align="right">0.0019</td>
+<td align="right">0.0019</td>
+<td align="right">0.0437</td>
+<td align="right">0.1421</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">1.10</td>
+<td align="right">1.0967</td>
+<td align="right">-0.0033</td>
+<td align="right">0.0023</td>
+<td align="right">0.0023</td>
+<td align="right">0.0483</td>
+<td align="right">-0.3024</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level4">
+<h4 id="confidence-interval-coverage">Confidence Interval Coverage<a class="anchor" aria-label="anchor" href="#confidence-interval-coverage"></a>
+</h4>
+<p>The asymptotic
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1-\alpha)</annotation></semantics></math>%
+Wald confidence interval is:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mi>j</mi></msub><mo>±</mo><msub><mi>z</mi><mrow><mn>1</mn><mo>−</mo><mi>α</mi><mi>/</mi><mn>2</mn></mrow></msub><mo>⋅</mo><mtext mathvariant="normal">SE</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\hat{\theta}_j \pm z_{1-\alpha/2} \cdot \text{SE}(\hat{\theta}_j)
+</annotation></semantics></math></p>
+<p>We assess coverage probability: the proportion of intervals that
+contain the true parameter value.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Compute coverage for each component</span></span>
+<span><span class="va">coverage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">m</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">valid_j</span> <span class="op">&lt;-</span> <span class="va">valid</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ci_lower</span><span class="op">[</span>, <span class="va">j</span><span class="op">]</span><span class="op">)</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ci_upper</span><span class="op">[</span>, <span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="va">covered</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">ci_lower</span><span class="op">[</span><span class="va">valid_j</span>, <span class="va">j</span><span class="op">]</span> <span class="op">&lt;=</span> <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span> <span class="op">&amp;</span> <span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;=</span> <span class="va">ci_upper</span><span class="op">[</span><span class="va">valid_j</span>, <span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="va">coverage</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">covered</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Mean CI width</span></span>
+<span><span class="va">mean_width</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">ci_upper</span><span class="op">[</span><span class="va">valid</span>, <span class="op">]</span> <span class="op">-</span> <span class="va">ci_lower</span><span class="op">[</span><span class="va">valid</span>, <span class="op">]</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">coverage_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>    Component <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">m</span>,</span>
+<span>    True <span class="op">=</span> <span class="va">theta</span>,</span>
+<span>    Coverage <span class="op">=</span> <span class="va">coverage</span>,</span>
+<span>    Nominal <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="va">alpha</span>,</span>
+<span>    Mean_Width <span class="op">=</span> <span class="va">mean_width</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">coverage_df</span>, digits <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>             caption <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Coverage Probability of "</span>, <span class="fl">100</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">alpha</span><span class="op">)</span>, <span class="st">"% Confidence Intervals"</span><span class="op">)</span>,</span>
+<span>             col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Component"</span>, <span class="st">"True θ"</span>, <span class="st">"Coverage"</span>, <span class="st">"Nominal"</span>, <span class="st">"Mean Width"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Coverage Probability of 95% Confidence Intervals</caption>
+<thead><tr class="header">
+<th align="right">Component</th>
+<th align="right">True θ</th>
+<th align="right">Coverage</th>
+<th align="right">Nominal</th>
+<th align="right">Mean Width</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">1.00</td>
+<td align="right">0.9495</td>
+<td align="right">0.95</td>
+<td align="right">0.1721</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">1.10</td>
+<td align="right">0.9343</td>
+<td align="right">0.95</td>
+<td align="right">0.1770</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">0.95</td>
+<td align="right">0.9596</td>
+<td align="right">0.95</td>
+<td align="right">0.1694</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">1.15</td>
+<td align="right">0.9545</td>
+<td align="right">0.95</td>
+<td align="right">0.1794</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">1.10</td>
+<td align="right">0.9444</td>
+<td align="right">0.95</td>
+<td align="right">0.1769</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level4">
+<h4 id="sampling-distribution-visualization">Sampling Distribution Visualization<a class="anchor" aria-label="anchor" href="#sampling-distribution-visualization"></a>
+</h4>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Plot sampling distributions</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">m</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">m</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">est_valid</span><span class="op">[</span>, <span class="va">j</span><span class="op">]</span>, breaks <span class="op">=</span> <span class="fl">20</span>, probability <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>         main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Component "</span>, <span class="va">j</span><span class="op">)</span>,</span>
+<span>         xlab <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/influence.measures.html" class="external-link">hat</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>         col <span class="op">=</span> <span class="st">"lightblue"</span>, border <span class="op">=</span> <span class="st">"white"</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, col <span class="op">=</span> <span class="st">"red"</span>, lwd <span class="op">=</span> <span class="fl">2</span>, lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">est_valid</span><span class="op">[</span>, <span class="va">j</span><span class="op">]</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"blue"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"True"</span>, <span class="st">"Mean Est."</span><span class="op">)</span>,</span>
+<span>           col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"red"</span>, <span class="st">"blue"</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, lwd <span class="op">=</span> <span class="fl">2</span>, cex <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p><img src="exponential_series_files/figure-html/sampling-dist-plot-1.png" class="r-plt" width="768"></p>
+</div>
+<div class="section level4">
+<h4 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
+</h4>
+<p>The Monte Carlo simulation demonstrates that the MLE for the
+exponential series system with masked data:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Is approximately unbiased</strong> - the bias is small
+relative to the true parameter values</li>
+<li>
+<strong>Has well-characterized variance</strong> - consistent with
+asymptotic theory</li>
+<li>
+<strong>Achieves nominal coverage</strong> - the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1-\alpha)</annotation></semantics></math>%
+confidence intervals contain the true value approximately
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1-\alpha)</annotation></semantics></math>%
+of the time</li>
+</ol>
+<p>These properties validate the use of this likelihood model for
+inference about component failure rates from masked series system
+data.</p>
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

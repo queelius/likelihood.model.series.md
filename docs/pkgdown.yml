@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   exponential_series: exponential_series.html
-last_built: 2025-12-02T21:02Z
+last_built: 2025-12-02T22:34Z
 urls:
   reference: https://queelius.github.io/likelihood.md.series.systems/reference
   article: https://queelius.github.io/likelihood.md.series.systems/articles
