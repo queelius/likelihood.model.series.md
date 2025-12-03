@@ -35,6 +35,10 @@
 #' @param rates rate parameters for exponential component lifetimes (optional,
 #'              used as initial values for MLE if provided)
 #' @param lifetime column name for system lifetime, defaults to `"t"`
+#' @param indicator column name for right-censoring indicator, defaults to `"delta"`.
+#'        TRUE/1 = exact failure time, FALSE/0 = right-censored.
+#'        For backwards compatibility, if this column is not present in the data,
+#'        censoring is inferred from empty candidate sets (all FALSE).
 #' @param candset column prefix for candidate set indicators, defaults to `"x"`
 #' @export
 #' @return likelihood model object with class
@@ -44,11 +48,13 @@
 #' model <- exp_series_md_c1_c2_c3()
 #' # solver <- fit(model)
 #' # mle <- solver(data, par = c(1, 1, 1))
-exp_series_md_c1_c2_c3 <- function(rates = NULL, lifetime = "t", candset = "x") {
+exp_series_md_c1_c2_c3 <- function(rates = NULL, lifetime = "t",
+                                   indicator = "delta", candset = "x") {
     structure(
         list(
             rates = rates,
             lifetime = lifetime,
+            indicator = indicator,
             candset = candset
         ),
         class = c("exp_series_md_c1_c2_c3",
@@ -70,6 +76,7 @@ exp_series_md_c1_c2_c3 <- function(rates = NULL, lifetime = "t", candset = "x") 
 #'  - `df`: masked data frame
 #'  - `par`: rate / scale parameters of component lifetime distributions
 #'  - `lifetime`: system lifetime column name (default from model)
+#'  - `indicator`: right-censoring indicator column name (default from model)
 #'  - `candset`: prefix of Boolean matrix encoding candidate sets (default from model)
 #' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model loglik
@@ -78,9 +85,11 @@ exp_series_md_c1_c2_c3 <- function(rates = NULL, lifetime = "t", candset = "x") 
 loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
     # Capture model defaults
     default_lifetime <- model$lifetime %||% "t"
+    default_indicator <- model$indicator %||% "delta"
     default_candset <- model$candset %||% "x"
 
-    function(df, par, lifetime = default_lifetime, candset = default_candset, ...) {
+    function(df, par, lifetime = default_lifetime, indicator = default_indicator,
+             candset = default_candset, ...) {
         if (any(par <= 0)) return(-Inf)
         stopifnot(lifetime %in% colnames(df))
         n <- nrow(df)
@@ -94,14 +103,22 @@ loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
             stop("No candidate sets with prefix '", candset, "' found")
         }
 
-        # Log-likelihood: -sum(t) * sum(theta) + sum_{i: C_i non-empty} log(sum(theta[C_i]))
-        # The candidate set term is only included for uncensored observations
-        # (right-censored observations have empty candidate sets)
+        # Get censoring indicator (backwards compatibility: if not present, infer from candidate sets)
+        if (indicator %in% colnames(df)) {
+            delta <- as.logical(df[[indicator]])
+        } else {
+            # Backwards compatibility: infer from empty candidate sets
+            delta <- rowSums(C) > 0
+        }
+
+        # Log-likelihood: -sum(t) * sum(theta) + sum_{i: delta_i = TRUE} log(sum(theta[C_i]))
         f <- -sum(df[[lifetime]]) * sum(par)
         for (i in seq_len(n)) {
-            theta_c <- sum(par[C[i, ]])
-            if (theta_c > 0) {
-                f <- f + log(theta_c)
+            if (delta[i]) {
+                theta_c <- sum(par[C[i, ]])
+                if (theta_c > 0) {
+                    f <- f + log(theta_c)
+                }
             }
         }
         return(f)
@@ -120,6 +137,7 @@ loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
 #'  - `df`: masked data frame
 #'  - `par`: rate / scale parameters of component lifetime distributions
 #'  - `lifetime`: system lifetime column name (default from model)
+#'  - `indicator`: right-censoring indicator column name (default from model)
 #'  - `candset`: prefix of Boolean matrix encoding candidate sets (default from model)
 #' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model score
@@ -128,9 +146,11 @@ loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
 score.exp_series_md_c1_c2_c3 <- function(model, ...) {
     # Capture model defaults
     default_lifetime <- model$lifetime %||% "t"
+    default_indicator <- model$indicator %||% "delta"
     default_candset <- model$candset %||% "x"
 
-    function(df, par, lifetime = default_lifetime, candset = default_candset, ...) {
+    function(df, par, lifetime = default_lifetime, indicator = default_indicator,
+             candset = default_candset, ...) {
         if (any(par <= 0)) return(rep(NA, length(par)))
         n <- nrow(df)
         if (n == 0) {
@@ -144,11 +164,18 @@ score.exp_series_md_c1_c2_c3 <- function(model, ...) {
         m <- ncol(C)
         stopifnot(length(par) == m)
 
-        # Score: d/d(theta_j) = -sum(t) + sum(1/sum(theta[C_i]) * I(j in C_i))
+        # Get censoring indicator (backwards compatibility)
+        if (indicator %in% colnames(df)) {
+            delta <- as.logical(df[[indicator]])
+        } else {
+            delta <- rowSums(C) > 0
+        }
+
+        # Score: d/d(theta_j) = -sum(t) + sum_{i: delta_i} (1/sum(theta[C_i]) * I(j in C_i))
         v <- rep(-sum(df[[lifetime]]), m)
         for (j in seq_len(m)) {
             for (i in seq_len(n)) {
-                if (C[i, j]) {
+                if (delta[i] && C[i, j]) {
                     v[j] <- v[j] + 1 / sum(par[C[i, ]])
                 }
             }
@@ -169,6 +196,7 @@ score.exp_series_md_c1_c2_c3 <- function(model, ...) {
 #'  - `df`: masked data frame
 #'  - `par`: rate / scale parameters of component lifetime distributions
 #'  - `lifetime`: system lifetime column name (default from model)
+#'  - `indicator`: right-censoring indicator column name (default from model)
 #'  - `candset`: prefix of Boolean matrix encoding candidate sets (default from model)
 #' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model hess_loglik
@@ -177,9 +205,11 @@ score.exp_series_md_c1_c2_c3 <- function(model, ...) {
 hess_loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
     # Capture model defaults
     default_lifetime <- model$lifetime %||% "t"
+    default_indicator <- model$indicator %||% "delta"
     default_candset <- model$candset %||% "x"
 
-    function(df, par, lifetime = default_lifetime, candset = default_candset, ...) {
+    function(df, par, lifetime = default_lifetime, indicator = default_indicator,
+             candset = default_candset, ...) {
         if (any(par <= 0)) return(matrix(NA, length(par), length(par)))
         n <- nrow(df)
         if (n == 0) {
@@ -192,12 +222,19 @@ hess_loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
         }
         if (length(par) != m) stop("length(par) != m")
 
-        # Hessian: d^2/d(theta_j)d(theta_k) = -sum(1/sum(theta[C_i])^2 * I(j,k in C_i))
+        # Get censoring indicator (backwards compatibility)
+        if (indicator %in% colnames(df)) {
+            delta <- as.logical(df[[indicator]])
+        } else {
+            delta <- rowSums(C) > 0
+        }
+
+        # Hessian: d^2/d(theta_j)d(theta_k) = -sum_{i: delta_i}(1/sum(theta[C_i])^2 * I(j,k in C_i))
         H <- matrix(0, nrow = m, ncol = m)
         for (j in seq_len(m)) {
             for (k in seq_len(m)) {
                 for (i in seq_len(n)) {
-                    if (C[i, j] && C[i, k]) {
+                    if (delta[i] && C[i, j] && C[i, k]) {
                         H[j, k] <- H[j, k] - 1 / sum(par[C[i, ]])^2
                     }
                 }

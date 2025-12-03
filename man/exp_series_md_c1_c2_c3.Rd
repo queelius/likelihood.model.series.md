@@ -4,13 +4,23 @@
 \alias{exp_series_md_c1_c2_c3}
 \title{Constructs a likelihood model for \code{exp_series_md_c1_c2_c3}.}
 \usage{
-exp_series_md_c1_c2_c3(rates = NULL, lifetime = "t", candset = "x")
+exp_series_md_c1_c2_c3(
+  rates = NULL,
+  lifetime = "t",
+  indicator = "delta",
+  candset = "x"
+)
 }
 \arguments{
 \item{rates}{rate parameters for exponential component lifetimes (optional,
 used as initial values for MLE if provided)}
 
 \item{lifetime}{column name for system lifetime, defaults to \code{"t"}}
+
+\item{indicator}{column name for right-censoring indicator, defaults to \code{"delta"}.
+TRUE/1 = exact failure time, FALSE/0 = right-censored.
+For backwards compatibility, if this column is not present in the data,
+censoring is inferred from empty candidate sets (all FALSE).}
 
 \item{candset}{column prefix for candidate set indicators, defaults to \code{"x"}}
 }

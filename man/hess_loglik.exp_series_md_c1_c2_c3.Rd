@@ -17,6 +17,7 @@ hessian function that takes the following arguments:
 \item \code{df}: masked data frame
 \item \code{par}: rate / scale parameters of component lifetime distributions
 \item \code{lifetime}: system lifetime column name (default from model)
+\item \code{indicator}: right-censoring indicator column name (default from model)
 \item \code{candset}: prefix of Boolean matrix encoding candidate sets (default from model)
 }
 }

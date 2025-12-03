@@ -26,7 +26,8 @@ Imports:
     algebraic.dist,
     likelihood.model,
     cubature,
-    generics
+    generics,
+    numDeriv
 Remotes:
     github::queelius/md.tools,
     github::queelius/algebraic.mle,
