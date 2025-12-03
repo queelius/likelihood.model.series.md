@@ -630,3 +630,252 @@ series system with masked data:
 
 These properties validate the use of this likelihood model for inference
 about component failure rates from masked series system data.
+
+## Sensitivity Analysis
+
+The MLE properties depend on several factors: sample size, masking
+probability, and right-censoring rate. In this section, we study how
+these factors affect estimation accuracy.
+
+### Effect of Masking Probability
+
+The masking probability $p$ controls how much information about the
+failed component is obscured. When $p = 0$, only the failed component is
+in the candidate set (perfect information). As $p$ increases, more
+non-failed components are included, making estimation more difficult.
+
+``` r
+set.seed(7231)
+
+# Use smaller sample for sensitivity study
+n_sens <- 500
+B_sens <- 100
+
+# Masking probabilities to test
+p_values <- seq(0, 0.5, by = 0.1)
+
+# Fixed right-censoring (25% censored)
+q_sens <- 0.25
+tau_sens <- rep(-(1/sum(theta))*log(q_sens), n_sens)
+
+# Storage
+mask_results <- list()
+```
+
+``` r
+for (p_idx in seq_along(p_values)) {
+    p_curr <- p_values[p_idx]
+    est_p <- matrix(NA, nrow = B_sens, ncol = m)
+
+    for (b in 1:B_sens) {
+        # Generate data
+        comp_b <- matrix(nrow = n_sens, ncol = m)
+        for (j in 1:m) comp_b[, j] <- rexp(n_sens, theta[j])
+        comp_b <- md_encode_matrix(comp_b, "t")
+
+        data_b <- comp_b %>%
+            md_series_lifetime_right_censoring(tau_sens) %>%
+            md_bernoulli_cand_c1_c2_c3(p_curr) %>%
+            md_cand_sampler()
+
+        tryCatch({
+            fit_b <- solver(data_b, par = theta0, method = "Nelder-Mead")
+            if (fit_b$converged) est_p[b, ] <- fit_b$theta.hat
+        }, error = function(e) NULL)
+    }
+
+    # Compute statistics
+    valid_p <- !is.na(est_p[, 1])
+    mask_results[[p_idx]] <- list(
+        p = p_curr,
+        bias = colMeans(est_p[valid_p, , drop = FALSE]) - theta,
+        variance = apply(est_p[valid_p, , drop = FALSE], 2, var),
+        mse = (colMeans(est_p[valid_p, , drop = FALSE]) - theta)^2 +
+              apply(est_p[valid_p, , drop = FALSE], 2, var)
+    )
+}
+```
+
+``` r
+# Extract bias and MSE for plotting
+bias_mat <- sapply(mask_results, function(x) mean(abs(x$bias)))
+mse_mat <- sapply(mask_results, function(x) mean(x$mse))
+
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+# Mean absolute bias vs masking probability
+plot(p_values, bias_mat, type = "b", pch = 19, col = "blue",
+     xlab = "Masking Probability (p)",
+     ylab = "Mean Absolute Bias",
+     main = "Bias vs Masking Probability")
+grid()
+
+# Mean MSE vs masking probability
+plot(p_values, mse_mat, type = "b", pch = 19, col = "red",
+     xlab = "Masking Probability (p)",
+     ylab = "Mean MSE",
+     main = "MSE vs Masking Probability")
+grid()
+```
+
+![](exponential_series_files/figure-html/masking-sensitivity-plot-1.png)
+
+``` r
+mask_df <- data.frame(
+    p = p_values,
+    Mean_Abs_Bias = bias_mat,
+    Mean_MSE = mse_mat,
+    Mean_RMSE = sqrt(mse_mat)
+)
+
+knitr::kable(mask_df, digits = 4,
+             caption = "Effect of Masking Probability on Estimation Accuracy",
+             col.names = c("Masking Prob.", "Mean |Bias|", "Mean MSE", "Mean RMSE"))
+```
+
+| Masking Prob. | Mean \|Bias\| | Mean MSE | Mean RMSE |
+|--------------:|--------------:|---------:|----------:|
+|           0.0 |        0.0133 |   0.0143 |    0.1197 |
+|           0.1 |        0.0136 |   0.0186 |    0.1365 |
+|           0.2 |        0.0065 |   0.0212 |    0.1456 |
+|           0.3 |        0.0194 |   0.0303 |    0.1741 |
+|           0.4 |        0.0285 |   0.0389 |    0.1973 |
+|           0.5 |        0.0240 |   0.0590 |    0.2430 |
+
+Effect of Masking Probability on Estimation Accuracy
+
+As expected, increasing the masking probability generally increases both
+bias and MSE. With $p = 0$ (no masking of non-failed components), we
+have the most information and achieve the best estimation accuracy. As
+$p$ increases toward 0.5, the candidate sets become less informative,
+leading to less precise estimates.
+
+### Effect of Right-Censoring Rate
+
+Right-censoring reduces the number of exact failure times observed. When
+a system is right-censored, we know the system survived beyond the
+censoring time, but we don’t observe the actual failure time or failed
+component.
+
+``` r
+set.seed(7231)
+
+# Censoring quantiles (proportion surviving past tau)
+# q = 0.1 means 10% survive (heavy censoring)
+# q = 0.9 means 90% survive (light censoring)
+q_values <- c(0.9, 0.7, 0.5, 0.3, 0.1)  # Survival probabilities
+
+# Fixed masking probability
+p_cens <- 0.2
+
+# Storage
+cens_results <- list()
+```
+
+``` r
+for (q_idx in seq_along(q_values)) {
+    q_curr <- q_values[q_idx]
+    tau_curr <- rep(-(1/sum(theta))*log(q_curr), n_sens)
+    est_q <- matrix(NA, nrow = B_sens, ncol = m)
+
+    for (b in 1:B_sens) {
+        # Generate data
+        comp_b <- matrix(nrow = n_sens, ncol = m)
+        for (j in 1:m) comp_b[, j] <- rexp(n_sens, theta[j])
+        comp_b <- md_encode_matrix(comp_b, "t")
+
+        data_b <- comp_b %>%
+            md_series_lifetime_right_censoring(tau_curr) %>%
+            md_bernoulli_cand_c1_c2_c3(p_cens) %>%
+            md_cand_sampler()
+
+        tryCatch({
+            fit_b <- solver(data_b, par = theta0, method = "Nelder-Mead")
+            if (fit_b$converged) est_q[b, ] <- fit_b$theta.hat
+        }, error = function(e) NULL)
+    }
+
+    # Compute statistics
+    valid_q <- !is.na(est_q[, 1])
+    cens_rate <- 1 - mean(data_b$delta)  # Actual censoring rate
+    cens_results[[q_idx]] <- list(
+        q = q_curr,
+        cens_rate = cens_rate,
+        bias = colMeans(est_q[valid_q, , drop = FALSE]) - theta,
+        variance = apply(est_q[valid_q, , drop = FALSE], 2, var),
+        mse = (colMeans(est_q[valid_q, , drop = FALSE]) - theta)^2 +
+              apply(est_q[valid_q, , drop = FALSE], 2, var)
+    )
+}
+```
+
+``` r
+# Extract statistics
+cens_rates <- sapply(cens_results, function(x) x$cens_rate)
+bias_cens <- sapply(cens_results, function(x) mean(abs(x$bias)))
+mse_cens <- sapply(cens_results, function(x) mean(x$mse))
+
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+# Mean absolute bias vs censoring rate
+plot(cens_rates * 100, bias_cens, type = "b", pch = 19, col = "blue",
+     xlab = "Censoring Rate (%)",
+     ylab = "Mean Absolute Bias",
+     main = "Bias vs Censoring Rate")
+grid()
+
+# Mean MSE vs censoring rate
+plot(cens_rates * 100, mse_cens, type = "b", pch = 19, col = "red",
+     xlab = "Censoring Rate (%)",
+     ylab = "Mean MSE",
+     main = "MSE vs Censoring Rate")
+grid()
+```
+
+![](exponential_series_files/figure-html/censoring-sensitivity-plot-1.png)
+
+``` r
+cens_df <- data.frame(
+    Cens_Rate_Pct = round(cens_rates * 100, 1),
+    Mean_Abs_Bias = bias_cens,
+    Mean_MSE = mse_cens,
+    Mean_RMSE = sqrt(mse_cens)
+)
+
+knitr::kable(cens_df, digits = 4,
+             caption = "Effect of Right-Censoring Rate on Estimation Accuracy",
+             col.names = c("Censoring %", "Mean |Bias|", "Mean MSE", "Mean RMSE"))
+```
+
+| Censoring % | Mean \|Bias\| | Mean MSE | Mean RMSE |
+|------------:|--------------:|---------:|----------:|
+|        91.0 |        0.0556 |   0.1745 |    0.4177 |
+|        68.2 |        0.0173 |   0.0568 |    0.2383 |
+|        52.2 |        0.0118 |   0.0340 |    0.1843 |
+|        28.8 |        0.0183 |   0.0245 |    0.1566 |
+|         7.8 |        0.0085 |   0.0171 |    0.1308 |
+
+Effect of Right-Censoring Rate on Estimation Accuracy
+
+Higher censoring rates (more systems surviving past the observation
+period) lead to increased bias and MSE. This is expected because:
+
+1.  Censored observations contribute less information to the likelihood
+2.  For censored systems, we only know the system survived beyond
+    $\tau$, not which component would have failed
+3.  No candidate set information is available for censored observations
+
+### Practical Recommendations
+
+Based on these sensitivity analyses:
+
+1.  **Sample size**: Larger samples (n \> 500) generally provide stable,
+    well-behaved estimates
+2.  **Masking probability**: Keep $p$ as low as practically possible.
+    Even moderate masking ($p \leq 0.3$) produces acceptable results
+    with sufficient sample size
+3.  **Censoring**: Heavy censoring (\> 50%) significantly degrades
+    estimation quality. Design experiments with adequate follow-up time
+    when possible
+4.  **Combined effects**: When both masking and censoring are high,
+    consider increasing sample size to compensate for information loss
