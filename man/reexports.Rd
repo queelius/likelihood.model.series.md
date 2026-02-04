@@ -8,6 +8,8 @@
 \alias{hess_loglik}
 \alias{assumptions}
 \alias{fim}
+\alias{observed_info}
+\alias{rdata}
 \alias{fit}
 \title{Objects exported from other packages}
 \keyword{internal}
@@ -18,6 +20,6 @@ below to see their documentation.
 \describe{
   \item{generics}{\code{\link[generics]{fit}}}
 
-  \item{likelihood.model}{\code{\link[likelihood.model]{assumptions}}, \code{\link[likelihood.model]{fim}}, \code{\link[likelihood.model]{hess_loglik}}, \code{\link[likelihood.model]{loglik}}, \code{\link[likelihood.model]{score}}}
+  \item{likelihood.model}{\code{\link[likelihood.model]{assumptions}}, \code{\link[likelihood.model]{fim}}, \code{\link[likelihood.model]{hess_loglik}}, \code{\link[likelihood.model]{loglik}}, \code{\link[likelihood.model]{observed_info}}, \code{\link[likelihood.model]{rdata}}, \code{\link[likelihood.model]{score}}}
 }}
 

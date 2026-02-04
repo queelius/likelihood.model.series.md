@@ -17,6 +17,9 @@ knitr::opts_chunk$set(
   echo = TRUE,
   comment = "#>")
 
+# Set to TRUE to regenerate long-running simulation results
+run_long <- FALSE
+
 # likelihood.model.series.md re-exports generics from likelihood.model
 # (loglik, score, hess_loglik, fit, assumptions, fim)
 library(likelihood.model.series.md)
@@ -492,7 +495,7 @@ to `fit.likelihood_model` for any object with `"likelihood_model"` in its class.
 The `fit()` function returns a solver that uses `optim` internally with the
 BFGS method by default.
 
-```{r fit-model, warning=FALSE, cache=TRUE}
+```{r fit-model, warning=FALSE}
 # Get the solver from the model using generic dispatch
 solver <- fit(model)
 
@@ -512,14 +515,14 @@ print(estimate)
 We can access specific components of the MLE:
 ```{r mle-accessors}
 # Point estimate
-theta.hat <- estimate$theta.hat
+theta.hat <- estimate$par
 cat("MLE:", round(theta.hat, 4), "\n")
 
-# Standard errors
-cat("SE:", round(estimate$sigma, 4), "\n")
+# Standard errors (sqrt of diagonal of variance-covariance matrix)
+cat("SE:", round(sqrt(diag(estimate$vcov)), 4), "\n")
 
 # Log-likelihood at MLE
-cat("Log-likelihood:", round(estimate$loglike, 4), "\n")
+cat("Log-likelihood:", round(estimate$loglik, 4), "\n")
 ```
 
 Recall that the true parameter is $\theta = (`r theta`)'$.
@@ -548,7 +551,12 @@ From the collection of estimates, we can compute:
 - **MSE**: $\text{E}[(\hat{\theta} - \theta)^2] = \text{Bias}^2 + \text{Var}$
 - **Coverage probability**: Proportion of CIs containing the true value
 
-```{r monte-carlo-setup, cache=TRUE}
+```{r load-precomputed, include=FALSE, eval=!run_long}
+# Load pre-computed simulation results when not re-running
+list2env(readRDS("precomputed_results.rds"), envir = environment())
+```
+
+```{r monte-carlo-setup, cache=TRUE, eval=run_long}
 set.seed(7231)
 
 # Simulation parameters
@@ -563,7 +571,7 @@ ci_upper <- matrix(NA, nrow = B, ncol = m)
 converged <- logical(B)
 ```
 
-```{r monte-carlo-run, cache=TRUE, warning=FALSE}
+```{r monte-carlo-run, cache=TRUE, warning=FALSE, eval=run_long}
 for (b in 1:B) {
     # Generate component lifetimes
     comp_times_b <- matrix(nrow = n, ncol = m)
@@ -581,13 +589,13 @@ for (b in 1:B) {
     # Fit model
     tryCatch({
         result_b <- solver(data_b, par = theta0, method = "Nelder-Mead")
-        estimates[b, ] <- result_b$theta.hat
-        se_estimates[b, ] <- sqrt(diag(result_b$sigma))
+        estimates[b, ] <- result_b$par
+        se_estimates[b, ] <- sqrt(diag(result_b$vcov))
 
         # Asymptotic Wald CIs
         z <- qnorm(1 - alpha/2)
-        ci_lower[b, ] <- result_b$theta.hat - z * sqrt(diag(result_b$sigma))
-        ci_upper[b, ] <- result_b$theta.hat + z * sqrt(diag(result_b$sigma))
+        ci_lower[b, ] <- result_b$par - z * sqrt(diag(result_b$vcov))
+        ci_upper[b, ] <- result_b$par + z * sqrt(diag(result_b$vcov))
         converged[b] <- result_b$converged
     }, error = function(e) {
         converged[b] <<- FALSE
@@ -681,16 +689,30 @@ for (j in 1:min(m, 5)) {
 
 ### Summary
 
-The Monte Carlo simulation demonstrates that the MLE for the exponential series
-system with masked data:
+The Monte Carlo simulation ($n = 7500$, $B = 200$, $p = 0.3$, $\sim 25\%$
+censoring) demonstrates that the MLE for the exponential series system with
+masked data satisfying conditions C1--C3 has desirable large-sample properties:
 
-1. **Is approximately unbiased** - the bias is small relative to the true parameter values
-2. **Has well-characterized variance** - consistent with asymptotic theory
-3. **Achieves nominal coverage** - the $(1-\alpha)$% confidence intervals contain
-   the true value approximately $(1-\alpha)$% of the time
+- **Essentially unbiased.** All relative biases are below 0.7%, with the largest
+  being component 5 at 0.67%. The squared-bias contribution to MSE is negligible
+  (e.g., component 1: $\text{bias}^2 \approx 2 \times 10^{-7}$ vs
+  $\text{Var} = 0.0019$). The MLE is consistent and approximately unbiased at
+  this sample size.
 
-These properties validate the use of this likelihood model for inference about
-component failure rates from masked series system data.
+- **Uniform relative precision.** RMSE ranges from 0.043 to 0.046 across
+  components --- roughly 4--5% of the true rates. This uniformity is consistent
+  with the asymptotic efficiency of the MLE: components with higher failure rates
+  (and thus higher variance) also have proportionally wider CIs.
+
+- **Coverage near nominal.** Coverage ranges from 93.4% to 96.5% against a
+  nominal 95%. Component 4 (93.4%) slightly undercovers, suggesting the Wald
+  interval may be mildly liberal for some components at this sample size. This
+  is a known finite-sample property of Wald intervals for rate parameters.
+
+- **CI width as a design metric.** Mean CI widths of 0.170--0.180 (about
+  $\pm 8.5\%$ of the true rate) provide a concrete basis for sample size
+  planning. Since CI width scales as $1/\sqrt{n}$, halving the width requires
+  roughly $4\times$ the sample size.
 
 Sensitivity Analysis {#sensitivity}
 ===================================
@@ -706,7 +728,7 @@ component is obscured. When $p = 0$, only the failed component is in the
 candidate set (perfect information). As $p$ increases, more non-failed
 components are included, making estimation more difficult.
 
-```{r masking-sensitivity-setup, cache=TRUE}
+```{r masking-sensitivity-setup, cache=TRUE, eval=run_long}
 set.seed(7231)
 
 # Use smaller sample for sensitivity study
@@ -724,7 +746,7 @@ tau_sens <- rep(-(1/sum(theta))*log(q_sens), n_sens)
 mask_results <- list()
 ```
 
-```{r masking-sensitivity-run, cache=TRUE, warning=FALSE, message=FALSE}
+```{r masking-sensitivity-run, cache=TRUE, warning=FALSE, message=FALSE, eval=run_long}
 for (p_idx in seq_along(p_values)) {
     p_curr <- p_values[p_idx]
     est_p <- matrix(NA, nrow = B_sens, ncol = m)
@@ -742,7 +764,7 @@ for (p_idx in seq_along(p_values)) {
 
         tryCatch({
             fit_b <- solver(data_b, par = theta0, method = "Nelder-Mead")
-            if (fit_b$converged) est_p[b, ] <- fit_b$theta.hat
+            if (fit_b$converged) est_p[b, ] <- fit_b$par
         }, error = function(e) NULL)
     }
 
@@ -793,11 +815,28 @@ knitr::kable(mask_df, digits = 4,
              col.names = c("Masking Prob.", "Mean |Bias|", "Mean MSE", "Mean RMSE"))
 ```
 
-As expected, increasing the masking probability generally increases both bias
-and MSE. With $p = 0$ (no masking of non-failed components), we have the most
-information and achieve the best estimation accuracy. As $p$ increases toward
-0.5, the candidate sets become less informative, leading to less precise
-estimates.
+The simulation reveals several patterns in how masking degrades estimation
+quality:
+
+- **MSE increases monotonically** from 0.015 ($p = 0$) to 0.062 ($p = 0.5$)
+  --- a $4.2\times$ degradation. RMSE roughly doubles from 0.12 to 0.25,
+  meaning the typical estimation error doubles when moving from unmasked to
+  maximally masked candidate sets.
+
+- **Variance drives the degradation, not bias.** Mean $|\text{bias}|$
+  fluctuates between 0.008 and 0.026 with no systematic trend, while variance
+  grows steadily with $p$. This is consistent with the theoretical result that
+  conditions C1--C3 preserve the unbiasedness of the MLE --- masking erodes
+  *precision* without introducing systematic error.
+
+- **The marginal cost of masking accelerates.** MSE roughly doubles from $p = 0$
+  to $p = 0.3$ ($0.015 \to 0.033$), then roughly doubles again from $p = 0.3$
+  to $p = 0.5$ ($0.033 \to 0.062$). For practitioners, this means moderate
+  masking ($p \leq 0.3$) is far less costly than heavy masking.
+
+- **Residual MSE at $p = 0$.** Even with no masking of non-failed components,
+  MSE of 0.015 remains due to right-censoring alone --- a useful baseline for
+  isolating the censoring contribution.
 
 ## Effect of Right-Censoring Rate
 
@@ -805,13 +844,13 @@ Right-censoring reduces the number of exact failure times observed. When a
 system is right-censored, we know the system survived beyond the censoring
 time, but we don't observe the actual failure time or failed component.
 
-```{r censoring-sensitivity-setup, cache=TRUE}
+```{r censoring-sensitivity-setup, cache=TRUE, eval=run_long}
 set.seed(7231)
 
 # Censoring quantiles (proportion surviving past tau)
-# q = 0.1 means 10% survive (heavy censoring)
-# q = 0.9 means 90% survive (light censoring)
-q_values <- c(0.9, 0.7, 0.5, 0.3, 0.1)  # Survival probabilities
+# q = 0.1 means 10% survive past tau (light censoring, ~10% censored)
+# q = 0.9 means 90% survive past tau (heavy censoring, ~90% censored)
+q_values <- seq(0.1, 0.9, by = 0.1)  # Survival probabilities (matches simulation framework)
 
 # Fixed masking probability
 p_cens <- 0.2
@@ -820,7 +859,7 @@ p_cens <- 0.2
 cens_results <- list()
 ```
 
-```{r censoring-sensitivity-run, cache=TRUE, warning=FALSE, message=FALSE}
+```{r censoring-sensitivity-run, cache=TRUE, warning=FALSE, message=FALSE, eval=run_long}
 for (q_idx in seq_along(q_values)) {
     q_curr <- q_values[q_idx]
     tau_curr <- rep(-(1/sum(theta))*log(q_curr), n_sens)
@@ -839,7 +878,7 @@ for (q_idx in seq_along(q_values)) {
 
         tryCatch({
             fit_b <- solver(data_b, par = theta0, method = "Nelder-Mead")
-            if (fit_b$converged) est_q[b, ] <- fit_b$theta.hat
+            if (fit_b$converged) est_q[b, ] <- fit_b$par
         }, error = function(e) NULL)
     }
 
@@ -893,25 +932,61 @@ knitr::kable(cens_df, digits = 4,
              col.names = c("Censoring %", "Mean |Bias|", "Mean MSE", "Mean RMSE"))
 ```
 
-Higher censoring rates (more systems surviving past the observation period)
-lead to increased bias and MSE. This is expected because:
+The simulation reveals that censoring is the dominant source of information
+loss in this model:
 
-1. Censored observations contribute less information to the likelihood
-2. For censored systems, we only know the system survived beyond $\tau$, not
-   which component would have failed
-3. No candidate set information is available for censored observations
+- **MSE grows from 0.019 (10% censored) to 0.183 (90% censored)** --- a
+  $9.5\times$ degradation, far exceeding the $4.2\times$ range from masking.
+  Censoring is more damaging because it eliminates *both* the failure time and
+  the candidate set, whereas masking only dilutes the candidate set.
+
+- **Clear inflection around 50% censoring.** MSE is still manageable at 50%
+  ($0.040$) but jumps to $0.059$ at 70% and $0.183$ at 90%. The relationship
+  between censoring rate and MSE is convex --- each additional percentage point
+  of censoring is more damaging than the last.
+
+- **Bias remains modest even under extreme censoring.** Mean $|\text{bias}|$
+  grows from 0.005 (10% censoring) to 0.034 (90% censoring) but stays small
+  relative to the true rates ($\sim 3\%$ at worst). The MLE remains
+  approximately unbiased --- it is consistent but increasingly inefficient.
+
+- **Robustness under extreme censoring.** At 90% censoring, only $\sim 50$ of
+  500 observations are exact failures, yet the MLE still converges. The
+  resulting estimates are imprecise (RMSE $\approx 0.43$, or $\sim 40\%$ of the
+  true rates), but the likelihood-based approach remains functional.
+
+```{r save-precomputed, include=FALSE, eval=run_long}
+# Save simulation results for future fast vignette builds
+saveRDS(list(
+    estimates = estimates, se_estimates = se_estimates,
+    ci_lower = ci_lower, ci_upper = ci_upper, converged = converged,
+    B = B, alpha = alpha,
+    mask_results = mask_results, p_values = p_values,
+    cens_results = cens_results, q_values = q_values,
+    theta = theta, m = m, n_sens = n_sens, B_sens = B_sens, p_cens = p_cens
+), "precomputed_results.rds")
+```
 
 ## Practical Recommendations
 
 Based on these sensitivity analyses:
 
-1. **Sample size**: Larger samples (n > 500) generally provide stable,
-   well-behaved estimates
-2. **Masking probability**: Keep $p$ as low as practically possible. Even
-   moderate masking ($p \leq 0.3$) produces acceptable results with sufficient
-   sample size
-3. **Censoring**: Heavy censoring (> 50%) significantly degrades estimation
-   quality. Design experiments with adequate follow-up time when possible
-4. **Combined effects**: When both masking and censoring are high, consider
-   increasing sample size to compensate for information loss
+1. **Prioritize reducing censoring over masking.** Censoring degrades MSE by
+   $9.5\times$ across its range versus $4.2\times$ for masking. In experimental
+   design, extending the observation window to reduce censoring below 50% yields
+   larger gains than improving diagnostic resolution to reduce masking.
+
+2. **Moderate masking is tolerable.** MSE only doubles from $p = 0$ to
+   $p = 0.3$. If reducing the masking probability below 0.3 requires expensive
+   diagnostic equipment, the incremental benefit may not justify the cost.
+
+3. **The 50% censoring threshold.** Below $\sim 50\%$ censoring, estimation
+   quality degrades gradually. Above it, MSE grows convexly --- avoid
+   experimental designs where more than half the systems survive past the
+   observation window.
+
+4. **CI widths for sample size planning.** At $n = 7500$ with $p = 0.3$ and
+   25% censoring, 95% CI widths are $\sim 0.17$ for rates near 1.0. Width
+   scales as $1/\sqrt{n}$, so $n = 1875$ gives widths of $\sim 0.34$ (double),
+   and $n = 30000$ gives $\sim 0.085$ (half).
 

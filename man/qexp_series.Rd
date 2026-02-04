@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_series.R
 \name{qexp_series}
 \alias{qexp_series}
-\title{Qunatile function for exponential series.}
+\title{Quantile function for exponential series.}
 \usage{
 qexp_series(p, rates, lower.tail = TRUE, log.p = FALSE)
 }
@@ -20,5 +20,5 @@ otherwise, P(X > x).}
 Quantiles corresponding to the given probabilities \code{p}.
 }
 \description{
-Qunatile function for exponential series.
+Quantile function for exponential series.
 }

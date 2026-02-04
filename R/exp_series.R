@@ -9,7 +9,7 @@
 #' @keywords exponential, distribution, series, statistics
 NULL
 
-#' Qunatile function for exponential series.
+#' Quantile function for exponential series.
 #'
 #' @param p Vector of quantiles.
 #' @param rates Vector of rate parameters for exponential component lifetimes.
@@ -90,7 +90,7 @@ pexp_series <- function(t, rates, lower.tail = TRUE, log.p = FALSE) {
 #' @export
 hazard_exp_series <- function(t, rates, log.p = FALSE) {
     ifelse(log.p,
-        ifelse(t < 0, -Inf, sum(rates)),
+        ifelse(t < 0, -Inf, log(sum(rates))),
         ifelse(t < 0, 0, sum(rates))
     )
 }
@@ -105,7 +105,7 @@ hazard_exp_series <- function(t, rates, log.p = FALSE) {
 #' @importFrom stats pexp
 #' @export
 surv.exp_series <- function(t, rates, log.p = FALSE) {
-    pexp(t, sum(rates), TRUE, log.p)
+    pexp(t, sum(rates), lower.tail = FALSE, log.p = log.p)
 }
 
 #' Mean function for exponential series.
@@ -122,10 +122,6 @@ surv.exp_series <- function(t, rates, log.p = FALSE) {
 mean.exp_series <- function(x, ...) {
     1 / sum(x)
 }
-
-
-
-
 
 
 

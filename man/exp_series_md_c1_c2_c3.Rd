@@ -35,7 +35,7 @@ described below.
 }
 \details{
 This model satisfies the concept of a \code{likelihood_model} in the
-\code{likelihood_model} package by providing the following methods:
+\code{likelihood.model} package by providing the following methods:
 
 (1) \code{loglik.exp_series_md_c1_c2_c3}
 (2) \code{score.exp_series_md_c1_c2_c3}

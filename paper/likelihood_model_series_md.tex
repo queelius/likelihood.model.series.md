@@ -1,0 +1,391 @@
+\documentclass[11pt]{article}
+
+% Packages
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+% Theorem environments
+\theoremstyle{definition}
+\newtheorem{condition}{Condition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+
+% Custom commands
+\newcommand{\R}{\textsf{R}}
+\newcommand{\pkg}[1]{\texttt{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\bX}{\boldsymbol{X}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+
+% Code listing style
+\lstset{
+    language=R,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+}
+
+\title{Likelihood Models for Series Systems with Masked Component Failure Data:\\
+\large An \R{} Package for Maximum Likelihood Estimation}
+
+\author{
+    Alexander Towell\\
+    \href{mailto:lex@metafunctor.com}{lex@metafunctor.com}\\
+    \href{https://orcid.org/0000-0001-6443-9897}{ORCID: 0000-0001-6443-9897}
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This technical report introduces the \pkg{likelihood.model.series.md} \R{} package for maximum likelihood estimation in series systems with masked component cause of failure data. The package provides a unified framework for exponential and Weibull series systems, implementing log-likelihood functions, score vectors, and Hessian matrices under specific masking conditions (C1, C2, C3). We describe the mathematical foundation, software architecture, and integration with the broader \pkg{likelihood.model} ecosystem. The package enables practitioners to perform parameter estimation, construct confidence intervals, and conduct hypothesis tests for series system reliability problems where component failure causes are only partially observable.
+\end{abstract}
+
+\section{Introduction}
+
+Series systems are prevalent in reliability engineering, where system failure occurs when any single component fails. A fundamental challenge in series system reliability analysis is that often only the system failure time is observable, while the specific component that caused the failure may be unknown or only partially identified through a \emph{candidate set}---a subset of components that plausibly contain the failed component.
+
+This situation arises in many practical contexts:
+\begin{itemize}
+    \item Field failure data where diagnostic information is incomplete
+    \item Systems where post-failure inspection is infeasible or costly
+    \item Warranty data where failure cause is self-reported with uncertainty
+    \item Accelerated life testing where failure modes may be ambiguous
+\end{itemize}
+
+The \pkg{likelihood.model.series.md} package provides tools for maximum likelihood estimation (MLE) from such \emph{masked} failure data. This report describes the mathematical foundation, software design, and usage of the package.
+
+\section{Mathematical Framework}
+
+\subsection{Series System Model}
+
+Consider a series system with $m$ components. Let $T_j$ denote the lifetime of component $j$, for $j = 1, \ldots, m$. The system lifetime is
+\begin{equation}
+    T = \min(T_1, \ldots, T_m),
+\end{equation}
+and the component that causes system failure is
+\begin{equation}
+    K = \arg\min_j T_j.
+\end{equation}
+
+We assume component lifetimes $T_1, \ldots, T_m$ are independent with distribution functions $F_j(t; \theta_j)$ parameterized by $\theta_j$. Let $\btheta = (\theta_1, \ldots, \theta_m)$ denote the full parameter vector.
+
+\subsection{Data Structure}
+
+For each observation $i = 1, \ldots, n$, we observe:
+\begin{itemize}
+    \item $t_i$: The system lifetime (possibly right-censored)
+    \item $\delta_i$: Right-censoring indicator ($\delta_i = 1$ if exact, $\delta_i = 0$ if right-censored)
+    \item $C_i \subseteq \{1, \ldots, m\}$: Candidate set of components that may have caused failure
+\end{itemize}
+
+The candidate set provides partial information about the failed component. When $|C_i| = 1$, the failure cause is exactly known; when $C_i = \{1, \ldots, m\}$, no information about failure cause is available.
+
+\subsection{Masking Conditions}
+
+The likelihood function depends on assumptions about the masking mechanism. We consider three conditions:
+
+\begin{condition}[C1: Candidate Set Validity]
+The failed component is always included in the candidate set:
+\begin{equation}
+    \Pr(K_i \in C_i) = 1.
+\end{equation}
+\end{condition}
+
+\begin{condition}[C2: Symmetric Masking]
+The probability of observing candidate set $c$ is the same regardless of which component in $c$ actually failed:
+\begin{equation}
+    \Pr(C_i = c \mid K_i = j, T_i = t) = \Pr(C_i = c \mid K_i = j', T_i = t)
+\end{equation}
+for any $j, j' \in c$.
+\end{condition}
+
+\begin{condition}[C3: Parameter Independence]
+The masking probabilities do not depend on the system parameters $\btheta$:
+\begin{equation}
+    \Pr(C_i = c \mid K_i, T_i) \text{ is independent of } \btheta.
+\end{equation}
+\end{condition}
+
+Under conditions C1, C2, and C3, the likelihood function simplifies considerably, allowing the masking probabilities to be factored out and ignored for parameter estimation.
+
+\subsection{Likelihood Function}
+
+Under conditions C1, C2, C3, the likelihood contribution from observation $i$ is:
+
+\begin{equation}
+    L_i(\btheta) = \begin{cases}
+        \displaystyle S(t_i; \btheta) \cdot \sum_{j \in C_i} h_j(t_i; \theta_j) & \text{if } \delta_i = 1 \\[2ex]
+        S(t_i; \btheta) & \text{if } \delta_i = 0
+    \end{cases}
+\end{equation}
+where $S(t; \btheta) = \prod_{j=1}^m S_j(t; \theta_j)$ is the system survival function and $h_j(t; \theta_j) = f_j(t; \theta_j) / S_j(t; \theta_j)$ is the hazard function for component $j$.
+
+The full log-likelihood is
+\begin{equation}
+    \ell(\btheta) = \sum_{i=1}^n \left[ \log S(t_i; \btheta) + \delta_i \cdot \log\left(\sum_{j \in C_i} h_j(t_i; \theta_j)\right) \right].
+\end{equation}
+
+\subsection{Exponential Series Systems}
+
+For exponential component lifetimes with rate parameters $\lambda_1, \ldots, \lambda_m$, we have:
+\begin{itemize}
+    \item $S_j(t; \lambda_j) = e^{-\lambda_j t}$
+    \item $h_j(t; \lambda_j) = \lambda_j$
+\end{itemize}
+
+The log-likelihood simplifies to:
+\begin{equation}
+    \ell(\boldsymbol{\lambda}) = -\left(\sum_{i=1}^n t_i\right) \cdot \sum_{j=1}^m \lambda_j + \sum_{i: \delta_i = 1} \log\left(\sum_{j \in C_i} \lambda_j\right).
+\end{equation}
+
+The score vector and Hessian matrix have closed-form expressions:
+\begin{align}
+    \frac{\partial \ell}{\partial \lambda_j} &= -\sum_{i=1}^n t_i + \sum_{i: \delta_i = 1} \frac{\mathbf{1}(j \in C_i)}{\sum_{k \in C_i} \lambda_k} \\[1ex]
+    \frac{\partial^2 \ell}{\partial \lambda_j \partial \lambda_k} &= -\sum_{i: \delta_i = 1} \frac{\mathbf{1}(j \in C_i) \cdot \mathbf{1}(k \in C_i)}{\left(\sum_{l \in C_i} \lambda_l\right)^2}
+\end{align}
+
+\subsection{Weibull Series Systems}
+
+For Weibull component lifetimes with shape parameters $\alpha_1, \ldots, \alpha_m$ and scale parameters $\beta_1, \ldots, \beta_m$, we have:
+\begin{itemize}
+    \item $S_j(t; \alpha_j, \beta_j) = \exp\left(-\left(\frac{t}{\beta_j}\right)^{\alpha_j}\right)$
+    \item $h_j(t; \alpha_j, \beta_j) = \frac{\alpha_j}{\beta_j}\left(\frac{t}{\beta_j}\right)^{\alpha_j - 1}$
+\end{itemize}
+
+The parameter vector is $\btheta = (\alpha_1, \beta_1, \ldots, \alpha_m, \beta_m)$ with $2m$ parameters. The log-likelihood is:
+\begin{equation}
+    \ell(\btheta) = -\sum_{i=1}^n \sum_{j=1}^m \left(\frac{t_i}{\beta_j}\right)^{\alpha_j} + \sum_{i: \delta_i = 1} \log\left(\sum_{j \in C_i} h_j(t_i; \alpha_j, \beta_j)\right).
+\end{equation}
+
+Analytical score expressions are provided in the package; the Hessian is computed numerically via the Jacobian of the score.
+
+\subsection{Homogeneous Shape Weibull Model (Reduced Model)}
+
+For well-designed series systems where components have similar wear-out characteristics, it is reasonable to assume a common shape parameter $k$ across all components while retaining individual scale parameters $\beta_1, \ldots, \beta_m$. This \emph{reduced model} has $m+1$ parameters instead of $2m$.
+
+A key property: under homogeneous shapes, the series system lifetime is itself Weibull distributed:
+\begin{equation}
+    T \sim \text{Weibull}\left(k, \beta_s\right), \quad \text{where } \beta_s = \left(\sum_{j=1}^m \beta_j^{-k}\right)^{-1/k}.
+\end{equation}
+
+The log-likelihood simplifies to:
+\begin{equation}
+    \ell(k, \beta_1, \ldots, \beta_m) = -\sum_{i=1}^n \sum_{j=1}^m \left(\frac{t_i}{\beta_j}\right)^{k} + \sum_{i: \delta_i = 1} \log\left(\sum_{j \in C_i} \frac{k}{\beta_j}\left(\frac{t_i}{\beta_j}\right)^{k-1}\right).
+\end{equation}
+
+This reduced model offers several advantages:
+\begin{itemize}
+    \item Fewer parameters (m+1 vs 2m) leads to lower estimator variance
+    \item System lifetime has closed-form Weibull distribution
+    \item Interpretable as a single failure mode with component-specific scales
+    \item Model selection via likelihood ratio test: $\Lambda = -2(\ell_R - \ell_F) \sim \chi^2_{m-1}$
+\end{itemize}
+
+\section{Package Architecture}
+
+\subsection{Design Philosophy}
+
+The \pkg{likelihood.model.series.md} package follows several design principles:
+
+\begin{enumerate}
+    \item \textbf{Generic Interface}: Implements S3 methods conforming to the \pkg{likelihood.model} package API, enabling use with generic MLE fitting functions.
+
+    \item \textbf{Composability}: Separates concerns---data generation, masking, likelihood specification, and fitting are independent operations that can be composed.
+
+    \item \textbf{Extensibility}: New component lifetime distributions can be added by implementing the required S3 methods.
+\end{enumerate}
+
+\subsection{Core Classes}
+
+The package provides three main likelihood model classes:
+
+\begin{itemize}
+    \item \code{exp\_series\_md\_c1\_c2\_c3}: Exponential series system model ($m$ parameters)
+    \item \code{wei\_series\_md\_c1\_c2\_c3}: Full Weibull series system model ($2m$ parameters)
+    \item \code{wei\_series\_homogeneous\_md\_c1\_c2\_c3}: Reduced Weibull model with common shape ($m+1$ parameters)
+\end{itemize}
+
+Each class implements the following S3 methods from the \pkg{likelihood.model} interface:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Method & Description \\
+\midrule
+\code{loglik()} & Log-likelihood function generator \\
+\code{score()} & Score (gradient) function generator \\
+\code{hess\_loglik()} & Hessian matrix function generator \\
+\code{assumptions()} & Model assumptions \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Data Format}
+
+The package expects data frames with the following structure:
+\begin{itemize}
+    \item \code{t}: System lifetime column
+    \item \code{delta}: Right-censoring indicator (1 = exact, 0 = censored)
+    \item \code{x1, x2, \ldots, xm}: Boolean candidate set indicators
+\end{itemize}
+
+For backwards compatibility, if the \code{delta} column is absent, censoring is inferred from empty candidate sets (all \code{FALSE}).
+
+\subsection{Dependencies}
+
+The package integrates with several related packages:
+\begin{itemize}
+    \item \pkg{likelihood.model}: Provides the generic likelihood model interface
+    \item \pkg{algebraic.mle}: MLE objects with rich method support (\code{confint}, \code{vcov}, etc.)
+    \item \pkg{md.tools}: Utilities for encoding/decoding masked data matrices
+    \item \pkg{numDeriv}: Numerical differentiation for Weibull Hessian
+\end{itemize}
+
+\section{Usage Example}
+
+\subsection{Creating a Likelihood Model}
+
+\begin{lstlisting}
+library(likelihood.model.series.md)
+
+# Create exponential series model
+model_exp <- exp_series_md_c1_c2_c3()
+
+# Create Weibull series model (full, 2m parameters)
+model_wei <- wei_series_md_c1_c2_c3()
+
+# Create reduced Weibull model (homogeneous shape, m+1 parameters)
+model_hom <- wei_series_homogeneous_md_c1_c2_c3()
+\end{lstlisting}
+
+\subsection{Evaluating the Log-Likelihood}
+
+\begin{lstlisting}
+# Get log-likelihood function
+ll_fn <- loglik(model_exp)
+
+# Evaluate at parameter values
+# For 3-component system with rates (0.5, 0.3, 0.2)
+ll_value <- ll_fn(data, par = c(0.5, 0.3, 0.2))
+\end{lstlisting}
+
+\subsection{Maximum Likelihood Estimation}
+
+\begin{lstlisting}
+# Using optim directly
+ll_fn <- loglik(model_exp)
+result <- optim(
+    par = c(1, 1, 1),  # initial values
+    fn = function(theta) -ll_fn(data, theta),
+    method = "L-BFGS-B",
+    lower = rep(1e-6, 3)
+)
+mle <- result$par
+
+# Or using the likelihood.model framework
+library(likelihood.model)
+solver <- fit(model_exp)
+mle_result <- solver(data, par = c(1, 1, 1))
+\end{lstlisting}
+
+\subsection{Generating Simulated Data}
+
+\begin{lstlisting}
+library(dplyr)
+
+# Generate component lifetimes
+n <- 100
+df <- data.frame(
+    t1 = rexp(n, 0.5),
+    t2 = rexp(n, 0.3),
+    t3 = rexp(n, 0.2)
+)
+
+# Apply right-censoring at time tau
+df <- md_series_lifetime_right_censoring(df, tau = 10)
+
+# Generate candidate sets (p = masking probability)
+df <- md_bernoulli_cand_c1_c2_c3(df, p = 0.3)
+df <- md_cand_sampler(df)
+
+# Result has columns: t, delta, x1, x2, x3
+\end{lstlisting}
+
+\section{Theoretical Properties}
+
+\subsection{Identifiability}
+
+Under conditions C1, C2, C3 and with sufficient variation in candidate sets, the parameters are identifiable. However, severe masking (all candidate sets equal $\{1, \ldots, m\}$) or extreme censoring can lead to practical non-identifiability.
+
+\subsection{Asymptotic Properties}
+
+Under standard regularity conditions, the MLE $\hat{\btheta}_n$ satisfies:
+\begin{equation}
+    \sqrt{n}(\hat{\btheta}_n - \btheta_0) \xrightarrow{d} N\left(0, I(\btheta_0)^{-1}\right)
+\end{equation}
+where $I(\btheta_0)$ is the Fisher information matrix.
+
+The observed information matrix $-H(\hat{\btheta}_n)$ (negative Hessian at the MLE) provides a consistent estimator of the Fisher information, enabling construction of confidence intervals and hypothesis tests.
+
+\subsection{Simulation Study Results}
+
+Extensive simulation studies (see package vignette) demonstrate that:
+\begin{enumerate}
+    \item The MLE performs well even with significant masking and censoring
+    \item Bootstrap confidence intervals achieve nominal coverage
+    \item Performance degrades gracefully as masking probability increases
+    \item The estimator is robust to moderate right-censoring
+\end{enumerate}
+
+\section{Conclusion}
+
+The \pkg{likelihood.model.series.md} package provides a principled, well-documented implementation for likelihood-based inference in series systems with masked component failure data. By integrating with the broader \pkg{likelihood.model} ecosystem, the package enables practitioners to leverage sophisticated MLE infrastructure while focusing on their specific reliability analysis problems.
+
+Future extensions may include:
+\begin{itemize}
+    \item Additional component lifetime distributions (log-normal, gamma)
+    \item Relaxation of masking conditions (non-symmetric masking)
+    \item Support for interval censoring
+    \item Bayesian inference methods
+\end{itemize}
+
+The package is available at \url{https://github.com/queelius/likelihood.model.series.md} with documentation at \url{https://queelius.github.io/likelihood.model.series.md/}.
+
+\section*{Acknowledgments}
+
+This work builds on the theoretical framework developed in the author's Master's thesis on reliability estimation in series systems.
+
+\bibliographystyle{plainnat}
+
+\end{document}

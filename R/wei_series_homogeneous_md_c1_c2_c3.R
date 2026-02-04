@@ -1,16 +1,22 @@
-#' Constructs a likelihood model for `wei_series_md_c1_c2_c3`.
+#' Constructs a likelihood model for `wei_series_homogeneous_md_c1_c2_c3`.
 #'
-#' Likelihood model for Weibull series systems with masked component cause
-#' of failure with candidate sets that satisfy conditions C1, C2, and C3.
+#' Likelihood model for Weibull series systems with homogeneous shape parameter
+#' and masked component cause of failure with candidate sets that satisfy
+#' conditions C1, C2, and C3.
+#'
+#' This is a reduced model where all components share a common shape parameter k,
+#' while retaining individual scale parameters. The parameter vector is
+#' (k, scale_1, ..., scale_m), giving m+1 parameters instead of 2m.
+#'
+#' A key property of this model is that the series system lifetime is itself
+#' Weibull distributed with shape k and scale lambda_s = (sum(scale_j^{-k}))^{-1/k}.
 #'
 #' This model satisfies the concept of a `likelihood_model` in the
 #' `likelihood.model` package by providing the following methods:
 #'
-#'  (1) `loglik.wei_series_md_c1_c2_c3`
-#'  (2) `score.wei_series_md_c1_c2_c3`
-#'  (3) `hess_loglik.wei_series_md_c1_c2_c3`
-#'
-#' The Weibull series system has 2m parameters: (shape_1, scale_1, ..., shape_m, scale_m).
+#'  (1) `loglik.wei_series_homogeneous_md_c1_c2_c3`
+#'  (2) `score.wei_series_homogeneous_md_c1_c2_c3`
+#'  (3) `hess_loglik.wei_series_homogeneous_md_c1_c2_c3`
 #'
 #' In this likelihood model, masked component data approximately satisfies:
 #'
@@ -19,7 +25,7 @@
 #'     for any `j, j' in c[i]`.
 #' C3: masking probabilities are independent of `theta`
 #'
-#' @param shapes shape parameters for Weibull component lifetimes (optional)
+#' @param shape common shape parameter for all Weibull component lifetimes (optional)
 #' @param scales scale parameters for Weibull component lifetimes (optional)
 #' @param lifetime column name for system lifetime, defaults to `"t"`
 #' @param indicator column name for right-censoring indicator, defaults to `"delta"`.
@@ -29,49 +35,52 @@
 #' @param candset column prefix for candidate set indicators, defaults to `"x"`
 #' @export
 #' @return likelihood model object with class
-#'         `c("wei_series_md_c1_c2_c3", "series_md", "likelihood_model")`
+#'         `c("wei_series_homogeneous_md_c1_c2_c3", "series_md", "likelihood_model")`
+#' @seealso [wei_series_md_c1_c2_c3()] for the full model with heterogeneous shapes
 #' @examples
 #' # Create model and fit to data using generic dispatch
-#' model <- wei_series_md_c1_c2_c3()
+#' model <- wei_series_homogeneous_md_c1_c2_c3()
 #' # solver <- fit(model)
-#' # theta: (shape1, scale1, shape2, scale2, ...)
-#' # mle <- solver(data, par = c(1, 1000, 1, 1000, 1, 1000))
-wei_series_md_c1_c2_c3 <- function(shapes = NULL, scales = NULL, lifetime = "t",
-                                   indicator = "delta", candset = "x") {
+#' # theta: (shape, scale1, scale2, ...)
+#' # mle <- solver(data, par = c(1.2, 1000, 900, 850))
+wei_series_homogeneous_md_c1_c2_c3 <- function(shape = NULL, scales = NULL,
+                                                lifetime = "t",
+                                                indicator = "delta",
+                                                candset = "x") {
     structure(
         list(
-            shapes = shapes,
+            shape = shape,
             scales = scales,
             lifetime = lifetime,
             indicator = indicator,
             candset = candset
         ),
-        class = c("wei_series_md_c1_c2_c3",
+        class = c("wei_series_homogeneous_md_c1_c2_c3",
                   "series_md",
                   "likelihood_model")
     )
 }
 
 
-#' Log-likelihood method for `wei_series_md_c1_c2_c3` model.
+#' Log-likelihood method for `wei_series_homogeneous_md_c1_c2_c3` model.
 #'
 #' Returns a log-likelihood function for a Weibull series system with
-#' respect to parameter vector (shape_1, scale_1, ..., shape_m, scale_m)
+#' homogeneous shape parameter. The parameter vector is (k, scale_1, ..., scale_m)
 #' for masked data with candidate sets that satisfy conditions C1, C2, and C3.
 #'
 #' @param model the likelihood model object
 #' @param ... additional arguments (passed to returned function)
 #' @return log-likelihood function that takes the following arguments:
 #'  - `df`: masked data frame
-#'  - `par`: parameter vector (shape1, scale1, shape2, scale2, ...)
+#'  - `par`: parameter vector (shape, scale1, scale2, ...)
 #'  - `lifetime`: system lifetime column name (default from model)
 #'  - `indicator`: right-censoring indicator column name (default from model)
 #'  - `candset`: prefix of Boolean matrix encoding candidate sets (default from model)
 #' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model loglik
-#' @method loglik wei_series_md_c1_c2_c3
+#' @method loglik wei_series_homogeneous_md_c1_c2_c3
 #' @export
-loglik.wei_series_md_c1_c2_c3 <- function(model, ...) {
+loglik.wei_series_homogeneous_md_c1_c2_c3 <- function(model, ...) {
     # Capture model defaults
     default_lifetime <- model$lifetime %||% "t"
     default_indicator <- model$indicator %||% "delta"
@@ -81,26 +90,25 @@ loglik.wei_series_md_c1_c2_c3 <- function(model, ...) {
              candset = default_candset, ...) {
         d <- extract_model_data(df, lifetime, indicator, candset)
 
-        k <- length(par)
-        if (k != 2 * d$m) stop("length(par) must equal 2 * number of components")
+        p <- length(par)
+        if (p != d$m + 1) stop("length(par) must equal number of components + 1")
 
-        shapes <- par[seq(1, k, 2)]
-        scales <- par[seq(2, k, 2)]
+        k <- par[1]          # common shape
+        scales <- par[-1]    # individual scales
 
-        if (any(shapes <= 0) || any(scales <= 0)) return(-Inf)
+        if (k <= 0 || any(scales <= 0)) return(-Inf)
 
-        # Log-likelihood for Weibull series with masked data (C1, C2, C3)
+        # Log-likelihood for Weibull series with homogeneous shape (C1, C2, C3)
+        # S(t) = exp(-sum((t/scale_j)^k)),  h_j(t) = (k/scale_j) * (t/scale_j)^(k-1)
         s <- 0
         for (i in seq_len(d$n)) {
-            # Survival contribution: -sum((t/scale)^shape)
-            s <- s - sum((d$t[i] / scales)^shapes)
+            s <- s - sum((d$t[i] / scales)^k)
 
-            # Candidate set contribution (only for exact observations)
             if (d$delta[i]) {
                 cind <- d$C[i, ]
                 if (any(cind)) {
-                    hazard_sum <- sum(shapes[cind] / scales[cind] *
-                                      (d$t[i] / scales[cind])^(shapes[cind] - 1))
+                    hazard_sum <- sum(k / scales[cind] *
+                                      (d$t[i] / scales[cind])^(k - 1))
                     if (hazard_sum > 0) {
                         s <- s + log(hazard_sum)
                     }
@@ -112,25 +120,25 @@ loglik.wei_series_md_c1_c2_c3 <- function(model, ...) {
 }
 
 
-#' Score method for `wei_series_md_c1_c2_c3` model.
+#' Score method for `wei_series_homogeneous_md_c1_c2_c3` model.
 #'
 #' Returns a score (gradient) function for a Weibull series system with
-#' respect to parameter vector (shape_1, scale_1, ..., shape_m, scale_m)
+#' homogeneous shape parameter. The parameter vector is (k, scale_1, ..., scale_m)
 #' for masked data with candidate sets that satisfy conditions C1, C2, and C3.
 #'
 #' @param model the likelihood model object
 #' @param ... additional arguments (passed to returned function)
 #' @return score function that takes the following arguments:
 #'  - `df`: masked data frame
-#'  - `par`: parameter vector (shape1, scale1, shape2, scale2, ...)
+#'  - `par`: parameter vector (shape, scale1, scale2, ...)
 #'  - `lifetime`: system lifetime column name (default from model)
 #'  - `indicator`: right-censoring indicator column name (default from model)
 #'  - `candset`: prefix of Boolean matrix encoding candidate sets (default from model)
 #' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model score
-#' @method score wei_series_md_c1_c2_c3
+#' @method score wei_series_homogeneous_md_c1_c2_c3
 #' @export
-score.wei_series_md_c1_c2_c3 <- function(model, ...) {
+score.wei_series_homogeneous_md_c1_c2_c3 <- function(model, ...) {
     # Capture model defaults
     default_lifetime <- model$lifetime %||% "t"
     default_indicator <- model$indicator %||% "delta"
@@ -140,77 +148,76 @@ score.wei_series_md_c1_c2_c3 <- function(model, ...) {
              candset = default_candset, ...) {
         d <- extract_model_data(df, lifetime, indicator, candset)
 
-        k <- length(par)
-        if (k != 2 * d$m) stop("length(par) must equal 2 * number of components")
+        p <- length(par)
+        if (p != d$m + 1) stop("length(par) must equal number of components + 1")
 
-        shapes <- par[seq(1, k, 2)]
-        scales <- par[seq(2, k, 2)]
+        k <- par[1]          # common shape
+        scales <- par[-1]    # individual scales
 
-        if (any(shapes <= 0) || any(scales <= 0)) return(rep(NA, k))
+        if (k <= 0 || any(scales <= 0)) return(rep(NA, p))
 
-        shape_scores <- rep(0, d$m)
+        shape_score <- 0
         scale_scores <- rep(0, d$m)
 
         for (i in seq_len(d$n)) {
+            # Let u_j = t/scale_j
+            u <- d$t[i] / scales
+            u_k <- u^k
+
             # Survival contribution to score
-            rt_term_shapes <- -(d$t[i] / scales)^shapes * log(d$t[i] / scales)
-            rt_term_scales <- (shapes / scales) * (d$t[i] / scales)^shapes
+            # d/dk [-sum(u_j^k)] = -sum(u_j^k * log(u_j))
+            shape_score <- shape_score - sum(u_k * log(u))
+
+            # d/d(scale_j) [-sum(u_j^k)] = k * u_j^k / scale_j
+            scale_scores <- scale_scores + k * u_k / scales
 
             # Candidate set contribution (only for exact observations)
-            mask_term_shapes <- rep(0, d$m)
-            mask_term_scales <- rep(0, d$m)
-
             if (d$delta[i]) {
                 cind <- d$C[i, ]
                 if (any(cind)) {
-                    denom <- sum(shapes[cind] / scales[cind] *
-                                 (d$t[i] / scales[cind])^(shapes[cind] - 1))
+                    u_km1 <- u[cind]^(k - 1)
+                    h_j <- k / scales[cind] * u_km1
+                    sum_h <- sum(h_j)
 
-                    if (denom > 0) {
-                        numer_shapes <- 1/d$t[i] * (d$t[i] / scales[cind])^shapes[cind] *
-                            (1 + shapes[cind] * log(d$t[i] / scales[cind]))
-                        mask_term_shapes[cind] <- numer_shapes / denom
+                    if (sum_h > 0) {
+                        # d(h_j)/dk = (1/scale_j) * u_j^(k-1) * (1 + k * log(u_j))
+                        dh_dk <- (1 / scales[cind]) * u_km1 * (1 + k * log(u[cind]))
+                        shape_score <- shape_score + sum(dh_dk) / sum_h
 
-                        numer_scales <- (shapes[cind] / scales[cind])^2 *
-                            (d$t[i] / scales[cind])^(shapes[cind] - 1)
-                        mask_term_scales[cind] <- numer_scales / denom
+                        # d(h_j)/d(scale_j) = -k * h_j / scale_j
+                        dh_dscale <- -k * h_j / scales[cind]
+                        scale_scores[cind] <- scale_scores[cind] + dh_dscale / sum_h
                     }
                 }
             }
-
-            shape_scores <- shape_scores + rt_term_shapes + mask_term_shapes
-            scale_scores <- scale_scores + rt_term_scales - mask_term_scales
         }
 
-        # Interleave shape and scale scores
-        scr <- rep(0, k)
-        scr[seq(1, k, 2)] <- shape_scores
-        scr[seq(2, k, 2)] <- scale_scores
-        return(scr)
+        return(c(shape_score, scale_scores))
     }
 }
 
 
-#' Hessian of log-likelihood method for `wei_series_md_c1_c2_c3` model.
+#' Hessian of log-likelihood method for `wei_series_homogeneous_md_c1_c2_c3` model.
 #'
 #' Returns the Hessian (second derivative matrix) of the log-likelihood for a
-#' Weibull series system. Computed numerically via the Jacobian of the score.
+#' Weibull series system with homogeneous shape. Computed numerically via the
+#' Jacobian of the score.
 #'
 #' @param model the likelihood model object
 #' @param ... additional arguments (passed to returned function)
 #' @return hessian function that takes the following arguments:
 #'  - `df`: masked data frame
-#'  - `par`: parameter vector (shape1, scale1, shape2, scale2, ...)
+#'  - `par`: parameter vector (shape, scale1, scale2, ...)
 #'  - `lifetime`: system lifetime column name (default from model)
 #'  - `indicator`: right-censoring indicator column name (default from model)
 #'  - `candset`: prefix of Boolean matrix encoding candidate sets (default from model)
 #' @importFrom numDeriv jacobian
 #' @importFrom likelihood.model hess_loglik
-#' @method hess_loglik wei_series_md_c1_c2_c3
+#' @method hess_loglik wei_series_homogeneous_md_c1_c2_c3
 #' @export
-hess_loglik.wei_series_md_c1_c2_c3 <- function(model, ...) {
+hess_loglik.wei_series_homogeneous_md_c1_c2_c3 <- function(model, ...) {
     # Get the score function
-    score_fn <- score.wei_series_md_c1_c2_c3(model, ...)
+    score_fn <- score.wei_series_homogeneous_md_c1_c2_c3(model, ...)
 
     # Capture model defaults
     default_lifetime <- model$lifetime %||% "t"
@@ -228,7 +235,7 @@ hess_loglik.wei_series_md_c1_c2_c3 <- function(model, ...) {
 }
 
 
-#' Assumptions for `wei_series_md_c1_c2_c3` model.
+#' Assumptions for `wei_series_homogeneous_md_c1_c2_c3` model.
 #'
 #' Returns the assumptions made by this likelihood model.
 #'
@@ -236,13 +243,14 @@ hess_loglik.wei_series_md_c1_c2_c3 <- function(model, ...) {
 #' @param ... additional arguments (ignored)
 #' @return character vector of assumptions
 #' @importFrom likelihood.model assumptions
-#' @method assumptions wei_series_md_c1_c2_c3
+#' @method assumptions wei_series_homogeneous_md_c1_c2_c3
 #' @export
-assumptions.wei_series_md_c1_c2_c3 <- function(model, ...) {
+assumptions.wei_series_homogeneous_md_c1_c2_c3 <- function(model, ...) {
     c(
         "iid observations",
-        "Weibull component lifetimes",
+        "Weibull component lifetimes with COMMON shape parameter",
         "series system configuration",
+        "system lifetime is Weibull with shape k and scale (sum(scale_j^{-k}))^{-1/k}",
         "C1: failed component is in candidate set with probability 1",
         "C2: uniform probability for candidate sets given component cause",
         "C3: masking probabilities independent of system parameters"
@@ -250,10 +258,28 @@ assumptions.wei_series_md_c1_c2_c3 <- function(model, ...) {
 }
 
 
-#' Random data generation for `wei_series_md_c1_c2_c3` model.
+#' System scale parameter for homogeneous Weibull series
 #'
-#' Returns a function that generates random masked data from the Weibull
-#' series system DGP at a given parameter value.
+#' For a series system with Weibull components sharing shape k but with
+#' individual scales, the system lifetime is itself Weibull with shape k
+#' and this computed scale.
+#'
+#' @param k common shape parameter
+#' @param scales vector of component scale parameters
+#' @return system scale parameter
+#' @export
+#' @examples
+#' # 3-component system with common shape 1.2
+#' wei_series_system_scale(k = 1.2, scales = c(1000, 900, 850))
+wei_series_system_scale <- function(k, scales) {
+    (sum(scales^(-k)))^(-1/k)
+}
+
+
+#' Random data generation for `wei_series_homogeneous_md_c1_c2_c3` model.
+#'
+#' Returns a function that generates random masked data from the homogeneous
+#' Weibull series system DGP at a given parameter value.
 #'
 #' @param model the likelihood model object
 #' @param ... additional arguments (passed to returned function)
@@ -261,30 +287,29 @@ assumptions.wei_series_md_c1_c2_c3 <- function(model, ...) {
 #'         with columns: t, delta, x1, x2, ..., xm
 #' @importFrom likelihood.model rdata
 #' @importFrom stats rweibull runif
-#' @method rdata wei_series_md_c1_c2_c3
+#' @method rdata wei_series_homogeneous_md_c1_c2_c3
 #' @export
-rdata.wei_series_md_c1_c2_c3 <- function(model, ...) {
+rdata.wei_series_homogeneous_md_c1_c2_c3 <- function(model, ...) {
     # Capture model defaults
     default_lifetime <- model$lifetime %||% "t"
     default_indicator <- model$indicator %||% "delta"
     default_candset <- model$candset %||% "x"
 
     function(theta, n, tau = Inf, p = 0, ...) {
-        k <- length(theta)
-        if (k %% 2 != 0) stop("theta must have even length (shape1, scale1, ...)")
-        m <- k / 2
+        if (length(theta) < 2) stop("theta must have at least 2 elements (k, scale1, ...)")
 
-        shapes <- theta[seq(1, k, 2)]
-        scales <- theta[seq(2, k, 2)]
+        k <- theta[1]          # common shape
+        scales <- theta[-1]    # individual scales
+        m <- length(scales)
 
-        if (any(shapes <= 0) || any(scales <= 0)) {
-            stop("All shape and scale parameters must be positive")
+        if (k <= 0 || any(scales <= 0)) {
+            stop("Shape and all scale parameters must be positive")
         }
 
-        # Generate component lifetimes from Weibull distributions
+        # Generate component lifetimes (all with same shape k)
         comp_lifetimes <- matrix(nrow = n, ncol = m)
         for (j in seq_len(m)) {
-            comp_lifetimes[, j] <- rweibull(n, shape = shapes[j], scale = scales[j])
+            comp_lifetimes[, j] <- rweibull(n, shape = k, scale = scales[j])
         }
 
         generate_masked_series_data(comp_lifetimes, n, m, tau, p,

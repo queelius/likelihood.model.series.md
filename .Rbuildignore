@@ -1,7 +1,9 @@
-^masked\.data\.Rproj$
+^.*\.Rproj$
 ^\.Rproj\.user$
+^\.vscode$
 ^LICENSE\.md$
 ^README\.Rmd$
+^CLAUDE\.md$
 ^data-raw$
 ^doc$
 ^Meta$
@@ -9,4 +11,7 @@
 ^docs$
 ^pkgdown$
 ^\.github$
-series_system_estimation_masked_data.Rproj
+^paper$
+^\.fixing$
+^vignettes/.*_cache$
+^simulations$

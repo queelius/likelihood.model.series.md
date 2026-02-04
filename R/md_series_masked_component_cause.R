@@ -95,10 +95,7 @@ md_cand_sampler <- function(df, prob = "q", candset = "x") {
         stop("No component probabilities found")
     }
 
-    X <- matrix(NA, nrow=n, ncol=m)
-    for (i in 1:n) {
-        X[i, ] <- runif(m) <= Q[i, ]
-    }
+    X <- matrix(runif(n * m), nrow = n, ncol = m) <= Q
     df %>% bind_cols(md_encode_matrix(X, candset))
 }
 
