@@ -450,10 +450,10 @@ probabilities:</p>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 0.047<span style="text-decoration: underline;">6</span> TRUE  {1, 4}   </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 0.262  FALSE {}       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 0.095<span style="text-decoration: underline;">6</span> TRUE  {1, 2, 5}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 0.046<span style="text-decoration: underline;">0</span> TRUE  {1, 2, 4}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 0.029<span style="text-decoration: underline;">0</span> TRUE  {4}      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 0.160  TRUE  {3, 5}   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 0.095<span style="text-decoration: underline;">6</span> TRUE  {2, 4}   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 0.046<span style="text-decoration: underline;">0</span> TRUE  {1, 2, 3}</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 0.029<span style="text-decoration: underline;">0</span> TRUE  {4, 5}   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 0.160  TRUE  {2, 5}   </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,494 more rows</span></span></span></code></pre></div>
 <p>We see that after dropping latent (unobserved) columns, we only have
 the right censoring time, right censoring indicator, and the candidate
@@ -541,7 +541,7 @@ log-likelihood at parameter <code>par</code> given data <code>df</code>.
 For example, at the true parameter value:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">ll</span><span class="op">(</span><span class="va">data</span>, <span class="va">theta</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] -1485</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] -1393</span></span></code></pre></div>
 <p>Note that the implementation uses minimally sufficient statistics,
 which improves computational efficiency.</p>
 <p>The log-likelihood function contains the maximum amount of
@@ -583,7 +583,7 @@ dispatch:</p>
 it is exactly zero):</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">grad</span><span class="op">(</span><span class="va">data</span>, <span class="va">theta</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] -28.488  12.506  -9.824 -24.504 -12.322</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] -23.934  -4.920  -9.392 -21.984  -2.042</span></span></code></pre></div>
 <p>The <code>likelihood.model</code> framework provides analytical score
 and Hessian implementations when available, falling back to numerical
 differentiation otherwise.</p>
@@ -607,40 +607,27 @@ object with <code>"likelihood_model"</code> in its class. The
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Print summary with confidence intervals</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Maximum likelihood estimator of type mle_likelihood_model is normally distributed.</span></span>
-<span><span class="co">#&gt; The estimates of the parameters are given by:</span></span>
-<span><span class="co">#&gt; [1] 0.9545 1.1430 0.9440 1.1085 1.0881</span></span>
-<span><span class="co">#&gt; The standard error is  0.04314 0.04496 0.04247 0.04481 0.04465 .</span></span>
-<span><span class="co">#&gt; The asymptotic 95% confidence interval of the parameters are given by:</span></span>
-<span><span class="co">#&gt;          2.5% 97.5%</span></span>
-<span><span class="co">#&gt; param1 0.8700 1.039</span></span>
-<span><span class="co">#&gt; param2 1.0549 1.231</span></span>
-<span><span class="co">#&gt; param3 0.8607 1.027</span></span>
-<span><span class="co">#&gt; param4 1.0207 1.196</span></span>
-<span><span class="co">#&gt; param5 1.0005 1.176</span></span>
-<span><span class="co">#&gt; The MSE of the individual components in a multivariate estimator is:</span></span>
-<span><span class="co">#&gt;            [,1]       [,2]       [,3]       [,4]       [,5]</span></span>
-<span><span class="co">#&gt; [1,]  0.0018608 -0.0002202 -0.0002258 -0.0002585 -0.0002654</span></span>
-<span><span class="co">#&gt; [2,] -0.0002202  0.0020211 -0.0002331 -0.0002648 -0.0002360</span></span>
-<span><span class="co">#&gt; [3,] -0.0002258 -0.0002331  0.0018034 -0.0002185 -0.0002453</span></span>
-<span><span class="co">#&gt; [4,] -0.0002585 -0.0002648 -0.0002185  0.0020078 -0.0002316</span></span>
-<span><span class="co">#&gt; [5,] -0.0002654 -0.0002360 -0.0002453 -0.0002316  0.0019936</span></span>
-<span><span class="co">#&gt; The log-likelihood is  -1483 .</span></span>
-<span><span class="co">#&gt; The AIC is  2976 .</span></span></code></pre></div>
+<span><span class="co">#&gt; Maximum Likelihood Estimate (Fisherian)</span></span>
+<span><span class="co">#&gt; ----------------------------------------</span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt; [1] 0.9617 1.1049 0.9455 1.1147 1.1116</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Log-likelihood: -1392 </span></span>
+<span><span class="co">#&gt; Observations: 7500</span></span></code></pre></div>
 <p>We can access specific components of the MLE:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Point estimate</span></span>
-<span><span class="va">theta.hat</span> <span class="op">&lt;-</span> <span class="va">estimate</span><span class="op">$</span><span class="va">theta.hat</span></span>
+<span><span class="va">theta.hat</span> <span class="op">&lt;-</span> <span class="va">estimate</span><span class="op">$</span><span class="va">par</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"MLE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">theta.hat</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; MLE: 0.9545 1.143 0.944 1.109 1.088</span></span>
+<span><span class="co">#&gt; MLE: 0.9617 1.105 0.9455 1.115 1.112</span></span>
 <span></span>
-<span><span class="co"># Standard errors</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"SE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">$</span><span class="va">sigma</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; SE: 0.0019 -2e-04 -2e-04 -3e-04 -3e-04 -2e-04 0.002 -2e-04 -3e-04 -2e-04 -2e-04 -2e-04 0.0018 -2e-04 -2e-04 -3e-04 -3e-04 -2e-04 0.002 -2e-04 -3e-04 -2e-04 -2e-04 -2e-04 0.002</span></span>
+<span><span class="co"># Standard errors (sqrt of diagonal of variance-covariance matrix)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"SE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">$</span><span class="va">vcov</span><span class="op">)</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; SE: 0.0442 0.0457 0.0427 0.0449 0.0454</span></span>
 <span></span>
 <span><span class="co"># Log-likelihood at MLE</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Log-likelihood:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">$</span><span class="va">loglike</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Log-likelihood: -1483</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Log-likelihood:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">$</span><span class="va">loglik</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Log-likelihood: -1392</span></span></code></pre></div>
 <p>Recall that the true parameter is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>1.1</mn><mo>,</mo><mn>0.95</mn><mo>,</mo><mn>1.15</mn><mo>,</mo><mn>1.1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mi>′</mi></mrow><annotation encoding="application/x-tex">\theta = (1, 1.1, 0.95, 1.15, 1.1)'</annotation></semantics></math>.</p>
 <p>Due to sampling variability, different runs of the experiment will
@@ -713,21 +700,20 @@ the true value</li>
 <span>    <span class="co"># Fit model</span></span>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>        <span class="va">result_b</span> <span class="op">&lt;-</span> <span class="fu">solver</span><span class="op">(</span><span class="va">data_b</span>, par <span class="op">=</span> <span class="va">theta0</span>, method <span class="op">=</span> <span class="st">"Nelder-Mead"</span><span class="op">)</span></span>
-<span>        <span class="va">estimates</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">theta.hat</span></span>
-<span>        <span class="va">se_estimates</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">result_b</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">estimates</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">par</span></span>
+<span>        <span class="va">se_estimates</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">result_b</span><span class="op">$</span><span class="va">vcov</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span>        <span class="co"># Asymptotic Wald CIs</span></span>
 <span>        <span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">alpha</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span></span>
-<span>        <span class="va">ci_lower</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">theta.hat</span> <span class="op">-</span> <span class="va">z</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">result_b</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span><span class="op">)</span></span>
-<span>        <span class="va">ci_upper</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">theta.hat</span> <span class="op">+</span> <span class="va">z</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">result_b</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">ci_lower</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">par</span> <span class="op">-</span> <span class="va">z</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">result_b</span><span class="op">$</span><span class="va">vcov</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">ci_upper</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">par</span> <span class="op">+</span> <span class="va">z</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">result_b</span><span class="op">$</span><span class="va">vcov</span><span class="op">)</span><span class="op">)</span></span>
 <span>        <span class="va">converged</span><span class="op">[</span><span class="va">b</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">result_b</span><span class="op">$</span><span class="va">converged</span></span>
 <span>    <span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span></span>
 <span>        <span class="va">converged</span><span class="op">[</span><span class="va">b</span><span class="op">]</span> <span class="op">&lt;&lt;-</span> <span class="cn">FALSE</span></span>
 <span>    <span class="op">}</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Convergence rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">converged</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Convergence rate: 0.99</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Convergence rate:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">converged</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level4">
 <h4 id="bias-variance-and-mse">Bias, Variance, and MSE<a class="anchor" aria-label="anchor" href="#bias-variance-and-mse"></a>
 </h4>
@@ -783,52 +769,52 @@ the true value</li>
 <tr class="odd">
 <td align="right">1</td>
 <td align="right">1.00</td>
-<td align="right">1.0026</td>
-<td align="right">0.0026</td>
-<td align="right">0.0020</td>
-<td align="right">0.0020</td>
-<td align="right">0.0453</td>
-<td align="right">0.2627</td>
+<td align="right">1.000</td>
+<td align="right">0.0005</td>
+<td align="right">0.0019</td>
+<td align="right">0.0019</td>
+<td align="right">0.0439</td>
+<td align="right">0.0464</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
 <td align="right">1.10</td>
-<td align="right">1.0972</td>
-<td align="right">-0.0028</td>
-<td align="right">0.0023</td>
-<td align="right">0.0023</td>
-<td align="right">0.0484</td>
-<td align="right">-0.2516</td>
+<td align="right">1.100</td>
+<td align="right">0.0004</td>
+<td align="right">0.0018</td>
+<td align="right">0.0018</td>
+<td align="right">0.0425</td>
+<td align="right">0.0406</td>
 </tr>
 <tr class="odd">
 <td align="right">3</td>
 <td align="right">0.95</td>
-<td align="right">0.9461</td>
-<td align="right">-0.0039</td>
-<td align="right">0.0017</td>
-<td align="right">0.0017</td>
-<td align="right">0.0414</td>
-<td align="right">-0.4146</td>
+<td align="right">0.949</td>
+<td align="right">-0.0010</td>
+<td align="right">0.0021</td>
+<td align="right">0.0021</td>
+<td align="right">0.0463</td>
+<td align="right">-0.1064</td>
 </tr>
 <tr class="even">
 <td align="right">4</td>
 <td align="right">1.15</td>
-<td align="right">1.1516</td>
-<td align="right">0.0016</td>
-<td align="right">0.0019</td>
-<td align="right">0.0019</td>
-<td align="right">0.0437</td>
-<td align="right">0.1421</td>
+<td align="right">1.151</td>
+<td align="right">0.0011</td>
+<td align="right">0.0021</td>
+<td align="right">0.0021</td>
+<td align="right">0.0453</td>
+<td align="right">0.0963</td>
 </tr>
 <tr class="odd">
 <td align="right">5</td>
 <td align="right">1.10</td>
-<td align="right">1.0967</td>
-<td align="right">-0.0033</td>
-<td align="right">0.0023</td>
-<td align="right">0.0023</td>
-<td align="right">0.0483</td>
-<td align="right">-0.3024</td>
+<td align="right">1.107</td>
+<td align="right">0.0073</td>
+<td align="right">0.0020</td>
+<td align="right">0.0020</td>
+<td align="right">0.0452</td>
+<td align="right">0.6665</td>
 </tr>
 </tbody>
 </table>
@@ -880,37 +866,37 @@ contain the true parameter value.</p>
 <tr class="odd">
 <td align="right">1</td>
 <td align="right">1.00</td>
-<td align="right">0.9495</td>
+<td align="right">0.9444</td>
 <td align="right">0.95</td>
-<td align="right">0.1721</td>
+<td align="right">0.1725</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
 <td align="right">1.10</td>
-<td align="right">0.9343</td>
+<td align="right">0.9646</td>
 <td align="right">0.95</td>
-<td align="right">0.1770</td>
+<td align="right">0.1775</td>
 </tr>
 <tr class="odd">
 <td align="right">3</td>
 <td align="right">0.95</td>
-<td align="right">0.9596</td>
+<td align="right">0.9545</td>
 <td align="right">0.95</td>
-<td align="right">0.1694</td>
+<td align="right">0.1697</td>
 </tr>
 <tr class="even">
 <td align="right">4</td>
 <td align="right">1.15</td>
-<td align="right">0.9545</td>
+<td align="right">0.9343</td>
 <td align="right">0.95</td>
-<td align="right">0.1794</td>
+<td align="right">0.1797</td>
 </tr>
 <tr class="odd">
 <td align="right">5</td>
 <td align="right">1.10</td>
-<td align="right">0.9444</td>
+<td align="right">0.9495</td>
 <td align="right">0.95</td>
-<td align="right">0.1769</td>
+<td align="right">0.1776</td>
 </tr>
 </tbody>
 </table>
@@ -936,25 +922,43 @@ contain the true parameter value.</p>
 <div class="section level4">
 <h4 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
 </h4>
-<p>The Monte Carlo simulation demonstrates that the MLE for the
-exponential series system with masked data:</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Is approximately unbiased</strong> - the bias is small
-relative to the true parameter values</li>
-<li>
-<strong>Has well-characterized variance</strong> - consistent with
-asymptotic theory</li>
-<li>
-<strong>Achieves nominal coverage</strong> - the
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1-\alpha)</annotation></semantics></math>%
-confidence intervals contain the true value approximately
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1-\alpha)</annotation></semantics></math>%
-of the time</li>
-</ol>
-<p>These properties validate the use of this likelihood model for
-inference about component failure rates from masked series system
-data.</p>
+<p>The Monte Carlo simulation
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>7500</mn></mrow><annotation encoding="application/x-tex">n = 7500</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mn>200</mn></mrow><annotation encoding="application/x-tex">B = 200</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.3</mn></mrow><annotation encoding="application/x-tex">p = 0.3</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>25</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\sim 25\%</annotation></semantics></math>
+censoring) demonstrates that the MLE for the exponential series system
+with masked data satisfying conditions C1–C3 has desirable large-sample
+properties:</p>
+<ul>
+<li><p><strong>Essentially unbiased.</strong> All relative biases are
+below 0.7%, with the largest being component 5 at 0.67%. The
+squared-bias contribution to MSE is negligible (e.g., component 1:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mtext mathvariant="normal">bias</mtext><mn>2</mn></msup><mo>≈</mo><mn>2</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>7</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\text{bias}^2 \approx 2 \times 10^{-7}</annotation></semantics></math>
+vs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Var</mtext><mo>=</mo><mn>0.0019</mn></mrow><annotation encoding="application/x-tex">\text{Var} = 0.0019</annotation></semantics></math>).
+The MLE is consistent and approximately unbiased at this sample
+size.</p></li>
+<li><p><strong>Uniform relative precision.</strong> RMSE ranges from
+0.043 to 0.046 across components — roughly 4–5% of the true rates. This
+uniformity is consistent with the asymptotic efficiency of the MLE:
+components with higher failure rates (and thus higher variance) also
+have proportionally wider CIs.</p></li>
+<li><p><strong>Coverage near nominal.</strong> Coverage ranges from
+93.4% to 96.5% against a nominal 95%. Component 4 (93.4%) slightly
+undercovers, suggesting the Wald interval may be mildly liberal for some
+components at this sample size. This is a known finite-sample property
+of Wald intervals for rate parameters.</p></li>
+<li><p><strong>CI width as a design metric.</strong> Mean CI widths of
+0.170–0.180 (about
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>±</mo><mn>8.5</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\pm 8.5\%</annotation></semantics></math>
+of the true rate) provide a concrete basis for sample size planning.
+Since CI width scales as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><msqrt><mi>n</mi></msqrt></mrow><annotation encoding="application/x-tex">1/\sqrt{n}</annotation></semantics></math>,
+halving the width requires roughly
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">4\times</annotation></semantics></math>
+the sample size.</p></li>
+</ul>
 </div>
 </div>
 </div>
@@ -1011,7 +1015,7 @@ more difficult.</p>
 <span></span>
 <span>        <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>            <span class="va">fit_b</span> <span class="op">&lt;-</span> <span class="fu">solver</span><span class="op">(</span><span class="va">data_b</span>, par <span class="op">=</span> <span class="va">theta0</span>, method <span class="op">=</span> <span class="st">"Nelder-Mead"</span><span class="op">)</span></span>
-<span>            <span class="kw">if</span> <span class="op">(</span><span class="va">fit_b</span><span class="op">$</span><span class="va">converged</span><span class="op">)</span> <span class="va">est_p</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">fit_b</span><span class="op">$</span><span class="va">theta.hat</span></span>
+<span>            <span class="kw">if</span> <span class="op">(</span><span class="va">fit_b</span><span class="op">$</span><span class="va">converged</span><span class="op">)</span> <span class="va">est_p</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">fit_b</span><span class="op">$</span><span class="va">par</span></span>
 <span>        <span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span>    <span class="op">}</span></span>
 <span></span>
@@ -1068,50 +1072,82 @@ more difficult.</p>
 <tbody>
 <tr class="odd">
 <td align="right">0.0</td>
-<td align="right">0.0133</td>
-<td align="right">0.0143</td>
-<td align="right">0.1197</td>
+<td align="right">0.0092</td>
+<td align="right">0.0148</td>
+<td align="right">0.1218</td>
 </tr>
 <tr class="even">
 <td align="right">0.1</td>
-<td align="right">0.0136</td>
-<td align="right">0.0186</td>
-<td align="right">0.1365</td>
+<td align="right">0.0120</td>
+<td align="right">0.0187</td>
+<td align="right">0.1368</td>
 </tr>
 <tr class="odd">
 <td align="right">0.2</td>
-<td align="right">0.0065</td>
-<td align="right">0.0212</td>
-<td align="right">0.1456</td>
+<td align="right">0.0082</td>
+<td align="right">0.0211</td>
+<td align="right">0.1451</td>
 </tr>
 <tr class="even">
 <td align="right">0.3</td>
-<td align="right">0.0194</td>
-<td align="right">0.0303</td>
-<td align="right">0.1741</td>
+<td align="right">0.0152</td>
+<td align="right">0.0325</td>
+<td align="right">0.1802</td>
 </tr>
 <tr class="odd">
 <td align="right">0.4</td>
-<td align="right">0.0285</td>
-<td align="right">0.0389</td>
-<td align="right">0.1973</td>
+<td align="right">0.0142</td>
+<td align="right">0.0396</td>
+<td align="right">0.1991</td>
 </tr>
 <tr class="even">
 <td align="right">0.5</td>
-<td align="right">0.0240</td>
-<td align="right">0.0590</td>
-<td align="right">0.2430</td>
+<td align="right">0.0260</td>
+<td align="right">0.0623</td>
+<td align="right">0.2495</td>
 </tr>
 </tbody>
 </table>
-<p>As expected, increasing the masking probability generally increases
-both bias and MSE. With
+<p>The simulation reveals several patterns in how masking degrades
+estimation quality:</p>
+<ul>
+<li><p><strong>MSE increases monotonically</strong> from 0.015
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">p = 0</annotation></semantics></math>)
+to 0.062
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">p = 0.5</annotation></semantics></math>)
+— a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4.2</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">4.2\times</annotation></semantics></math>
+degradation. RMSE roughly doubles from 0.12 to 0.25, meaning the typical
+estimation error doubles when moving from unmasked to maximally masked
+candidate sets.</p></li>
+<li><p><strong>Variance drives the degradation, not bias.</strong> Mean
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">|</mo><mtext mathvariant="normal">bias</mtext><mo stretchy="true" form="postfix">|</mo></mrow><annotation encoding="application/x-tex">|\text{bias}|</annotation></semantics></math>
+fluctuates between 0.008 and 0.026 with no systematic trend, while
+variance grows steadily with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>.
+This is consistent with the theoretical result that conditions C1–C3
+preserve the unbiasedness of the MLE — masking erodes <em>precision</em>
+without introducing systematic error.</p></li>
+<li><p><strong>The marginal cost of masking accelerates.</strong> MSE
+roughly doubles from
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">p = 0</annotation></semantics></math>
-(no masking of non-failed components), we have the most information and
-achieve the best estimation accuracy. As
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
-increases toward 0.5, the candidate sets become less informative,
-leading to less precise estimates.</p>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.3</mn></mrow><annotation encoding="application/x-tex">p = 0.3</annotation></semantics></math>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.015</mn><mo>→</mo><mn>0.033</mn></mrow><annotation encoding="application/x-tex">0.015 \to 0.033</annotation></semantics></math>),
+then roughly doubles again from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.3</mn></mrow><annotation encoding="application/x-tex">p = 0.3</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">p = 0.5</annotation></semantics></math>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.033</mn><mo>→</mo><mn>0.062</mn></mrow><annotation encoding="application/x-tex">0.033 \to 0.062</annotation></semantics></math>).
+For practitioners, this means moderate masking
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>≤</mo><mn>0.3</mn></mrow><annotation encoding="application/x-tex">p \leq 0.3</annotation></semantics></math>)
+is far less costly than heavy masking.</p></li>
+<li><p><strong>Residual MSE at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">p = 0</annotation></semantics></math>.</strong>
+Even with no masking of non-failed components, MSE of 0.015 remains due
+to right-censoring alone — a useful baseline for isolating the censoring
+contribution.</p></li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="effect-of-right-censoring-rate">Effect of Right-Censoring Rate<a class="anchor" aria-label="anchor" href="#effect-of-right-censoring-rate"></a>
@@ -1124,9 +1160,9 @@ component.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7231</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Censoring quantiles (proportion surviving past tau)</span></span>
-<span><span class="co"># q = 0.1 means 10% survive (heavy censoring)</span></span>
-<span><span class="co"># q = 0.9 means 90% survive (light censoring)</span></span>
-<span><span class="va">q_values</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.9</span>, <span class="fl">0.7</span>, <span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.1</span><span class="op">)</span>  <span class="co"># Survival probabilities</span></span>
+<span><span class="co"># q = 0.1 means 10% survive past tau (light censoring, ~10% censored)</span></span>
+<span><span class="co"># q = 0.9 means 90% survive past tau (heavy censoring, ~90% censored)</span></span>
+<span><span class="va">q_values</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>  <span class="co"># Survival probabilities (matches simulation framework)</span></span>
 <span></span>
 <span><span class="co"># Fixed masking probability</span></span>
 <span><span class="va">p_cens</span> <span class="op">&lt;-</span> <span class="fl">0.2</span></span>
@@ -1152,7 +1188,7 @@ component.</p>
 <span></span>
 <span>        <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>            <span class="va">fit_b</span> <span class="op">&lt;-</span> <span class="fu">solver</span><span class="op">(</span><span class="va">data_b</span>, par <span class="op">=</span> <span class="va">theta0</span>, method <span class="op">=</span> <span class="st">"Nelder-Mead"</span><span class="op">)</span></span>
-<span>            <span class="kw">if</span> <span class="op">(</span><span class="va">fit_b</span><span class="op">$</span><span class="va">converged</span><span class="op">)</span> <span class="va">est_q</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">fit_b</span><span class="op">$</span><span class="va">theta.hat</span></span>
+<span>            <span class="kw">if</span> <span class="op">(</span><span class="va">fit_b</span><span class="op">$</span><span class="va">converged</span><span class="op">)</span> <span class="va">est_q</span><span class="op">[</span><span class="va">b</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">fit_b</span><span class="op">$</span><span class="va">par</span></span>
 <span>        <span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span>    <span class="op">}</span></span>
 <span></span>
@@ -1211,71 +1247,145 @@ component.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="right">91.0</td>
-<td align="right">0.0556</td>
-<td align="right">0.1745</td>
-<td align="right">0.4177</td>
+<td align="right">10.0</td>
+<td align="right">0.0049</td>
+<td align="right">0.0193</td>
+<td align="right">0.1391</td>
 </tr>
 <tr class="even">
-<td align="right">68.2</td>
-<td align="right">0.0173</td>
-<td align="right">0.0568</td>
-<td align="right">0.2383</td>
+<td align="right">20.0</td>
+<td align="right">0.0126</td>
+<td align="right">0.0244</td>
+<td align="right">0.1561</td>
 </tr>
 <tr class="odd">
-<td align="right">52.2</td>
-<td align="right">0.0118</td>
-<td align="right">0.0340</td>
-<td align="right">0.1843</td>
+<td align="right">30.1</td>
+<td align="right">0.0135</td>
+<td align="right">0.0279</td>
+<td align="right">0.1672</td>
 </tr>
 <tr class="even">
-<td align="right">28.8</td>
-<td align="right">0.0183</td>
-<td align="right">0.0245</td>
-<td align="right">0.1566</td>
+<td align="right">40.2</td>
+<td align="right">0.0113</td>
+<td align="right">0.0333</td>
+<td align="right">0.1824</td>
 </tr>
 <tr class="odd">
-<td align="right">7.8</td>
-<td align="right">0.0085</td>
-<td align="right">0.0171</td>
-<td align="right">0.1308</td>
+<td align="right">50.2</td>
+<td align="right">0.0143</td>
+<td align="right">0.0402</td>
+<td align="right">0.2005</td>
+</tr>
+<tr class="even">
+<td align="right">60.2</td>
+<td align="right">0.0185</td>
+<td align="right">0.0497</td>
+<td align="right">0.2230</td>
+</tr>
+<tr class="odd">
+<td align="right">69.9</td>
+<td align="right">0.0310</td>
+<td align="right">0.0590</td>
+<td align="right">0.2429</td>
+</tr>
+<tr class="even">
+<td align="right">80.2</td>
+<td align="right">0.0138</td>
+<td align="right">0.0876</td>
+<td align="right">0.2959</td>
+</tr>
+<tr class="odd">
+<td align="right">90.1</td>
+<td align="right">0.0341</td>
+<td align="right">0.1829</td>
+<td align="right">0.4276</td>
 </tr>
 </tbody>
 </table>
-<p>Higher censoring rates (more systems surviving past the observation
-period) lead to increased bias and MSE. This is expected because:</p>
-<ol style="list-style-type: decimal">
-<li>Censored observations contribute less information to the
-likelihood</li>
-<li>For censored systems, we only know the system survived beyond
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>,
-not which component would have failed</li>
-<li>No candidate set information is available for censored
-observations</li>
-</ol>
+<p>The simulation reveals that censoring is the dominant source of
+information loss in this model:</p>
+<ul>
+<li><p><strong>MSE grows from 0.019 (10% censored) to 0.183 (90%
+censored)</strong> — a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>9.5</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">9.5\times</annotation></semantics></math>
+degradation, far exceeding the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4.2</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">4.2\times</annotation></semantics></math>
+range from masking. Censoring is more damaging because it eliminates
+<em>both</em> the failure time and the candidate set, whereas masking
+only dilutes the candidate set.</p></li>
+<li><p><strong>Clear inflection around 50% censoring.</strong> MSE is
+still manageable at 50%
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.040</mn><annotation encoding="application/x-tex">0.040</annotation></semantics></math>)
+but jumps to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.059</mn><annotation encoding="application/x-tex">0.059</annotation></semantics></math>
+at 70% and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.183</mn><annotation encoding="application/x-tex">0.183</annotation></semantics></math>
+at 90%. The relationship between censoring rate and MSE is convex — each
+additional percentage point of censoring is more damaging than the
+last.</p></li>
+<li><p><strong>Bias remains modest even under extreme
+censoring.</strong> Mean
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">|</mo><mtext mathvariant="normal">bias</mtext><mo stretchy="true" form="postfix">|</mo></mrow><annotation encoding="application/x-tex">|\text{bias}|</annotation></semantics></math>
+grows from 0.005 (10% censoring) to 0.034 (90% censoring) but stays
+small relative to the true rates
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>3</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\sim 3\%</annotation></semantics></math>
+at worst). The MLE remains approximately unbiased — it is consistent but
+increasingly inefficient.</p></li>
+<li><p><strong>Robustness under extreme censoring.</strong> At 90%
+censoring, only
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>50</mn></mrow><annotation encoding="application/x-tex">\sim 50</annotation></semantics></math>
+of 500 observations are exact failures, yet the MLE still converges. The
+resulting estimates are imprecise (RMSE
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>0.43</mn></mrow><annotation encoding="application/x-tex">\approx 0.43</annotation></semantics></math>,
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>40</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\sim 40\%</annotation></semantics></math>
+of the true rates), but the likelihood-based approach remains
+functional.</p></li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="practical-recommendations">Practical Recommendations<a class="anchor" aria-label="anchor" href="#practical-recommendations"></a>
 </h3>
 <p>Based on these sensitivity analyses:</p>
 <ol style="list-style-type: decimal">
-<li>
-<strong>Sample size</strong>: Larger samples (n &gt; 500) generally
-provide stable, well-behaved estimates</li>
-<li>
-<strong>Masking probability</strong>: Keep
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
-as low as practically possible. Even moderate masking
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>≤</mo><mn>0.3</mn></mrow><annotation encoding="application/x-tex">p \leq 0.3</annotation></semantics></math>)
-produces acceptable results with sufficient sample size</li>
-<li>
-<strong>Censoring</strong>: Heavy censoring (&gt; 50%) significantly
-degrades estimation quality. Design experiments with adequate follow-up
-time when possible</li>
-<li>
-<strong>Combined effects</strong>: When both masking and censoring
-are high, consider increasing sample size to compensate for information
-loss</li>
+<li><p><strong>Prioritize reducing censoring over masking.</strong>
+Censoring degrades MSE by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>9.5</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">9.5\times</annotation></semantics></math>
+across its range versus
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4.2</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">4.2\times</annotation></semantics></math>
+for masking. In experimental design, extending the observation window to
+reduce censoring below 50% yields larger gains than improving diagnostic
+resolution to reduce masking.</p></li>
+<li><p><strong>Moderate masking is tolerable.</strong> MSE only doubles
+from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">p = 0</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.3</mn></mrow><annotation encoding="application/x-tex">p = 0.3</annotation></semantics></math>.
+If reducing the masking probability below 0.3 requires expensive
+diagnostic equipment, the incremental benefit may not justify the
+cost.</p></li>
+<li><p><strong>The 50% censoring threshold.</strong> Below
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>50</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\sim 50\%</annotation></semantics></math>
+censoring, estimation quality degrades gradually. Above it, MSE grows
+convexly — avoid experimental designs where more than half the systems
+survive past the observation window.</p></li>
+<li><p><strong>CI widths for sample size planning.</strong> At
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>7500</mn></mrow><annotation encoding="application/x-tex">n = 7500</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.3</mn></mrow><annotation encoding="application/x-tex">p = 0.3</annotation></semantics></math>
+and 25% censoring, 95% CI widths are
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>0.17</mn></mrow><annotation encoding="application/x-tex">\sim 0.17</annotation></semantics></math>
+for rates near 1.0. Width scales as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><msqrt><mi>n</mi></msqrt></mrow><annotation encoding="application/x-tex">1/\sqrt{n}</annotation></semantics></math>,
+so
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>1875</mn></mrow><annotation encoding="application/x-tex">n = 1875</annotation></semantics></math>
+gives widths of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>0.34</mn></mrow><annotation encoding="application/x-tex">\sim 0.34</annotation></semantics></math>
+(double), and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>30000</mn></mrow><annotation encoding="application/x-tex">n = 30000</annotation></semantics></math>
+gives
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>0.085</mn></mrow><annotation encoding="application/x-tex">\sim 0.085</annotation></semantics></math>
+(half).</p></li>
 </ol>
 </div>
 </div>

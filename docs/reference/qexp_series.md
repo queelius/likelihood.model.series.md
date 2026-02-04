@@ -1,6 +1,6 @@
-# Qunatile function for exponential series.
+# Quantile function for exponential series.
 
-Qunatile function for exponential series.
+Quantile function for exponential series.
 
 ## Usage
 

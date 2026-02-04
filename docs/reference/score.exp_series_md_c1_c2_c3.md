@@ -27,9 +27,12 @@ score function that takes the following arguments:
 
 - `df`: masked data frame
 
-- `par`: rate / scale parameters of component lifetime distributions
+- `par`: rate parameters of exponential component lifetime distributions
 
 - `lifetime`: system lifetime column name (default from model)
+
+- `indicator`: right-censoring indicator column name (default from
+  model)
 
 - `candset`: prefix of Boolean matrix encoding candidate sets (default
   from model)

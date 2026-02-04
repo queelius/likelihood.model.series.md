@@ -39,217 +39,181 @@
 <p>This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.</p>
 <div class="section level2">
 <h2 id="package-overview">Package Overview<a class="anchor" aria-label="anchor" href="#package-overview"></a></h2>
-<p>This is an R package for maximum likelihood estimation (MLE) of series system parameters from masked component failure data. The package implements likelihood models for systems where: - Component lifetimes may be masked (right-censored, left-censored, interval-censored) - Component cause of failure is masked via candidate sets (subsets of components that plausibly contain the failed component) - Various masking conditions (C1, C2, C3) can be satisfied or relaxed</p>
+<p>This is an R package for maximum likelihood estimation (MLE) of series system parameters from masked component failure data. The package implements likelihood models for systems where: - Component lifetimes may be masked (right-censored) - Component cause of failure is masked via candidate sets (subsets of components that plausibly contain the failed component) - Masking conditions C1, C2, C3 are satisfied</p>
 </div>
 <div class="section level2">
 <h2 id="development-commands">Development Commands<a class="anchor" aria-label="anchor" href="#development-commands"></a></h2>
-<div class="section level3">
-<h3 id="building-and-installing">Building and Installing<a class="anchor" aria-label="anchor" href="#building-and-installing"></a></h3>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Install package dependencies (including GitHub remotes)</span></span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Install dependencies (including GitHub remotes)</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::install_deps(dependencies = TRUE)"</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Build the package</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="ex">R</span> CMD build .</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Load package for interactive development</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::load_all()"</span></span>
 <span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Install the package locally</span></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::install()"</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Generate documentation from roxygen2 comments</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::document()"</span></span>
 <span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># Load package for interactive development</span></span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::load_all()"</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="testing">Testing<a class="anchor" aria-label="anchor" href="#testing"></a></h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Run all tests</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::test()"</span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co"># Run tests with coverage</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"covr::package_coverage()"</span></span></code></pre></div>
-<p><strong>Note:</strong> Currently, this package does not have a <code>tests/</code> directory. When adding tests, create the structure:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> tests/testthat</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="bu">echo</span> <span class="st">'library(testthat)\nlibrary(likelihood.model.series.md)\ntest_check("likelihood.model.series.md")'</span> <span class="op">&gt;</span> tests/testthat.R</span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a></h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Generate documentation from roxygen2 comments</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::document()"</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># Build pkgdown site</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"pkgdown::build_site()"</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co"># Preview pkgdown site locally</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"pkgdown::preview_site()"</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="checking-package-health">Checking Package Health<a class="anchor" aria-label="anchor" href="#checking-package-health"></a></h3>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Run R CMD check</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::check()"</span></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co"># Check examples</span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::run_examples()"</span></span></code></pre></div>
-</div>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># Run all tests</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::test()"</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co"># Run a specific test file</span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::test(filter = 'exp_series_md')"</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co"># Run tests with coverage</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"covr::package_coverage()"</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co"># Run R CMD check</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::check()"</span></span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co"># Build pkgdown site</span></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"pkgdown::build_site()"</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="architecture">Architecture<a class="anchor" aria-label="anchor" href="#architecture"></a></h2>
 <div class="section level3">
-<h3 id="core-likelihood-model-framework">Core Likelihood Model Framework<a class="anchor" aria-label="anchor" href="#core-likelihood-model-framework"></a></h3>
-<p>The package is built on the <code>likelihood.model</code> framework, which provides: - Generic likelihood contribution models via <code>likelihood_contr_model</code> - Methods for MLE fitting, bootstrapping, confidence intervals - Integration with <code>algebraic.mle</code> for MLE objects with methods like <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>, <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code></p>
+<h3 id="likelihood-models">Likelihood Models<a class="anchor" aria-label="anchor" href="#likelihood-models"></a></h3>
+<p>Three likelihood model classes, all using S3 generic dispatch:</p>
+<table class="table"><colgroup><col width="28%"><col width="48%"><col width="24%"></colgroup><thead><tr class="header"><th>Model</th>
+<th>Parameters</th>
+<th>File</th>
+</tr></thead><tbody><tr class="odd"><td><code>exp_series_md_c1_c2_c3</code></td>
+<td>m rates: <code>(λ₁,...,λₘ)</code>
+</td>
+<td><code>R/exp_series_md_c1_c2_c3.R</code></td>
+</tr><tr class="even"><td><code>wei_series_md_c1_c2_c3</code></td>
+<td>2m params: <code>(k₁,β₁,...,kₘ,βₘ)</code>
+</td>
+<td><code>R/wei_series_md_c1_c2_c3.R</code></td>
+</tr><tr class="odd"><td><code>wei_series_homogeneous_md_c1_c2_c3</code></td>
+<td>m+1 params: <code>(k,β₁,...,βₘ)</code>
+</td>
+<td><code>R/wei_series_homogeneous_md_c1_c2_c3.R</code></td>
+</tr></tbody></table><p>Each model implements S3 methods: <code><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/assumptions.html" class="external-link">assumptions()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata()</a></code></p>
+<p><strong>S3 class hierarchy</strong> (multiple inheritance for dispatch):</p>
+<pre><code><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp_series_md_c1_c2_c3"</span>, <span class="st">"series_md"</span>, <span class="st">"likelihood_model"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wei_series_md_c1_c2_c3"</span>, <span class="st">"series_md"</span>, <span class="st">"likelihood_model"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wei_series_homogeneous_md_c1_c2_c3"</span>, <span class="st">"series_md"</span>, <span class="st">"likelihood_model"</span><span class="op">)</span></span></code></pre>
+<p><strong>Implementation note:</strong> The exponential model computes score and Hessian analytically. The Weibull models compute score analytically but use <code><a href="https://rdrr.io/pkg/numDeriv/man/jacobian.html" class="external-link">numDeriv::jacobian</a></code> on the score for the Hessian.</p>
+<p><strong>Usage pattern:</strong></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/exp_series_md_c1_c2_c3.html">exp_series_md_c1_c2_c3</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">ll_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>     <span class="co"># Returns function(df, par, ...)</span></span>
+<span><span class="va">s_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>       <span class="co"># Returns function(df, par, ...)</span></span>
+<span><span class="va">H_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="co"># Returns function(df, par, ...)</span></span>
+<span><span class="va">gen_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>     <span class="co"># Returns function(theta, n, tau, p, ...)</span></span>
+<span></span>
+<span><span class="co"># Evaluate</span></span>
+<span><span class="va">ll_value</span> <span class="op">&lt;-</span> <span class="fu">ll_fn</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Generate simulated masked data</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">gen_fn</span><span class="op">(</span>theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.2</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">100</span>, tau <span class="op">=</span> <span class="fl">10</span>, p <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="masking-conditions">Masking Conditions<a class="anchor" aria-label="anchor" href="#masking-conditions"></a></h3>
-<p>Models are characterized by three conditions: - <strong>C1</strong>: Failed component is in candidate set with probability 1 - <strong>C2</strong>: Uniform probability for candidate sets conditioned on component cause - <strong>C3</strong>: Masking probabilities independent of system parameters</p>
-</div>
-<div class="section level3">
-<h3 id="key-components">Key Components<a class="anchor" aria-label="anchor" href="#key-components"></a></h3>
-<div class="section level4">
-<h4 id="id_1-series-system-distributions-rexp_seriesr">1. Series System Distributions (<code>R/exp_series.R</code>)<a class="anchor" aria-label="anchor" href="#id_1-series-system-distributions-rexp_seriesr"></a></h4>
-<p>Exponential series system distribution functions: - <code><a href="reference/rexp_series.html">rexp_series()</a></code>: Random generation (with optional <code>keep_latent</code> parameter to retain component lifetimes) - <code><a href="reference/dexp_series.html">dexp_series()</a></code>, <code><a href="reference/pexp_series.html">pexp_series()</a></code>, <code><a href="reference/qexp_series.html">qexp_series()</a></code>: PDF, CDF, quantile functions - <code><a href="reference/hazard_exp_series.html">hazard_exp_series()</a></code>, <code><a href="reference/surv.exp_series.html">surv.exp_series()</a></code>: Hazard and survival functions - <code><a href="reference/mean.exp_series.html">mean.exp_series()</a></code>: Mean function for exponential series</p>
-<p><strong>Key implementation detail:</strong> For a series system with exponential components with rates <code>λ₁,...,λₘ</code>, the system lifetime is exponentially distributed with rate <code>λ = Σλⱼ</code>.</p>
-</div>
-<div class="section level4">
-<h4 id="id_2-likelihood-models-rexp_series_md_c1_c2_c3r">2. Likelihood Models (<code>R/exp_series_md_c1_c2_c3.R</code>)<a class="anchor" aria-label="anchor" href="#id_2-likelihood-models-rexp_series_md_c1_c2_c3r"></a></h4>
-<p>Implements likelihood model for exponential series with masked data satisfying C1, C2, C3: - <code><a href="reference/exp_series_md_c1_c2_c3.html">exp_series_md_c1_c2_c3()</a></code>: Constructor for likelihood model object (returns S3 object with class vector <code>c("exp_series_md_c1_c2_c3", "series_md", "likelihood_model")</code>) - S3 methods: <code><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/assumptions.html" class="external-link">assumptions()</a></code> dispatch to the model</p>
-<p>These functions work with data frames containing: - <code>t</code> (or custom): System lifetime column - <code>x1, x2, ..., xm</code> (or custom prefix): Boolean candidate set indicators</p>
-<p><strong>Generic Dispatch Pattern:</strong> The package uses S3 generic dispatch. Generics from <code>likelihood.model</code> (<code>loglik</code>, <code>score</code>, <code>hess_loglik</code>, <code>assumptions</code>, <code>fim</code>) and <code>generics</code> (<code>fit</code>) are re-exported:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/exp_series_md_c1_c2_c3.html">exp_series_md_c1_c2_c3</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Get function generators via generic dispatch</span></span>
-<span><span class="va">ll_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>   <span class="co"># Returns function(df, par, ...)</span></span>
-<span><span class="va">s_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>     <span class="co"># Returns function(df, par, ...)</span></span>
-<span><span class="va">H_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>  <span class="co"># Returns function(df, par, ...)</span></span>
-<span></span>
-<span><span class="co"># Evaluate directly</span></span>
-<span><span class="va">ll_value</span> <span class="op">&lt;-</span> <span class="fu">ll_fn</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.2</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Or fit using the generic fit() function</span></span>
-<span><span class="va">solver</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
-<span><span class="va">mle_result</span> <span class="op">&lt;-</span> <span class="fu">solver</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Estimates:"</span>, <span class="va">mle_result</span><span class="op">$</span><span class="va">theta.hat</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="id_3-masked-data-generation-rmd_series_lifetimer-rmd_series_masked_component_causer">3. Masked Data Generation (<code>R/md_series_lifetime.R</code>, <code>R/md_series_masked_component_cause.R</code>)<a class="anchor" aria-label="anchor" href="#id_3-masked-data-generation-rmd_series_lifetimer-rmd_series_masked_component_causer"></a></h4>
-<p>Functions for generating and working with masked data:</p>
-<p><strong>Lifetime Masking:</strong> - <code><a href="reference/md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring()</a></code>: Applies right-censoring to series system lifetimes - Reads component lifetimes from columns <code>t1, t2, ...</code> (or custom prefix) - Adds <code>t</code> (system lifetime = min of component lifetimes or censoring time <code>tau</code>) - Adds <code>delta</code> (right-censoring indicator: TRUE = exact, FALSE = right-censored) - Marks component lifetimes as latent using <code>md_mark_latent()</code></p>
-<p><strong>Component Cause Masking:</strong> - <code><a href="reference/md_bernoulli_cand_c1_c2_c3.html">md_bernoulli_cand_c1_c2_c3()</a></code>: Generates Bernoulli candidate set probabilities satisfying C1, C2, C3 - Reads component lifetimes from <code>t1, t2, ...</code> columns - Creates probability columns <code>q1, q2, ...</code> where <code>qⱼ = 1</code> for failed component, <code>qⱼ = p</code> otherwise - If system is right-censored (<code>delta = FALSE</code>), sets all probabilities to 0 - Returns data frame with added <code>q</code> columns (marked as latent)</p>
 <ul><li>
-<code><a href="reference/md_cand_sampler.html">md_cand_sampler()</a></code>: Samples candidate sets from component probabilities
-<ul><li>Reads probability columns <code>q1, q2, ...</code>
-</li>
-<li>Samples Boolean candidate set indicators <code>x1, x2, ...</code> where <code>xⱼ ~ Bernoulli(qⱼ)</code>
-</li>
-<li>Returns data frame with added <code>x</code> columns</li>
-</ul></li>
+<strong>C1</strong>: Failed component is in candidate set with probability 1</li>
+<li>
+<strong>C2</strong>: Uniform probability for candidate sets conditioned on component cause</li>
+<li>
+<strong>C3</strong>: Masking probabilities independent of system parameters</li>
 </ul></div>
-</div>
 <div class="section level3">
-<h3 id="data-flow-pattern">Data Flow Pattern<a class="anchor" aria-label="anchor" href="#data-flow-pattern"></a></h3>
-<ol style="list-style-type: decimal"><li>Generate/load component lifetime data (<code>t1, t2, ...</code>)</li>
-<li>Apply system lifetime masking → add <code>t</code>, <code>delta</code> columns via <code><a href="reference/md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring()</a></code>
+<h3 id="data-flow">Data Flow<a class="anchor" aria-label="anchor" href="#data-flow"></a></h3>
+<ol style="list-style-type: decimal"><li>Generate component lifetimes (<code>t1, t2, ...</code>)</li>
+<li>Apply <code><a href="reference/md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring()</a></code> → adds <code>t</code>, <code>delta</code>
 </li>
-<li>Generate candidate set probabilities → add <code>q1, q2, ...</code> columns via <code><a href="reference/md_bernoulli_cand_c1_c2_c3.html">md_bernoulli_cand_c1_c2_c3()</a></code>
+<li>Apply <code><a href="reference/md_bernoulli_cand_c1_c2_c3.html">md_bernoulli_cand_c1_c2_c3()</a></code> → adds <code>q1, q2, ...</code>
 </li>
-<li>Sample candidate sets → add <code>x1, x2, ...</code> columns via <code><a href="reference/md_cand_sampler.html">md_cand_sampler()</a></code>
+<li>Apply <code><a href="reference/md_cand_sampler.html">md_cand_sampler()</a></code> → adds <code>x1, x2, ...</code>
 </li>
-<li>Fit likelihood model using <code>x</code> columns and <code>t</code> column</li>
-</ol><p><strong>Example:</strong></p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://queelius.github.io/likelihood.model.series.md/" class="external-link">likelihood.model.series.md</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Step 1: Generate component lifetimes</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  t1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">0.5</span><span class="op">)</span>,</span>
-<span>  t2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">0.3</span><span class="op">)</span>,</span>
-<span>  t3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">0.2</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Step 2: Apply right-censoring</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring</a></span><span class="op">(</span><span class="va">df</span>, tau <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Step 3: Generate candidate set probabilities</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/md_bernoulli_cand_c1_c2_c3.html">md_bernoulli_cand_c1_c2_c3</a></span><span class="op">(</span><span class="va">df</span>, p <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Step 4: Sample candidate sets</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/md_cand_sampler.html">md_cand_sampler</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Step 5: Fit likelihood model using generic dispatch</span></span>
-<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/exp_series_md_c1_c2_c3.html">exp_series_md_c1_c2_c3</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">solver</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
-<span><span class="va">mle</span> <span class="op">&lt;-</span> <span class="fu">solver</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Access results</span></span>
-<span><span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span>      <span class="co"># MLE estimates</span></span>
-<span><span class="va">mle</span><span class="op">$</span><span class="va">sigma</span>          <span class="co"># Standard errors</span></span>
-<span><span class="va">mle</span><span class="op">$</span><span class="va">info</span>           <span class="co"># Fisher information matrix</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">mle</span><span class="op">)</span>         <span class="co"># Pretty-printed summary with CIs</span></span></code></pre></div>
-</div>
+<li>Fit model using <code>t</code> and <code>x1, x2, ...</code> columns</li>
+</ol></div>
 <div class="section level3">
 <h3 id="column-naming-conventions">Column Naming Conventions<a class="anchor" aria-label="anchor" href="#column-naming-conventions"></a></h3>
 <ul><li>
-<code>t1, t2, ..., tm</code>: Component lifetimes (often latent/unobserved)</li>
+<code>t1, t2, ..., tm</code>: Component lifetimes (latent)</li>
 <li>
-<code>t</code>: Series system lifetime (minimum of component lifetimes or censored time)</li>
+<code>t</code>: System lifetime (observed)</li>
 <li>
-<code>delta</code>: Right-censoring indicator (TRUE = exact, FALSE = right-censored)</li>
+<code>delta</code>: Right-censoring indicator (TRUE = exact, FALSE = censored)</li>
 <li>
-<code>q1, q2, ..., qm</code>: Component inclusion probabilities for candidate sets (latent)</li>
+<code>q1, q2, ..., qm</code>: Candidate set probabilities (latent)</li>
 <li>
 <code>x1, x2, ..., xm</code>: Boolean candidate set indicators (observed)</li>
-</ul><p><strong>Matrix encoding/decoding:</strong> Use <code><a href="https://queelius.github.io/md.tools/reference/md_decode_matrix.html" class="external-link">md.tools::md_decode_matrix()</a></code> and <code><a href="https://queelius.github.io/md.tools/reference/md_encode_matrix.html" class="external-link">md.tools::md_encode_matrix()</a></code> to convert between wide format (columns <code>prefix1, prefix2, ...</code>) and matrix format.</p>
+</ul></div>
+<div class="section level3">
+<h3 id="exponential-series-distribution-rexp_seriesr">Exponential Series Distribution (<code>R/exp_series.R</code>)<a class="anchor" aria-label="anchor" href="#exponential-series-distribution-rexp_seriesr"></a></h3>
+<p>Standalone R-style distribution functions (not part of likelihood models): <code>dexp_series</code>, <code>pexp_series</code>, <code>qexp_series</code>, <code>rexp_series</code>, <code>hazard_exp_series</code>, <code>surv.exp_series</code></p>
 </div>
 <div class="section level3">
-<h3 id="external-dependencies">External Dependencies<a class="anchor" aria-label="anchor" href="#external-dependencies"></a></h3>
-<p>The package depends on several related packages by the same author (installed via GitHub remotes in DESCRIPTION): - <code>md.tools</code>: Utilities for encoding/decoding masked data matrices (<code>md_decode_matrix</code>, <code>md_encode_matrix</code>, <code>md_mark_latent</code>) - <code>algebraic.mle</code>: MLE objects with rich method support (access estimates via <code>$theta.hat</code>, <code>$sigma</code>, <code>$info</code>) - <code>algebraic.dist</code>: Distribution algebra utilities - <code>likelihood.model</code>: General likelihood model framework providing generic functions (<code>loglik</code>, <code>score</code>, <code>hess_loglik</code>, <code>assumptions</code>, <code>fim</code>) and <code>fit.likelihood_model</code> - <code>generics</code>: Provides the <code>fit</code> generic (re-exported by this package)</p>
-<p><strong>Re-exported Generics:</strong> This package re-exports <code>loglik</code>, <code>score</code>, <code>hess_loglik</code>, <code>assumptions</code>, <code>fim</code> from <code>likelihood.model</code> and <code>fit</code> from <code>generics</code>, so users only need to load this package.</p>
+<h3 id="external-dependencies-github-remotes">External Dependencies (GitHub Remotes)<a class="anchor" aria-label="anchor" href="#external-dependencies-github-remotes"></a></h3>
+<ul><li>
+<code>md.tools</code>: <code>md_decode_matrix()</code>, <code>md_encode_matrix()</code>, <code>md_mark_latent()</code>
+</li>
+<li>
+<code>algebraic.mle</code>: MLE objects with <code>$theta.hat</code>, <code>$sigma</code>, <code>$info</code>
+</li>
+<li>
+<code>algebraic.dist</code>: Distribution utilities</li>
+<li>
+<code>likelihood.model</code>: Generics <code>loglik</code>, <code>score</code>, <code>hess_loglik</code>, <code>assumptions</code>, <code>fim</code>, <code>observed_info</code>, <code>rdata</code>
+</li>
+<li>
+<code>generics</code>: <code>fit</code> generic</li>
+</ul><p><strong>Note:</strong> <code>fim</code> and <code>observed_info</code> are re-exported from <code>likelihood.model</code> and use default implementations (Monte Carlo FIM, negated Hessian for observed info). No model-specific overrides are needed.</p>
+</div>
+<div class="section level3">
+<h3 id="key-mathematical-properties">Key Mathematical Properties<a class="anchor" aria-label="anchor" href="#key-mathematical-properties"></a></h3>
+<p><strong>Exponential series:</strong> System lifetime T = min(T₁,…,Tₘ) ~ Exp(λ = Σλⱼ)</p>
+<p><strong>Homogeneous Weibull:</strong> When all shapes equal k, system lifetime ~ Weibull(k, βₛ) where βₛ = (Σβⱼ⁻ᵏ)⁻¹/ᵏ. Use <code>wei_series_system_scale(k, scales)</code> to compute.</p>
+<p><strong>Log-likelihood (C1, C2, C3):</strong></p>
+<pre><code>ℓ(θ) = -Σᵢ [survival term] + Σᵢ:δᵢ=1 log(Σⱼ∈Cᵢ hⱼ(tᵢ))</code></pre>
 </div>
 <div class="section level3">
 <h3 id="utility-functions-rutilsr">Utility Functions (<code>R/utils.R</code>)<a class="anchor" aria-label="anchor" href="#utility-functions-rutilsr"></a></h3>
 <ul><li>
-<code><a href="reference/cum_haz.html">cum_haz()</a></code>: Creates cumulative hazard function from hazard function</li>
+<code>cum_haz(haz)</code>: Creates cumulative hazard from hazard function</li>
 <li>
-<code>qcomp()</code>: Quantile function for component with custom hazard/survival</li>
+<code>qcomp(p, haz, surv, theta, t_lower, t_upper)</code>: Quantile via root-finding</li>
 <li>
-<code>rcomp()</code>: Random generation for component with custom hazard/survival</li>
+<code>rcomp(n, haz, surv, theta)</code>: Random generation via inverse transform</li>
 </ul></div>
 </div>
+<div class="section level2">
+<h2 id="testing">Testing<a class="anchor" aria-label="anchor" href="#testing"></a></h2>
+<p>Tests use <code>testthat</code> edition 3. Test files mirror source files:</p>
+<table class="table"><colgroup><col width="57%"><col width="42%"></colgroup><thead><tr class="header"><th>Source</th>
+<th>Test</th>
+</tr></thead><tbody><tr class="odd"><td><code>R/exp_series.R</code></td>
+<td><code>tests/testthat/test-exp_series.R</code></td>
+</tr><tr class="even"><td><code>R/exp_series_md_c1_c2_c3.R</code></td>
+<td><code>tests/testthat/test-exp_series_md_c1_c2_c3.R</code></td>
+</tr><tr class="odd"><td><code>R/wei_series_md_c1_c2_c3.R</code></td>
+<td><code>tests/testthat/test-wei_series_md_c1_c2_c3.R</code></td>
+</tr><tr class="even"><td><code>R/wei_series_homogeneous_md_c1_c2_c3.R</code></td>
+<td><code>tests/testthat/test-wei_series_homogeneous_md_c1_c2_c3.R</code></td>
+</tr><tr class="odd"><td><code>R/md_series_*.R</code></td>
+<td><code>tests/testthat/test-md_series.R</code></td>
+</tr><tr class="even"><td><code>R/utils.R</code></td>
+<td><code>tests/testthat/test-utils.R</code></td>
+</tr></tbody></table></div>
+<div class="section level2">
+<h2 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a></h2>
+<table class="table"><colgroup><col width="43%"><col width="56%"></colgroup><thead><tr class="header"><th>Vignette</th>
+<th>Description</th>
+</tr></thead><tbody><tr class="odd"><td><code>vignettes/exponential_series.Rmd</code></td>
+<td>Tutorial: MLE, Monte Carlo simulation, sensitivity analysis</td>
+</tr></tbody></table></div>
 <div class="section level2">
 <h2 id="naming-conventions">Naming Conventions<a class="anchor" aria-label="anchor" href="#naming-conventions"></a></h2>
-<ul><li>Functions use snake_case (e.g., <code>md_series_lifetime_right_censoring</code>)</li>
-<li>Distribution functions follow R conventions: <code>d*</code> (density), <code>p*</code> (CDF), <code>q*</code> (quantile), <code>r*</code> (random)</li>
-<li>Model constructors return S3 objects with class vectors like <code>c("exp_series_md_c1_c2_c3", "series_md", "likelihood_model")</code>
+<ul><li>Functions: snake_case (e.g., <code>md_series_lifetime_right_censoring</code>)</li>
+<li>Distributions: R conventions (<code>d*</code>, <code>p*</code>, <code>q*</code>, <code>r*</code>)</li>
+<li>S3 registration: <code>#' @method generic class</code> + <code>#' @export</code>
 </li>
-<li>S3 methods are registered properly using <code>#' @method generic class</code> and <code>#' @export</code> roxygen2 tags</li>
-<li>Column prefixes: <code>t</code> (time), <code>q</code> (probability), <code>x</code> (candidate set boolean), <code>delta</code> (censoring indicator)</li>
+<li>Model constructors accept column name overrides: <code>lifetime</code>, <code>indicator</code>, <code>candset</code> params</li>
 </ul></div>
 <div class="section level2">
-<h2 id="documentation-standards">Documentation Standards<a class="anchor" aria-label="anchor" href="#documentation-standards"></a></h2>
-<ul><li>All exported functions use roxygen2 documentation</li>
-<li>Main vignette: <code>vignettes/exponential_series.Rmd</code> (comprehensive mathematical treatment)</li>
-<li>Package website: <a href="https://queelius.github.io/likelihood.model.series.md/" class="external-link uri">https://queelius.github.io/likelihood.model.series.md/</a>
-</li>
-<li>Documentation is auto-generated via pkgdown (GitHub Actions workflow on push to master/main)</li>
-<li>Use <code>@importFrom</code> for specific imports rather than importing entire packages</li>
-</ul></div>
-<div class="section level2">
-<h2 id="development-notes">Development Notes<a class="anchor" aria-label="anchor" href="#development-notes"></a></h2>
-<div class="section level3">
-<h3 id="mathematical-foundation">Mathematical Foundation<a class="anchor" aria-label="anchor" href="#mathematical-foundation"></a></h3>
-<p>The exponential series system has the property that if components have rates <code>λ₁,...,λₘ</code>, the system lifetime <code>T = min(T₁,...,Tₘ)</code> is exponentially distributed with rate <code>λ = Σλⱼ</code>. This simplifies many calculations.</p>
-</div>
-<div class="section level3">
-<h3 id="log-likelihood-formula-c1-c2-c3">Log-Likelihood Formula (C1, C2, C3)<a class="anchor" aria-label="anchor" href="#log-likelihood-formula-c1-c2-c3"></a></h3>
-<p>For masked data satisfying C1, C2, C3:</p>
-<pre><code>ℓ(θ|data) = -Σᵢ tᵢ · Σⱼ θⱼ + Σᵢ log(Σⱼ∈Cᵢ θⱼ)</code></pre>
-<p>where <code>Cᵢ</code> is the candidate set for observation <code>i</code>, and <code>tᵢ</code> is the system lifetime.</p>
-</div>
-<div class="section level3">
-<h3 id="score-and-hessian">Score and Hessian<a class="anchor" aria-label="anchor" href="#score-and-hessian"></a></h3>
-<p>The score (gradient) and Hessian are computed analytically in <code>R/exp_series_md_c1_c2_c3.R</code>. This allows for efficient Newton-Raphson optimization.</p>
-</div>
-<div class="section level3">
-<h3 id="future-extensions">Future Extensions<a class="anchor" aria-label="anchor" href="#future-extensions"></a></h3>
-<p>The <code>.fixing/</code> directory contains experimental code for: - Weibull series systems (<code>wei_series.R</code>) - Alternative candidate set models (<code>cand-set-models.R</code>) - Sensitivity analysis (<code>sen-ana.Rmd</code>)</p>
-<p>These are not currently exported or documented.</p>
-</div>
+<h2 id="api-notes">API Notes<a class="anchor" aria-label="anchor" href="#api-notes"></a></h2>
+<p><strong>Unified Censoring API:</strong> All models accept an <code>indicator</code> parameter (default: <code>"delta"</code>) specifying the column for right-censoring status. For backwards compatibility, if this column is absent, censoring is inferred from empty candidate sets (all FALSE).</p>
 </div>
 </div>
 

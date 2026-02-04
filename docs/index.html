@@ -51,113 +51,175 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="r-package-likelihoodmodelseriesmd">R Package: <code>likelihood.model.series.md</code>
-<a class="anchor" aria-label="anchor" href="#r-package-likelihoodmodelseriesmd"></a>
+<div class="page-header"><h1 id="likelihoodmodelseriesmd">likelihood.model.series.md<a class="anchor" aria-label="anchor" href="#likelihoodmodelseriesmd"></a>
 </h1></div>
-<p>This is an R package for estimating the parameters of a series system model from masked data. It provides a flexible and intuitive interface for specifying the model and performing maximum likelihood estimation.</p>
-<p>This R package provides a set of functions for generating MLEs for the lifetime parameters of the components in a series systems and other related characteristics from data that <em>masks</em> the component cause of failure, and also the system lifetime.</p>
-<p>Masked data comes in a variety of forms:</p>
-<ol style="list-style-type: decimal">
-<li>
-<p>The system lifetime can be masked in three related ways. Right censoring occurs when the system under observation is only known to have survived for some minimum length of time. Left censoring occurs when the system under observation is only know to have survived for some maximum length of time. Finally, interval censoring occurs when the system under observation is only known to have survived between some minimum and maximum length of time.</p>
-<p>In the unmasked situation, we know precisely how long the system under observation survived.</p>
-</li>
-<li>
-<p>Regardless of how the series system lifetime is masked, the lifetime of the components may be masked in any of the ways described in item (1). There is, additionally, another kind of masking we would like to consider. What if we do not observe any of the component lifetimes, and instead are only given a (potentially masked) series system lifetime, and a <em>candidate set</em> of component indexes which plausibly contains the failed component index.</p>
-<p>For a series system of <img src="https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&amp;space;%5Cbg_white&amp;space;m%20%22m%22" alt="m"> components, the candidate sets are subsets of <img src="https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&amp;space;%5Cbg_white&amp;space;%5C%7B1%2C%5Cldots%2Cm%5C%7D%20%22%5C%7B1,%5Cldots,m%5C%7D%22" alt="\{1,\ldots,m\}">.</p>
-</li>
-</ol>
+<!-- badges: start -->
+
+<p>Maximum likelihood estimation for series system parameters from masked component failure data. Implements likelihood models for systems where component lifetimes may be right-censored and the component cause of failure is identified only up to a candidate set.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version from GitHub with:</p>
+<p>From <a href="https://queelius.r-universe.dev" class="external-link">r-universe</a>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"queelius/likelihood.model.series.md"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"likelihood.model.series.md"</span>,</span>
+<span>                 repos <span class="op">=</span> <span class="st">"https://queelius.r-universe.dev"</span><span class="op">)</span></span></code></pre></div>
+<p>Or from GitHub:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"queelius/likelihood.model.series.md"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="models">Models<a class="anchor" aria-label="anchor" href="#models"></a>
+</h2>
+<p>Three likelihood models are provided, all using S3 generic dispatch:</p>
+<table class="table">
+<colgroup>
+<col width="22%">
+<col width="35%">
+<col width="41%">
+</colgroup>
+<thead><tr class="header">
+<th>Model</th>
+<th>Parameters</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>exp_series_md_c1_c2_c3</code></td>
+<td>m rates (λ₁, …, λₘ)</td>
+<td>Exponential component lifetimes</td>
+</tr>
+<tr class="even">
+<td><code>wei_series_md_c1_c2_c3</code></td>
+<td>2m params (k₁, β₁, …, kₘ, βₘ)</td>
+<td>Weibull with per-component shapes</td>
+</tr>
+<tr class="odd">
+<td><code>wei_series_homogeneous_md_c1_c2_c3</code></td>
+<td>m+1 params (k, β₁, …, βₘ)</td>
+<td>Weibull with shared shape</td>
+</tr>
+</tbody>
+</table>
+<p>Each model implements: <code><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/assumptions.html" class="external-link">assumptions()</a></code></p>
+</div>
+<div class="section level2">
+<h2 id="masking-conditions">Masking Conditions<a class="anchor" aria-label="anchor" href="#masking-conditions"></a>
+</h2>
+<p>The candidate set models satisfy three conditions that yield a reduced likelihood depending only on observed data:</p>
+<ul>
+<li>
+<strong>C1</strong>: The failed component is in the candidate set with probability 1</li>
+<li>
+<strong>C2</strong>: Given that the failed component is in the candidate set, the probability of observing any particular candidate set is the same regardless of which component in the set actually failed</li>
+<li>
+<strong>C3</strong>: Masking probabilities are independent of the system parameters θ</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<p>This package provides a comprehensive framework for maximum likelihood estimation (MLE) of series system parameters from masked data.</p>
-<p>It is based on a likelihood contribution model, where each kind of masking of component failures in a series system of some kind and number of components is handled by a set of likelihood contributions. The likelihood contributions are then combined to form the likelihood model for the kind of data and series system under consideration.</p>
-<p>In general, masking models may characaterized by satisfy any (or none) of the following conditions:</p>
-<p>Condition 1: The probability that the failed component is in the candidate set is 1.</p>
-<p>Condition 2: Given a candidate set of potential causes of failure, when we condition on the component cause being any one of the components in the candidate set at the given system failure time, the probability of the candidate set is uniform.</p>
-<p>Condition 3: The distribution of candidate sets conditioned on a system failure time and a component cause of failure is independent of the system parameter vector.</p>
-<p>We provide several kinds of masking models, including:</p>
-<ol style="list-style-type: decimal">
-<li><p>Uninformed candidate sets that satisfy conditions 1, 2, and 3.</p></li>
-<li><p>Candidate sets with relaxed conditions, e.g., informed candidate sets.</p></li>
-</ol>
-<p>Together, these masking models provide a flexible framework for handling a wide variety of masking situations.</p>
-<p>We also provide a method for analyzing the sensitivity of a likelihood model to violations of the masking assumptions. This is done by providing a set of likelihood models that are constructed by relaxing the masking assumptions in various ways. The likelihood models are then compared using the likelihood ratio test.</p>
-<p>Other kinds of data and censoring are handled separately by the general likelihood model as detailed in <a href="https://github.com/queelius/likelihood.model" class="external-link">likelihood.model</a>. This is the general framework for adding various kinds of contributions to the likelihood model. This package is focused on providing contributions for masking. The <code>likelihood.model</code> package provides a robust API to work with likelihood models, e.g., for finding MLEs, bootstrapping confidence intervals, and so on.</p>
-<p>We also provide for data imputation, synthetic (implicit prior) data, and so on. These are often based on the conditions the model assumes, and so are provided in this package.</p>
-</div>
-</div>
-<div class="section level1">
-<h1 id="api">API<a class="anchor" aria-label="anchor" href="#api"></a>
-</h1>
-<p>When we construct a likelihood contribution model, we so so by specifying the contributions of each observation type. For example, if we have a series system with three components, and we observe the system lifetime and the lifetimes of the first two components, we would specify the likelihood contributions as follows:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">my_model</span> <span class="op">&lt;-</span> <span class="va">likelihood_contr_model</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  obs_type <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">right_censoring</span>,</span>
-<span>           <span class="st">"exact_fail_time_with_cand_set_c1_c2_c3"</span>,</span>
-<span>           <span class="st">"right_censored"</span><span class="op">)</span></span>
-<span>  <span class="op">}</span>,</span>
-<span></span>
-<span>  logliks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="va">...</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Now, we may call, for instance, <code>fit(my_model, data)</code> to fit the model. We provide a default method for <code>fit</code> based on MLE, but you can also provide your own method, e.g., based on a customized algorithm for efficiently finding estimates for a particular type of series system for particular types of data.</p>
-<p>Regardless of the outcome, ideally it will return an <code>mle</code>-like object (from the <a href="https://queelius.github.io/algebraic.mle" class="external-link">algebraic.mle</a> package), in which case a host of additional methods are available to you, such as <code>predict</code>, <code>confint</code>, <code>sample</code>, etc. This object makes it easy to perform various analyses on your fitted model.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">aic</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="fu">bias</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">new_data</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">fit</span>, method <span class="op">=</span> <span class="st">"asymptotic"</span>, n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></code></pre></div>
-<p>Note that the <code>likelihood.model.series.md</code> package provides a number of likelihood contributions for common observation types. These are described in the package documentation. You can also provide your own likelihood contributions, and we provide a number of functions to make this easier.</p>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://queelius.github.io/likelihood.model.series.md/">likelihood.model.series.md</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># --- Exponential model ---</span></span>
+<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/exp_series_md_c1_c2_c3.html">exp_series_md_c1_c2_c3</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Generate masked series data</span></span>
+<span><span class="va">gen</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">gen</span><span class="op">(</span>theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.0</span>, <span class="fl">1.1</span>, <span class="fl">0.95</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">500</span>, tau <span class="op">=</span> <span class="fl">3</span>, p <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Fit via MLE</span></span>
+<span><span class="va">solver</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span><span class="va">mle</span> <span class="op">&lt;-</span> <span class="fu">solver</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span>   <span class="co"># estimated rates</span></span>
+<span><span class="va">mle</span><span class="op">$</span><span class="va">sigma</span>       <span class="co"># asymptotic standard errors</span></span>
+<span></span>
+<span><span class="co"># Log-likelihood, score, and Hessian</span></span>
+<span><span class="va">ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span><span class="va">s</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span><span class="va">H</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">ll</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span><span class="op">)</span></span>
+<span><span class="fu">s</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span><span class="op">)</span></span>
+<span><span class="fu">H</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># --- Weibull model (shared shape) ---</span></span>
+<span><span class="va">wmodel</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/wei_series_homogeneous_md_c1_c2_c3.html">wei_series_homogeneous_md_c1_c2_c3</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">wsolver</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">wmodel</span><span class="op">)</span></span>
+<span><span class="co"># theta: (shape, scale1, scale2, ...)</span></span>
+<span><span class="co"># wmle &lt;- wsolver(data, par = c(1.2, 1000, 900, 850))</span></span></code></pre></div>
 </div>
-<div class="section level1">
-<h1 id="assumptions">Assumptions<a class="anchor" aria-label="anchor" href="#assumptions"></a>
-</h1>
-<p>Some of the models in this package make explicit assumptions about the data. We provide various functions to help you check these assumptions, to impute data that satisfies these assumptions, and to generate fake data that satisfies these assumptions.</p>
-<p>Sometimes, we generate fake data to create an implicit prior distribution for the parameters.</p>
+<div class="section level2">
+<h2 id="data-format">Data Format<a class="anchor" aria-label="anchor" href="#data-format"></a>
+</h2>
+<p>The data frame passed to model functions uses these column conventions:</p>
+<table class="table">
+<thead><tr class="header">
+<th>Column</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>t</code></td>
+<td>System lifetime (observed)</td>
+</tr>
+<tr class="even">
+<td><code>delta</code></td>
+<td>Right-censoring indicator (TRUE = exact, FALSE = censored)</td>
+</tr>
+<tr class="odd">
+<td><code>x1, x2, ..., xm</code></td>
+<td>Boolean candidate set indicators</td>
+</tr>
+</tbody>
+</table>
+<p>Column names are configurable via the <code>lifetime</code>, <code>indicator</code>, and <code>candset</code> parameters when constructing a model.</p>
 </div>
-<div class="section level1">
-<h1 id="model-selection">Model Selection<a class="anchor" aria-label="anchor" href="#model-selection"></a>
-</h1>
-<p>We provide some wrappers for model selection, such as AIC, BIC, and so on. We also provide specializations and constraint functions for the parameters.</p>
-<p>For example, we may have a strong belief that the components are Weibull distributed, and furthermore, that they are more or less on the same scale with slight differences in shape. In this case, we can simplify the model by assuming <img src="https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&amp;space;%5Cbg_white&amp;space;%5Clambda_1%20%3D%20%5Ccdots%20%3D%20%5Clambda_m%20%22%5Clambda_1%20=%20%5Ccdots%20=%20%5Clambda_m%22" alt="\lambda_1 = \cdots = \lambda_m"> and then only fitting <img src="https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&amp;space;%5Cbg_white&amp;space;%5Chat%5Clambda%20%22%5Chat%5Clambda%22" alt="\hat\lambda"> and <img src="https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&amp;space;%5Cbg_white&amp;space;%5Chat%20k_1%2C%20%5Cldots%2C%20%5Chat%20k_m%20%22%5Chat%20k_1,%20%5Cldots,%20%5Chat%20k_m%22" alt="\hat k_1, \ldots, \hat k_m">, reducing a <img src="https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&amp;space;%5Cbg_white&amp;space;2m%20%222m%22" alt="2m"> parameter model to a simpler <img src="https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&amp;space;%5Cbg_white&amp;space;m%2B1%20%22m+1%22" alt="m+1"> parameter model. This is not an unrealistic assumption, since if a series system is well-designed, then the components should be more or less on the same scale (i.e., have approximately the same MTTF).</p>
+<div class="section level2">
+<h2 id="simulation-framework">Simulation Framework<a class="anchor" aria-label="anchor" href="#simulation-framework"></a>
+</h2>
+<p>The <code>simulations/</code> directory contains a standalone, resumable Monte Carlo framework for studying MLE properties under varying masking, censoring, and sample size conditions. Five experiments are included:</p>
+<ol style="list-style-type: decimal">
+<li>Main MC study (bias, variance, MSE, coverage)</li>
+<li>Masking probability sensitivity</li>
+<li>Censoring rate sensitivity</li>
+<li>Sample size scaling</li>
+<li>Joint masking × censoring interaction</li>
+</ol>
+<p>See <a href="simulations/README.html"><code>simulations/README.md</code></a> for details. Results can be exported for the package vignette via <code>simulations/export_for_vignette.R</code>.</p>
 </div>
-<div class="section level1">
-<h1 id="bootstrapping-statistics-of-the-mle-and-likleihood-mode">Bootstrapping Statistics of the MLE and Likleihood Mode<a class="anchor" aria-label="anchor" href="#bootstrapping-statistics-of-the-mle-and-likleihood-mode"></a>
-</h1>
-<p>To estimate various characteiristcs, such as the bias, BCa confidence intervals, etc, then bootstraping may be used. The <code>likelihood.md.series.systems</code> package relies upon the bootstrapping functionality in <code>boot</code> and <code>likelihood.model</code>, but provide special functions and methods that are particular to the masked data series system context.</p>
+<div class="section level2">
+<h2 id="vignette">Vignette<a class="anchor" aria-label="anchor" href="#vignette"></a>
+</h2>
+<p>The package includes a tutorial vignette with worked examples and data-driven analysis of MLE properties:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"exponential_series"</span>, package <span class="op">=</span> <span class="st">"likelihood.model.series.md"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level1">
-<h1 id="parametric-models">Parametric Models<a class="anchor" aria-label="anchor" href="#parametric-models"></a>
-</h1>
-<p>A <em>general series system</em> model, and other kinds of series systems, are also handled by external libraries, such as the <a href="https://github.com/queelius/dfr_dist" class="external-link">Dynamic Failure Rate</a> library, which can be used to construct hazard functions for components that may depend on predictors, including time, any other covariates.</p>
+<div class="section level2">
+<h2 id="related-packages">Related Packages<a class="anchor" aria-label="anchor" href="#related-packages"></a>
+</h2>
+<ul>
+<li>
+<a href="https://github.com/queelius/likelihood.model" class="external-link">likelihood.model</a> — generics for likelihood models (<code>loglik</code>, <code>score</code>, <code>fit</code>, etc.)</li>
+<li>
+<a href="https://github.com/queelius/algebraic.mle" class="external-link">algebraic.mle</a> — MLE objects with inference methods</li>
+<li>
+<a href="https://github.com/queelius/algebraic.dist" class="external-link">algebraic.dist</a> — distribution utilities</li>
+<li>
+<a href="https://github.com/queelius/md.tools" class="external-link">md.tools</a> — masked data encoding/decoding</li>
+</ul>
 </div>
-<div class="section level1">
-<h1 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
-</h1>
-<p>For more detailed information on how to use this package and what each function does, please refer to the package documentation. The series_system function and its parameters are described in detail there.</p>
+<div class="section level2">
+<h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
+</h2>
+<p>GPL (&gt;= 3)</p>
 </div>
-<div class="section level1">
-<h1 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
-</h1>
-<p>Contributions are welcome! Please open an issue or submit a pull request on GitHub if you find any bugs or if you’d like to suggest improvements.</p>
 </div>
-
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://queelius.github.io/likelihood.model.series.md/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://queelius.github.io/likelihood.model.series.md/issues">Report a bug</a></li>
 </ul>
 </div>
 
@@ -184,7 +246,12 @@
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://www.gnu.org/licenses/gpl-3.0" class="external-link"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>
