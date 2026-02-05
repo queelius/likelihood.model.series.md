@@ -15,3 +15,5 @@
 ^\.fixing$
 ^vignettes/.*_cache$
 ^simulations$
+^\.lintr$
+^\.claude$

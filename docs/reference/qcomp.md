@@ -1,4 +1,4 @@
-# Quantile function for a component with custom hazard/survival
+# Quantile function for a component with custom survival function
 
 Finds the time t such that S(t) = p using root finding. The survival
 function S(t) is assumed to be monotonically decreasing from S(0) = 1 to
@@ -9,7 +9,6 @@ S(inf) = 0.
 ``` r
 qcomp(
   p,
-  haz = NULL,
   surv,
   theta,
   t_lower = .Machine$double.eps,
@@ -23,11 +22,6 @@ qcomp(
 - p:
 
   probability (quantile level), must be in (0, 1)
-
-- haz:
-
-  hazard function h(t, theta, ...) (currently unused but kept for API
-  consistency)
 
 - surv:
 
@@ -43,8 +37,7 @@ qcomp(
 
 - t_upper:
 
-  upper bound for search interval (sqrt to avoid overflow in survival
-  calculations)
+  upper bound for search interval (sqrt to avoid overflow)
 
 - ...:
 
@@ -53,3 +46,14 @@ qcomp(
 ## Value
 
 time t such that S(t) = p
+
+## Examples
+
+``` r
+# Exponential survival function
+surv_exp <- function(t, theta) exp(-theta * t)
+
+# Median lifetime (50th percentile) for rate = 2
+qcomp(0.5, surv = surv_exp, theta = 2.0)
+#> [1] 0.3465736
+```

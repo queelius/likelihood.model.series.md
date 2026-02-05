@@ -70,8 +70,8 @@ of failure with candidate sets that satisfy conditions C1, C2, and C3.</p>
 
 
 <dt id="arg-indicator">indicator<a class="anchor" aria-label="anchor" href="#arg-indicator"></a></dt>
-<dd><p>column name for right-censoring indicator, defaults to <code>"delta"</code>.
-TRUE/1 = exact failure time, FALSE/0 = right-censored.
+<dd><p>column name for right-censoring indicator, defaults to
+<code>"delta"</code>. TRUE/1 = exact failure time, FALSE/0 = right-censored.
 For backwards compatibility, if this column is not present in the data,
 censoring is inferred from empty candidate sets (all FALSE).</p></dd>
 
@@ -92,7 +92,8 @@ censoring is inferred from empty candidate sets (all FALSE).</p></dd>
 <p>(1) <code>loglik.wei_series_md_c1_c2_c3</code>
 (2) <code>score.wei_series_md_c1_c2_c3</code>
 (3) <code>hess_loglik.wei_series_md_c1_c2_c3</code></p>
-<p>The Weibull series system has 2m parameters: (shape_1, scale_1, ..., shape_m, scale_m).</p>
+<p>The Weibull series system has 2m parameters:
+(shape_1, scale_1, ..., shape_m, scale_m).</p>
 <p>In this likelihood model, masked component data approximately satisfies:</p>
 <p>C1: <code>Pr{K[i] in C[i]} = 1</code>
 C2: <code>Pr{C[i]=c[i] | K[i]=j, T[i]=t[i]} = Pr{C[i]=c[i] | K[i]=j', T[i]=t[i]}</code>

@@ -20,7 +20,7 @@ wei_series_homogeneous_md_c1_c2_c3(
 
 - shape:
 
-  common shape parameter for all Weibull component lifetimes (optional)
+  common shape parameter for all Weibull component lifetimes
 
 - scales:
 

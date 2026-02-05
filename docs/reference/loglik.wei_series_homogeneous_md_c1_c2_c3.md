@@ -35,5 +35,4 @@ log-likelihood function that takes the following arguments:
 - `indicator`: right-censoring indicator column name (default from
   model)
 
-- `candset`: prefix of Boolean matrix encoding candidate sets (default
-  from model)
+- `candset`: prefix of Boolean matrix encoding candidate sets

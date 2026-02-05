@@ -171,7 +171,7 @@ test_that("loglik errors when parameter length is wrong", {
   df <- create_wei_test_data(n = 50)
 
   # 3 components need 6 parameters, giving only 4
-  expect_error(ll_fn(df, par = c(1.2, 100, 1.5, 150)), "2 \\* number of components")
+  expect_error(ll_fn(df, par = c(1.2, 100, 1.5, 150)), "Expected .* parameters but got")
 })
 
 test_that("loglik handles censored data correctly", {
@@ -738,5 +738,5 @@ test_that("Weibull error messages are informative", {
 
   df <- data.frame(t = c(1, 2), delta = c(TRUE, TRUE),
                    x1 = c(TRUE, FALSE), x2 = c(FALSE, TRUE))
-  expect_error(ll_fn(df, par = c(1, 100, 1)), "2 \\* number of components")
+  expect_error(ll_fn(df, par = c(1, 100, 1)), "Expected .* parameters but got")
 })

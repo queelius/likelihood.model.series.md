@@ -1,4 +1,4 @@
-# Hessian of log-likelihood method for `wei_series_homogeneous_md_c1_c2_c3` model.
+# Hessian of log-likelihood method for `wei_series_homogeneous_md_c1_c2_c3`.
 
 Returns the Hessian (second derivative matrix) of the log-likelihood for
 a Weibull series system with homogeneous shape. Computed numerically via
@@ -34,5 +34,4 @@ hessian function that takes the following arguments:
 - `indicator`: right-censoring indicator column name (default from
   model)
 
-- `candset`: prefix of Boolean matrix encoding candidate sets (default
-  from model)
+- `candset`: prefix of Boolean matrix encoding candidate sets

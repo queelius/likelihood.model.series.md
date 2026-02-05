@@ -14,6 +14,7 @@
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/dexp_series.html</loc></url>
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/exp_series_md_c1_c2_c3.html</loc></url>
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/extract_model_data.html</loc></url>
+<url><loc>https://queelius.github.io/likelihood.model.series.md/reference/extract_model_defaults.html</loc></url>
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/generate_masked_series_data.html</loc></url>
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/hazard_exp_series.html</loc></url>
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/hess_loglik.exp_series_md_c1_c2_c3.html</loc></url>
@@ -23,6 +24,7 @@
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/loglik.exp_series_md_c1_c2_c3.html</loc></url>
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/loglik.wei_series_homogeneous_md_c1_c2_c3.html</loc></url>
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/loglik.wei_series_md_c1_c2_c3.html</loc></url>
+<url><loc>https://queelius.github.io/likelihood.model.series.md/reference/make_numeric_hessian.html</loc></url>
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/md_bernoulli_cand_c1_c2_c3.html</loc></url>
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/md_cand_sampler.html</loc></url>
 <url><loc>https://queelius.github.io/likelihood.model.series.md/reference/md_series_lifetime_right_censoring.html</loc></url>

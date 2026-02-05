@@ -33,7 +33,8 @@ generate_masked_series_data(
 \item{default_candset}{column prefix for candidate sets}
 }
 \value{
-data frame with system lifetime, censoring indicator, and candidate sets
+data frame with system lifetime, censoring indicator, and candidate
+sets
 }
 \description{
 Shared data generation logic for all rdata methods. Takes pre-generated

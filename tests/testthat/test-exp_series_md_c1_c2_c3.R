@@ -901,8 +901,51 @@ test_that("error messages are informative", {
   df_no_cand <- data.frame(t = c(1, 2))
   expect_error(ll_fn(df_no_cand, par = 0.5), "no candidate set")
 
+  # Wrong number of parameters (new standardized message)
+  df_mismatch <- data.frame(t = c(1, 2), delta = c(TRUE, TRUE),
+                             x1 = c(TRUE, FALSE), x2 = c(FALSE, TRUE))
+  expect_error(ll_fn(df_mismatch, par = c(0.5)), "Expected 2 parameters")
+
   # Wrong number of parameters
   df <- data.frame(t = c(1, 2), delta = c(TRUE, TRUE),
                    x1 = c(TRUE, FALSE), x2 = c(FALSE, TRUE))
-  expect_error(score_fn(df, par = c(0.5)), "number of components")
+  expect_error(score_fn(df, par = c(0.5)), "parameters")
+})
+
+
+# ==============================================================================
+# Test: C1 violation detection
+# ==============================================================================
+
+test_that("loglik detects C1 violation: exact observation with empty candidate set", {
+  model <- exp_series_md_c1_c2_c3()
+  ll_fn <- loglik(model)
+
+  # Create data with C1 violation: delta=TRUE but all candidate indicators FALSE
+  df_violation <- data.frame(
+    t = c(1, 2, 3),
+    delta = c(TRUE, TRUE, TRUE),
+    x1 = c(TRUE, FALSE, FALSE),  # row 2 and 3 violate C1
+    x2 = c(FALSE, FALSE, FALSE),
+    x3 = c(FALSE, FALSE, FALSE)
+  )
+
+  expect_error(ll_fn(df_violation, par = c(0.5, 0.3, 0.2)), "C1 violated")
+})
+
+test_that("loglik allows empty candidate set for censored observations", {
+  model <- exp_series_md_c1_c2_c3()
+  ll_fn <- loglik(model)
+
+  # Empty candidate sets are valid for censored observations (delta=FALSE)
+  df_valid <- data.frame(
+    t = c(1, 2, 3),
+    delta = c(TRUE, FALSE, FALSE),
+    x1 = c(TRUE, FALSE, FALSE),  # rows 2,3 are censored, empty set OK
+    x2 = c(FALSE, FALSE, FALSE),
+    x3 = c(FALSE, FALSE, FALSE)
+  )
+
+  ll <- ll_fn(df_valid, par = c(0.5, 0.3, 0.2))
+  expect_true(is.finite(ll))
 })

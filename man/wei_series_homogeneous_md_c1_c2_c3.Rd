@@ -13,14 +13,14 @@ wei_series_homogeneous_md_c1_c2_c3(
 )
 }
 \arguments{
-\item{shape}{common shape parameter for all Weibull component lifetimes (optional)}
+\item{shape}{common shape parameter for all Weibull component lifetimes}
 
 \item{scales}{scale parameters for Weibull component lifetimes (optional)}
 
 \item{lifetime}{column name for system lifetime, defaults to \code{"t"}}
 
-\item{indicator}{column name for right-censoring indicator, defaults to \code{"delta"}.
-TRUE/1 = exact failure time, FALSE/0 = right-censored.
+\item{indicator}{column name for right-censoring indicator, defaults to
+\code{"delta"}. TRUE/1 = exact failure time, FALSE/0 = right-censored.
 For backwards compatibility, if this column is not present in the data,
 censoring is inferred from empty candidate sets (all FALSE).}
 

@@ -184,7 +184,7 @@ GPL (\>= 3)
   :
 
   Hessian of log-likelihood method for
-  `wei_series_homogeneous_md_c1_c2_c3` model.
+  `wei_series_homogeneous_md_c1_c2_c3`.
 
 - [`hess_loglik(`*`<wei_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/hess_loglik.wei_series_md_c1_c2_c3.md)
   :
@@ -223,13 +223,13 @@ GPL (\>= 3)
   : Cumulative distribution function for exponential series.
 
 - [`qcomp()`](https://queelius.github.io/likelihood.model.series.md/reference/qcomp.md)
-  : Quantile function for a component with custom hazard/survival
+  : Quantile function for a component with custom survival function
 
 - [`qexp_series()`](https://queelius.github.io/likelihood.model.series.md/reference/qexp_series.md)
   : Quantile function for exponential series.
 
 - [`rcomp()`](https://queelius.github.io/likelihood.model.series.md/reference/rcomp.md)
-  : Random generation for a component with custom hazard/survival
+  : Random generation for a component with custom survival function
 
 - [`rdata(`*`<exp_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/rdata.exp_series_md_c1_c2_c3.md)
   :

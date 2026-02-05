@@ -2,11 +2,10 @@
 % Please edit documentation in R/utils.R
 \name{qcomp}
 \alias{qcomp}
-\title{Quantile function for a component with custom hazard/survival}
+\title{Quantile function for a component with custom survival function}
 \usage{
 qcomp(
   p,
-  haz = NULL,
   surv,
   theta,
   t_lower = .Machine$double.eps,
@@ -17,15 +16,13 @@ qcomp(
 \arguments{
 \item{p}{probability (quantile level), must be in (0, 1)}
 
-\item{haz}{hazard function h(t, theta, ...) (currently unused but kept for API consistency)}
-
 \item{surv}{survival function S(t, theta, ...)}
 
 \item{theta}{parameter vector passed to surv}
 
 \item{t_lower}{lower bound for search interval}
 
-\item{t_upper}{upper bound for search interval (sqrt to avoid overflow in survival calculations)}
+\item{t_upper}{upper bound for search interval (sqrt to avoid overflow)}
 
 \item{...}{additional arguments passed to surv}
 }
@@ -36,4 +33,11 @@ time t such that S(t) = p
 Finds the time t such that S(t) = p using root finding.
 The survival function S(t) is assumed to be monotonically decreasing
 from S(0) = 1 to S(inf) = 0.
+}
+\examples{
+# Exponential survival function
+surv_exp <- function(t, theta) exp(-theta * t)
+
+# Median lifetime (50th percentile) for rate = 2
+qcomp(0.5, surv = surv_exp, theta = 2.0)
 }

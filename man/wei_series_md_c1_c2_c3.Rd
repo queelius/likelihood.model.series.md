@@ -19,8 +19,8 @@ wei_series_md_c1_c2_c3(
 
 \item{lifetime}{column name for system lifetime, defaults to \code{"t"}}
 
-\item{indicator}{column name for right-censoring indicator, defaults to \code{"delta"}.
-TRUE/1 = exact failure time, FALSE/0 = right-censored.
+\item{indicator}{column name for right-censoring indicator, defaults to
+\code{"delta"}. TRUE/1 = exact failure time, FALSE/0 = right-censored.
 For backwards compatibility, if this column is not present in the data,
 censoring is inferred from empty candidate sets (all FALSE).}
 
@@ -42,7 +42,8 @@ This model satisfies the concept of a \code{likelihood_model} in the
 (2) \code{score.wei_series_md_c1_c2_c3}
 (3) \code{hess_loglik.wei_series_md_c1_c2_c3}
 
-The Weibull series system has 2m parameters: (shape_1, scale_1, ..., shape_m, scale_m).
+The Weibull series system has 2m parameters:
+(shape_1, scale_1, ..., shape_m, scale_m).
 
 In this likelihood model, masked component data approximately satisfies:
 

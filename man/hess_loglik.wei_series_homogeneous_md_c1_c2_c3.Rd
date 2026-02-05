@@ -2,7 +2,7 @@
 % Please edit documentation in R/wei_series_homogeneous_md_c1_c2_c3.R
 \name{hess_loglik.wei_series_homogeneous_md_c1_c2_c3}
 \alias{hess_loglik.wei_series_homogeneous_md_c1_c2_c3}
-\title{Hessian of log-likelihood method for \code{wei_series_homogeneous_md_c1_c2_c3} model.}
+\title{Hessian of log-likelihood method for \code{wei_series_homogeneous_md_c1_c2_c3}.}
 \usage{
 \method{hess_loglik}{wei_series_homogeneous_md_c1_c2_c3}(model, ...)
 }
@@ -18,7 +18,7 @@ hessian function that takes the following arguments:
 \item \code{par}: parameter vector (shape, scale1, scale2, ...)
 \item \code{lifetime}: system lifetime column name (default from model)
 \item \code{indicator}: right-censoring indicator column name (default from model)
-\item \code{candset}: prefix of Boolean matrix encoding candidate sets (default from model)
+\item \code{candset}: prefix of Boolean matrix encoding candidate sets
 }
 }
 \description{

@@ -13,8 +13,6 @@ Suggests:
     knitr,
     rmarkdown,
     devtools,
-    printr,
-    tidyverse,
     testthat (>= 3.0.0),
     algebraic.mle,
     algebraic.dist,

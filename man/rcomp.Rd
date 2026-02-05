@@ -2,22 +2,28 @@
 % Please edit documentation in R/utils.R
 \name{rcomp}
 \alias{rcomp}
-\title{Random generation for a component with custom hazard/survival}
+\title{Random generation for a component with custom survival function}
 \usage{
-rcomp(n, haz, surv, theta)
+rcomp(n, surv, theta)
 }
 \arguments{
 \item{n}{number of samples to generate}
 
-\item{haz}{hazard function h(t, theta)}
-
 \item{surv}{survival function S(t, theta)}
 
-\item{theta}{parameter vector passed to haz and surv}
+\item{theta}{parameter vector passed to surv}
 }
 \value{
 vector of n random samples
 }
 \description{
 Generates random samples using inverse transform sampling.
+}
+\examples{
+# Exponential survival function
+surv_exp <- function(t, theta) exp(-theta * t)
+
+# Generate 10 random samples with rate = 2
+set.seed(123)
+rcomp(10, surv = surv_exp, theta = 2.0)
 }
