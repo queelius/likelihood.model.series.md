@@ -37,7 +37,7 @@
 <p>This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.</p>
 <div class="section level2">
 <h2 id="package-overview">Package Overview<a class="anchor" aria-label="anchor" href="#package-overview"></a></h2>
-<p>This is an R package for maximum likelihood estimation (MLE) of series system parameters from masked component failure data. The package implements likelihood models for systems where: - Component lifetimes may be masked (right-censored) - Component cause of failure is masked via candidate sets (subsets of components that plausibly contain the failed component) - Masking conditions C1, C2, C3 are satisfied</p>
+<p>This is an R package for maximum likelihood estimation (MLE) of series system parameters from masked component failure data. The package implements likelihood models for systems where: - Component lifetimes may be censored (right, left, or interval) via composable observation functors - Component cause of failure is masked via candidate sets (subsets of components that plausibly contain the failed component) - Masking conditions C1, C2, C3 are satisfied</p>
 </div>
 <div class="section level2">
 <h2 id="development-commands">Development Commands<a class="anchor" aria-label="anchor" href="#development-commands"></a></h2>
@@ -56,14 +56,17 @@
 <span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co"># Run a specific test file</span></span>
 <span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::test(filter = 'exp_series_md')"</span></span>
 <span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co"># Run tests with coverage</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co"># Run tests with coverage (overall)</span></span>
 <span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"covr::package_coverage()"</span></span>
 <span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co"># Run R CMD check</span></span>
-<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::check()"</span></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co"># Find exact uncovered lines</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"covr::zero_coverage(covr::package_coverage())"</span></span>
 <span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co"># Build pkgdown site</span></span>
-<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"pkgdown::build_site()"</span></span></code></pre></div>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co"># Run R CMD check</span></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::check()"</span></span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a><span class="co"># Build and deploy pkgdown site (deploys from docs/ on master)</span></span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"pkgdown::build_site()"</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="architecture">Architecture<a class="anchor" aria-label="anchor" href="#architecture"></a></h2>
@@ -85,25 +88,41 @@
 <td>m+1 params: <code>(k,β₁,...,βₘ)</code>
 </td>
 <td><code>R/wei_series_homogeneous_md_c1_c2_c3.R</code></td>
-</tr></tbody></table><p>Each model implements S3 methods: <code><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/assumptions.html" class="external-link">assumptions()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata()</a></code></p>
+</tr></tbody></table><p>Each model implements S3 methods: <code><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/assumptions.html" class="external-link">assumptions()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata()</a></code>, <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>, <code><a href="reference/ncomponents.html">ncomponents()</a></code>, <code><a href="reference/component_hazard.html">component_hazard()</a></code>, <code><a href="reference/conditional_cause_probability.html">conditional_cause_probability()</a></code>, <code><a href="reference/cause_probability.html">cause_probability()</a></code></p>
 <p><strong>S3 class hierarchy</strong> (multiple inheritance for dispatch):</p>
 <pre><code><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exp_series_md_c1_c2_c3"</span>, <span class="st">"series_md"</span>, <span class="st">"likelihood_model"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wei_series_md_c1_c2_c3"</span>, <span class="st">"series_md"</span>, <span class="st">"likelihood_model"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wei_series_homogeneous_md_c1_c2_c3"</span>, <span class="st">"series_md"</span>, <span class="st">"likelihood_model"</span><span class="op">)</span></span></code></pre>
-<p><strong>Implementation note:</strong> The exponential model computes score and Hessian analytically. The Weibull models compute score analytically but use <code><a href="https://rdrr.io/pkg/numDeriv/man/jacobian.html" class="external-link">numDeriv::jacobian</a></code> on the score for the Hessian.</p>
+<p><strong>Implementation notes:</strong> - Exponential: analytical loglik, score, and Hessian for all 4 observation types - Weibull homogeneous: analytical exact/right, closed-form left/interval via w_c weights; <code><a href="https://rdrr.io/pkg/numDeriv/man/jacobian.html" class="external-link">numDeriv::jacobian</a></code> for Hessian - Weibull heterogeneous: analytical exact/right, <code><a href="https://rdrr.io/r/stats/integrate.html" class="external-link">stats::integrate</a></code> for left/interval; <code><a href="https://rdrr.io/pkg/numDeriv/man/jacobian.html" class="external-link">numDeriv::jacobian</a></code> for Hessian - Weibull MLE uses L-BFGS-B with positivity lower bounds (Nelder-Mead has poor convergence)</p>
 <p><strong>Usage pattern:</strong></p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/exp_series_md_c1_c2_c3.html">exp_series_md_c1_c2_c3</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">ll_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>     <span class="co"># Returns function(df, par, ...)</span></span>
 <span><span class="va">s_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>       <span class="co"># Returns function(df, par, ...)</span></span>
 <span><span class="va">H_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="co"># Returns function(df, par, ...)</span></span>
-<span><span class="va">gen_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>     <span class="co"># Returns function(theta, n, tau, p, ...)</span></span>
+<span><span class="va">gen_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>     <span class="co"># Returns function(theta, n, tau, p, observe, ...)</span></span>
 <span></span>
 <span><span class="co"># Evaluate</span></span>
 <span><span class="va">ll_value</span> <span class="op">&lt;-</span> <span class="fu">ll_fn</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.2</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Generate simulated masked data</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">gen_fn</span><span class="op">(</span>theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.2</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">100</span>, tau <span class="op">=</span> <span class="fl">10</span>, p <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Generate data with observation functor</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">gen_fn</span><span class="op">(</span>theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.2</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">100</span>, p <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>             observe <span class="op">=</span> <span class="fu"><a href="reference/observe_periodic.html">observe_periodic</a></span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">10</span>, tau <span class="op">=</span> <span class="fl">100</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="observation-functors-robserver">Observation Functors (<code>R/observe.R</code>)<a class="anchor" aria-label="anchor" href="#observation-functors-robserver"></a></h3>
+<p>Composable functions that separate the DGP from the observation mechanism. Signature: <code>function(t_true) -&gt; list(t, omega, t_upper)</code>.</p>
+<table class="table"><colgroup><col width="40%"><col width="59%"></colgroup><thead><tr class="header"><th>Functor</th>
+<th>Description</th>
+</tr></thead><tbody><tr class="odd"><td><code>observe_right_censor(tau)</code></td>
+<td>Exact if t &lt; tau, right-censored otherwise</td>
+</tr><tr class="even"><td><code>observe_left_censor(tau)</code></td>
+<td>Left-censored if t &lt; tau, right-censored otherwise</td>
+</tr><tr class="odd"><td><code>observe_periodic(delta, tau)</code></td>
+<td>Interval-censored at inspection grid; right-censored past tau</td>
+</tr><tr class="even"><td><code>observe_mixture(..., weights)</code></td>
+<td>Randomly selects among schemes per observation</td>
+</tr></tbody></table><p>Pass to <code><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata()</a></code> via <code>observe</code> parameter. Default (NULL) uses <code>observe_right_censor(tau)</code>.</p>
 </div>
 <div class="section level3">
 <h3 id="masking-conditions">Masking Conditions<a class="anchor" aria-label="anchor" href="#masking-conditions"></a></h3>
@@ -116,15 +135,9 @@
 </ul></div>
 <div class="section level3">
 <h3 id="data-flow">Data Flow<a class="anchor" aria-label="anchor" href="#data-flow"></a></h3>
-<ol style="list-style-type: decimal"><li>Generate component lifetimes (<code>t1, t2, ...</code>)</li>
-<li>Apply <code><a href="reference/md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring()</a></code> → adds <code>t</code>, <code>delta</code>
-</li>
-<li>Apply <code><a href="reference/md_bernoulli_cand_c1_c2_c3.html">md_bernoulli_cand_c1_c2_c3()</a></code> → adds <code>q1, q2, ...</code>
-</li>
-<li>Apply <code><a href="reference/md_cand_sampler.html">md_cand_sampler()</a></code> → adds <code>x1, x2, ...</code>
-</li>
-<li>Fit model using <code>t</code> and <code>x1, x2, ...</code> columns</li>
-</ol></div>
+<p><strong>Modern path (preferred):</strong> <code>rdata(model)(theta, n, p, observe = ...)</code> handles everything internally.</p>
+<p><strong>Manual pipeline (legacy, used in exponential vignette tutorial):</strong> 1. Generate component lifetimes matrix 2. <code>md_encode_matrix(mat, "t")</code> → data frame with <code>t1, t2, ...</code> columns 3. <code>md_series_lifetime_right_censoring(df, tau)</code> → adds <code>t</code>, <code>delta</code> 4. <code>md_bernoulli_cand_c1_c2_c3(df, p)</code> → adds <code>q1, q2, ...</code> 5. <code>md_cand_sampler(df)</code> → adds <code>x1, x2, ...</code> 6. Add <code>omega</code> column: <code>ifelse(delta, "exact", "right")</code></p>
+</div>
 <div class="section level3">
 <h3 id="column-naming-conventions">Column Naming Conventions<a class="anchor" aria-label="anchor" href="#column-naming-conventions"></a></h3>
 <ul><li>
@@ -132,22 +145,31 @@
 <li>
 <code>t</code>: System lifetime (observed)</li>
 <li>
-<code>delta</code>: Right-censoring indicator (TRUE = exact, FALSE = censored)</li>
+<code>omega</code>: Observation type — <code>"exact"</code>, <code>"right"</code>, <code>"left"</code>, or <code>"interval"</code>
+</li>
 <li>
-<code>q1, q2, ..., qm</code>: Candidate set probabilities (latent)</li>
+<code>t_upper</code>: Upper bound for interval-censored observations</li>
 <li>
 <code>x1, x2, ..., xm</code>: Boolean candidate set indicators (observed)</li>
-</ul></div>
+<li>
+<code>q1, q2, ..., qm</code>: Candidate set probabilities (latent, used in manual pipeline)</li>
+</ul><p>Model constructors accept column name overrides: <code>lifetime</code>, <code>omega</code>, <code>candset</code>, <code>lifetime_upper</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="matrix-utilities-rmd_compatr">Matrix Utilities (<code>R/md_compat.R</code>)<a class="anchor" aria-label="anchor" href="#matrix-utilities-rmd_compatr"></a></h3>
+<p>Internal implementations (formerly from md.tools, now zero external dependencies): - <code>md_decode_matrix(df, var)</code>: Extract prefixed columns as matrix (e.g., <code>x1, x2</code> → matrix) - <code>md_encode_matrix(mat, var)</code>: Matrix → data frame with prefixed columns (exported) - <code>md_mark_latent(md, vars)</code>: Set <code>"latent"</code> attribute on data frame - <code>md_boolean_matrix_to_charsets(df, setvar)</code>: Boolean matrix → <code>{1, 3}</code> display (exported)</p>
+</div>
 <div class="section level3">
 <h3 id="exponential-series-distribution-rexp_seriesr">Exponential Series Distribution (<code>R/exp_series.R</code>)<a class="anchor" aria-label="anchor" href="#exponential-series-distribution-rexp_seriesr"></a></h3>
 <p>Standalone R-style distribution functions (not part of likelihood models): <code>dexp_series</code>, <code>pexp_series</code>, <code>qexp_series</code>, <code>rexp_series</code>, <code>hazard_exp_series</code>, <code>surv.exp_series</code></p>
 </div>
 <div class="section level3">
+<h3 id="series-system-generics-rseries_md_genericsr">Series System Generics (<code>R/series_md_generics.R</code>)<a class="anchor" aria-label="anchor" href="#series-system-generics-rseries_md_genericsr"></a></h3>
+<p>Package-defined S3 generics dispatched on <code>series_md</code> class: - <code>ncomponents(model)</code> — number of components m - <code>component_hazard(model, j)</code> — returns <code>function(t, par)</code> for j-th component - <code>conditional_cause_probability(model, j)</code> — returns <code>function(t, par)</code> for P(K=j|T=t) - <code>cause_probability(model, j)</code> — returns <code>function(par)</code> for marginal P(K=j)</p>
+</div>
+<div class="section level3">
 <h3 id="external-dependencies-github-remotes">External Dependencies (GitHub Remotes)<a class="anchor" aria-label="anchor" href="#external-dependencies-github-remotes"></a></h3>
 <ul><li>
-<code>md.tools</code>: <code><a href="reference/md_decode_matrix.html">md_decode_matrix()</a></code>, <code><a href="reference/md_encode_matrix.html">md_encode_matrix()</a></code>, <code><a href="reference/md_mark_latent.html">md_mark_latent()</a></code>
-</li>
-<li>
 <code>algebraic.mle</code>: MLE objects with <code>$theta.hat</code>, <code>$sigma</code>, <code>$info</code>
 </li>
 <li>
@@ -160,13 +182,6 @@
 </ul><p><strong>Note:</strong> <code>fim</code> and <code>observed_info</code> are re-exported from <code>likelihood.model</code> and use default implementations (Monte Carlo FIM, negated Hessian for observed info). No model-specific overrides are needed.</p>
 </div>
 <div class="section level3">
-<h3 id="key-mathematical-properties">Key Mathematical Properties<a class="anchor" aria-label="anchor" href="#key-mathematical-properties"></a></h3>
-<p><strong>Exponential series:</strong> System lifetime T = min(T₁,…,Tₘ) ~ Exp(λ = Σλⱼ)</p>
-<p><strong>Homogeneous Weibull:</strong> When all shapes equal k, system lifetime ~ Weibull(k, βₛ) where βₛ = (Σβⱼ⁻ᵏ)⁻¹/ᵏ. Use <code>wei_series_system_scale(k, scales)</code> to compute.</p>
-<p><strong>Log-likelihood (C1, C2, C3):</strong></p>
-<pre><code>ℓ(θ) = -Σᵢ [survival term] + Σᵢ:δᵢ=1 log(Σⱼ∈Cᵢ hⱼ(tᵢ))</code></pre>
-</div>
-<div class="section level3">
 <h3 id="utility-functions-rutilsr">Utility Functions (<code>R/utils.R</code>)<a class="anchor" aria-label="anchor" href="#utility-functions-rutilsr"></a></h3>
 <ul><li>
 <code>cum_haz(haz)</code>: Creates cumulative hazard from hazard function</li>
@@ -174,11 +189,21 @@
 <code>qcomp(p, haz, surv, theta, t_lower, t_upper)</code>: Quantile via root-finding</li>
 <li>
 <code>rcomp(n, haz, surv, theta)</code>: Random generation via inverse transform</li>
+<li>
+<code>extract_model_data(df, ...)</code>: Shared validation/extraction for all model methods</li>
+<li>
+<code>generate_masked_series_data(...)</code>: Internal data generation with observe functor support</li>
 </ul></div>
+<div class="section level3">
+<h3 id="key-mathematical-properties">Key Mathematical Properties<a class="anchor" aria-label="anchor" href="#key-mathematical-properties"></a></h3>
+<p><strong>Exponential series:</strong> System lifetime T = min(T₁,…,Tₘ) ~ Exp(λ = Σλⱼ)</p>
+<p><strong>Homogeneous Weibull:</strong> When all shapes equal k, system lifetime ~ Weibull(k, βₛ) where βₛ = (Σβⱼ⁻ᵏ)⁻¹/ᵏ. Use <code>wei_series_system_scale(k, scales)</code> to compute.</p>
+<p><strong>Log-likelihood (C1, C2, C3) — four observation types:</strong> - Exact: <code>log(Σⱼ∈Cᵢ hⱼ(tᵢ)) - H(tᵢ)</code> where H is system cumulative hazard - Right: <code>-H(tᵢ)</code> - Left: <code>log(Σⱼ∈Cᵢ ∫₀ᵗ hⱼ(u)R(u)du) - log(1-R(t))</code> (or closed form for exp/homogeneous Weibull) - Interval: <code>log(Σⱼ∈Cᵢ ∫ₐᵇ hⱼ(u)R(u)du) - log(R(a)-R(b))</code></p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="testing">Testing<a class="anchor" aria-label="anchor" href="#testing"></a></h2>
-<p>Tests use <code>testthat</code> edition 3. Test files mirror source files:</p>
+<p>Tests use <code>testthat</code> edition 3. 798 tests, 99.45% coverage. Test files mirror source files:</p>
 <table class="table"><colgroup><col width="57%"><col width="42%"></colgroup><thead><tr class="header"><th>Source</th>
 <th>Test</th>
 </tr></thead><tbody><tr class="odd"><td><code>R/exp_series.R</code></td>
@@ -193,26 +218,43 @@
 <td><code>tests/testthat/test-md_series.R</code></td>
 </tr><tr class="even"><td><code>R/utils.R</code></td>
 <td><code>tests/testthat/test-utils.R</code></td>
+</tr><tr class="odd"><td><code>R/observe.R</code></td>
+<td><code>tests/testthat/test-observe.R</code></td>
+</tr><tr class="even"><td><code>R/series_md_generics.R</code></td>
+<td><code>tests/testthat/test-series_md_generics.R</code></td>
+</tr><tr class="odd"><td>Censoring integration</td>
+<td><code>tests/testthat/test-censoring.R</code></td>
 </tr></tbody></table></div>
 <div class="section level2">
 <h2 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a></h2>
+<p>All vignettes use precomputed <code>.rds</code> files (set <code>run_long &lt;- TRUE</code> to regenerate).</p>
 <table class="table"><colgroup><col width="43%"><col width="56%"></colgroup><thead><tr class="header"><th>Vignette</th>
 <th>Description</th>
-</tr></thead><tbody><tr class="odd"><td><code>vignettes/exponential_series.Rmd</code></td>
+</tr></thead><tbody><tr class="odd"><td><code>exponential_series.Rmd</code></td>
 <td>Tutorial: MLE, Monte Carlo simulation, sensitivity analysis</td>
+</tr><tr class="even"><td><code>weibull_homogeneous_series.Rmd</code></td>
+<td>Shared-shape Weibull: DFR/CFR/IFR regimes, closed-form left/interval</td>
+</tr><tr class="odd"><td><code>weibull_series.Rmd</code></td>
+<td>Heterogeneous Weibull: mixed hazard shapes, numerical integration</td>
+</tr><tr class="even"><td><code>censoring_comparison.Rmd</code></td>
+<td>Cross-model analysis of censoring type effects on estimation quality</td>
 </tr></tbody></table></div>
+<div class="section level2">
+<h2 id="deployment">Deployment<a class="anchor" aria-label="anchor" href="#deployment"></a></h2>
+<p>GitHub Pages serves from <code>docs/</code> on master:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"pkgdown::build_site()"</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">git</span> add docs/ <span class="kw">&amp;&amp;</span> <span class="fu">git</span> commit <span class="kw">&amp;&amp;</span> <span class="fu">git</span> push</span></code></pre></div>
+</div>
 <div class="section level2">
 <h2 id="naming-conventions">Naming Conventions<a class="anchor" aria-label="anchor" href="#naming-conventions"></a></h2>
 <ul><li>Functions: snake_case (e.g., <code>md_series_lifetime_right_censoring</code>)</li>
 <li>Distributions: R conventions (<code>d*</code>, <code>p*</code>, <code>q*</code>, <code>r*</code>)</li>
 <li>S3 registration: <code>#' @method generic class</code> + <code>#' @export</code>
 </li>
-<li>Model constructors accept column name overrides: <code>lifetime</code>, <code>indicator</code>, <code>candset</code> params</li>
+<li>Observation functors: <code>observe_*</code> prefix</li>
+<li>Model constructors accept column name overrides: <code>lifetime</code>, <code>omega</code>, <code>candset</code>, <code>lifetime_upper</code>
+</li>
 </ul></div>
-<div class="section level2">
-<h2 id="api-notes">API Notes<a class="anchor" aria-label="anchor" href="#api-notes"></a></h2>
-<p><strong>Unified Censoring API:</strong> All models accept an <code>indicator</code> parameter (default: <code>"delta"</code>) specifying the column for right-censoring status. For backwards compatibility, if this column is absent, censoring is inferred from empty candidate sets (all FALSE).</p>
-</div>
 </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

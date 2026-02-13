@@ -653,9 +653,9 @@ knitr::kable(timing_df, caption = "Log-likelihood evaluation time (10 evaluation
 
 | Model                 | Time (s) | Left/Interval Method  |
 |:----------------------|---------:|:----------------------|
-| Exponential           |    0.080 | Closed-form           |
-| Homogeneous Weibull   |    0.109 | Closed-form           |
-| Heterogeneous Weibull |    0.788 | Numerical integration |
+| Exponential           |    0.069 | Closed-form           |
+| Homogeneous Weibull   |    0.099 | Closed-form           |
+| Heterogeneous Weibull |    0.690 | Numerical integration |
 
 Log-likelihood evaluation time (10 evaluations, n=1000)
 

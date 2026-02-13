@@ -736,7 +736,7 @@ large-sample properties:
   $\text{bias}^{2} \approx 2 \times 10^{- 7}$ vs $\text{Var} = 0.0019$).
   The MLE is consistent and approximately unbiased at this sample size.
 
-- **Uniform relative precision.** RMSE ranges from 0.043 to 0.046 across
+- **Uniform relative precision.** RMSE ranges from 0.042 to 0.046 across
   components — roughly 4–5% of the true rates. This uniformity is
   consistent with the asymptotic efficiency of the MLE: components with
   higher failure rates (and thus higher variance) also have

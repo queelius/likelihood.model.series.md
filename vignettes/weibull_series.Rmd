@@ -599,7 +599,7 @@ following properties of the heterogeneous Weibull MLE:
 
 - **Shape parameters have similar relative precision across regimes.** The
   DFR shape ($k_1 = 0.8$, RMSE = 0.038) and IFR shape ($k_3 = 2.0$,
-  RMSE = 0.088) have comparable relative RMSE ($\sim 4$--$5\%$). In absolute
+  RMSE = 0.087) have comparable relative RMSE ($\sim 4$--$5\%$). In absolute
   terms, larger shapes are harder to pin down, but the relative difficulty is
   roughly constant.
 

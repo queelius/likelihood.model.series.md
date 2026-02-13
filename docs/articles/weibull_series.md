@@ -253,9 +253,9 @@ cat(sprintf("\nLoglik time (exact/right only): %.4f s per eval\n", t_exact / 5))
 #> 
 #> Loglik time (exact/right only): 0.0012 s per eval
 cat(sprintf("Loglik time (mixed censoring):  %.4f s per eval\n", t_mixed / 5))
-#> Loglik time (mixed censoring):  0.0344 s per eval
+#> Loglik time (mixed censoring):  0.0318 s per eval
 cat(sprintf("Slowdown factor: %.1fx\n", t_mixed / t_exact))
-#> Slowdown factor: 28.7x
+#> Slowdown factor: 26.5x
 ```
 
 The slowdown is proportional to the number of left/interval
@@ -653,7 +653,7 @@ demonstrates the following properties of the heterogeneous Weibull MLE:
 
 - **Shape parameters have similar relative precision across regimes.**
   The DFR shape ($k_{1} = 0.8$, RMSE = 0.038) and IFR shape
-  ($k_{3} = 2.0$, RMSE = 0.088) have comparable relative RMSE
+  ($k_{3} = 2.0$, RMSE = 0.087) have comparable relative RMSE
   ($\sim 4$–$5\%$). In absolute terms, larger shapes are harder to pin
   down, but the relative difficulty is roughly constant.
 

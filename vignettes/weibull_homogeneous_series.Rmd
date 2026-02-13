@@ -605,9 +605,11 @@ s_exp <- score(exp_model)(df_test, exp_rates)
 s_wei <- score(model)(df_test, wei_theta)
 
 # The exponential score is d/d(lambda_j), the Weibull score includes d/dk
-# and d/d(beta_j). At k=1, d/d(beta_j) = -(1/beta_j^2) * d/d(lambda_j)
-# We compare the scale scores after chain-rule transformation
-s_wei_transformed <- -s_wei[-1] / wei_scales^2
+# and d/d(beta_j). Since lambda_j = 1/beta_j, by the chain rule:
+#   d(ell)/d(lambda_j) = d(ell)/d(beta_j) * d(beta_j)/d(lambda_j)
+#                      = d(ell)/d(beta_j) * (-beta_j^2)
+# So: d(ell)/d(lambda_j) = -beta_j^2 * d(ell)/d(beta_j)
+s_wei_transformed <- -wei_scales^2 * s_wei[-1]
 
 cat("Exponential score:        ", round(s_exp, 4), "\n")
 cat("Weibull(k=1) scale score: ", round(s_wei_transformed, 4), "\n")
@@ -615,5 +617,8 @@ cat("Max |difference|:",
     formatC(max(abs(s_exp - s_wei_transformed)), format = "e", digits = 2), "\n")
 ```
 
-The transformed Weibull scores match the exponential scores, confirming that
-the two parameterizations yield identical inference at $k = 1$.
+The transformed Weibull scale scores match the exponential rate scores to
+machine precision, confirming that the two parameterizations yield identical
+inference at $k = 1$. The shape score $\partial\ell/\partial k$ is nonzero at
+the true parameter (the score is zero only at the MLE, not at the DGP truth
+for any finite sample).

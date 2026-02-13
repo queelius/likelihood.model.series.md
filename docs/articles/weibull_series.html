@@ -356,9 +356,9 @@ data:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Loglik time (exact/right only): 0.0012 s per eval</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Loglik time (mixed censoring):  %.4f s per eval\n"</span>, <span class="va">t_mixed</span> <span class="op">/</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loglik time (mixed censoring):  0.0344 s per eval</span></span>
+<span><span class="co">#&gt; Loglik time (mixed censoring):  0.0318 s per eval</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Slowdown factor: %.1fx\n"</span>, <span class="va">t_mixed</span> <span class="op">/</span> <span class="va">t_exact</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Slowdown factor: 28.7x</span></span></code></pre></div>
+<span><span class="co">#&gt; Slowdown factor: 26.5x</span></span></code></pre></div>
 <p>The slowdown is proportional to the number of left/interval
 observations, since each requires a call to
 <code><a href="https://rdrr.io/r/stats/integrate.html" class="external-link">stats::integrate</a></code>. For moderate sample sizes this is fast
@@ -938,7 +938,7 @@ regimes.</strong> The DFR shape
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mn>1</mn></msub><mo>=</mo><mn>0.8</mn></mrow><annotation encoding="application/x-tex">k_1 = 0.8</annotation></semantics></math>,
 RMSE = 0.038) and IFR shape
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mn>3</mn></msub><mo>=</mo><mn>2.0</mn></mrow><annotation encoding="application/x-tex">k_3 = 2.0</annotation></semantics></math>,
-RMSE = 0.088) have comparable relative RMSE
+RMSE = 0.087) have comparable relative RMSE
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">\sim 4</annotation></semantics></math>–<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">5\%</annotation></semantics></math>).
 In absolute terms, larger shapes are harder to pin down, but the
 relative difficulty is roughly constant.</p></li>
