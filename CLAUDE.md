@@ -206,6 +206,22 @@ All vignettes use precomputed `.rds` files (set `run_long <- TRUE` to regenerate
 | `weibull_series.Rmd` | Heterogeneous Weibull: mixed hazard shapes, numerical integration |
 | `censoring_comparison.Rmd` | Cross-model analysis of censoring type effects on estimation quality |
 
+## Vignette Prose Verification
+
+All numerical claims in vignette prose are verified against precomputed `.rds` data.
+When editing vignette commentary:
+
+1. Extract actual values: `readRDS("vignettes/precomputed_*.rds")`
+2. Compute metrics (RMSE, bias, coverage) from raw `estimates` and `theta`/`true_params`
+3. Round consistently (3 decimal places for RMSE, 1 for percentages)
+4. Update prose only after confirming exact values — never speculate
+
+Known data structure differences across .rds files:
+- `precomputed_results.rds` (exponential): flat list with `$estimates`, `$true_params`, `$converged`
+- `precomputed_weibull_homogeneous.rds`: nested by scenario (DFR/CFR/IFR), SE field is `$se_est`
+- `precomputed_weibull.rds`: flat list with `$theta_mc`
+- `precomputed_censoring_comparison.rds`: `$sim_results` nested by config (A-E), pre-aggregated summaries
+
 ## Deployment
 
 GitHub Pages serves from `docs/` on master:
