@@ -1,0 +1,320 @@
+# likelihood.model.series.md
+
+Maximum likelihood estimation for series system parameters from masked
+component failure data. Implements likelihood models for systems where
+component lifetimes may be right-censored and the component cause of
+failure is identified only up to a candidate set.
+
+## Installation
+
+From [r-universe](https://queelius.r-universe.dev):
+
+``` r
+install.packages("likelihood.model.series.md",
+                 repos = "https://queelius.r-universe.dev")
+```
+
+Or from GitHub:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("queelius/likelihood.model.series.md")
+```
+
+## Models
+
+Three likelihood models are provided, all using S3 generic dispatch:
+
+| Model                                | Parameters                    | Description                       |
+|--------------------------------------|-------------------------------|-----------------------------------|
+| `exp_series_md_c1_c2_c3`             | m rates (λ₁, …, λₘ)           | Exponential component lifetimes   |
+| `wei_series_md_c1_c2_c3`             | 2m params (k₁, β₁, …, kₘ, βₘ) | Weibull with per-component shapes |
+| `wei_series_homogeneous_md_c1_c2_c3` | m+1 params (k, β₁, …, βₘ)     | Weibull with shared shape         |
+
+Each model implements:
+[`loglik()`](https://queelius.github.io/likelihood.model/reference/loglik.html),
+[`score()`](https://queelius.github.io/likelihood.model/reference/score.html),
+[`hess_loglik()`](https://queelius.github.io/likelihood.model/reference/hess_loglik.html),
+[`rdata()`](https://queelius.github.io/likelihood.model/reference/rdata.html),
+[`assumptions()`](https://queelius.github.io/likelihood.model/reference/assumptions.html)
+
+## Masking Conditions
+
+The candidate set models satisfy three conditions that yield a reduced
+likelihood depending only on observed data:
+
+- **C1**: The failed component is in the candidate set with probability
+  1
+- **C2**: Given that the failed component is in the candidate set, the
+  probability of observing any particular candidate set is the same
+  regardless of which component in the set actually failed
+- **C3**: Masking probabilities are independent of the system parameters
+  θ
+
+## Usage
+
+``` r
+library(likelihood.model.series.md)
+
+# --- Exponential model ---
+model <- exp_series_md_c1_c2_c3()
+
+# Generate masked series data
+gen <- rdata(model)
+df <- gen(theta = c(1.0, 1.1, 0.95), n = 500, tau = 3, p = 0.3)
+
+# Fit via MLE
+solver <- fit(model)
+mle <- solver(df, par = c(1, 1, 1))
+mle$theta.hat   # estimated rates
+mle$sigma       # asymptotic standard errors
+
+# Log-likelihood, score, and Hessian
+ll <- loglik(model)
+s  <- score(model)
+H  <- hess_loglik(model)
+
+ll(df, par = mle$theta.hat)
+s(df, par = mle$theta.hat)
+H(df, par = mle$theta.hat)
+
+# --- Weibull model (shared shape) ---
+wmodel <- wei_series_homogeneous_md_c1_c2_c3()
+wsolver <- fit(wmodel)
+# theta: (shape, scale1, scale2, ...)
+# wmle <- wsolver(data, par = c(1.2, 1000, 900, 850))
+```
+
+## Data Format
+
+The data frame passed to model functions uses these column conventions:
+
+| Column            | Description                                                |
+|-------------------|------------------------------------------------------------|
+| `t`               | System lifetime (observed)                                 |
+| `delta`           | Right-censoring indicator (TRUE = exact, FALSE = censored) |
+| `x1, x2, ..., xm` | Boolean candidate set indicators                           |
+
+Column names are configurable via the `lifetime`, `indicator`, and
+`candset` parameters when constructing a model.
+
+## Simulation Framework
+
+The `simulations/` directory contains a standalone, resumable Monte
+Carlo framework for studying MLE properties under varying masking,
+censoring, and sample size conditions. Five experiments are included:
+
+1.  Main MC study (bias, variance, MSE, coverage)
+2.  Masking probability sensitivity
+3.  Censoring rate sensitivity
+4.  Sample size scaling
+5.  Joint masking × censoring interaction
+
+See
+[`simulations/README.md`](https://queelius.github.io/likelihood.model.series.md/simulations/README.md)
+for details. Results can be exported for the package vignette via
+`simulations/export_for_vignette.R`.
+
+## Vignette
+
+The package includes a tutorial vignette with worked examples and
+data-driven analysis of MLE properties:
+
+``` r
+vignette("exponential_series", package = "likelihood.model.series.md")
+```
+
+## Related Packages
+
+- [likelihood.model](https://github.com/queelius/likelihood.model) —
+  generics for likelihood models (`loglik`, `score`, `fit`, etc.)
+- [algebraic.mle](https://github.com/queelius/algebraic.mle) — MLE
+  objects with inference methods
+- [algebraic.dist](https://github.com/queelius/algebraic.dist) —
+  distribution utilities
+- [md.tools](https://github.com/queelius/md.tools) — masked data
+  encoding/decoding
+
+## License
+
+GPL (\>= 3)
+
+# Package index
+
+## All functions
+
+- [`Exponential series system`](https://queelius.github.io/likelihood.model.series.md/reference/Exponential-series-system.md)
+  : Exponential series systems
+
+- [`assumptions(`*`<exp_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/assumptions.exp_series_md_c1_c2_c3.md)
+  :
+
+  Assumptions for `exp_series_md_c1_c2_c3` model.
+
+- [`assumptions(`*`<wei_series_homogeneous_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/assumptions.wei_series_homogeneous_md_c1_c2_c3.md)
+  :
+
+  Assumptions for `wei_series_homogeneous_md_c1_c2_c3` model.
+
+- [`assumptions(`*`<wei_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/assumptions.wei_series_md_c1_c2_c3.md)
+  :
+
+  Assumptions for `wei_series_md_c1_c2_c3` model.
+
+- [`cause_probability()`](https://queelius.github.io/likelihood.model.series.md/reference/cause_probability.md)
+  : Marginal cause-of-failure probability
+
+- [`component_hazard()`](https://queelius.github.io/likelihood.model.series.md/reference/component_hazard.md)
+  : Component hazard function
+
+- [`conditional_cause_probability()`](https://queelius.github.io/likelihood.model.series.md/reference/conditional_cause_probability.md)
+  : Conditional cause-of-failure probability
+
+- [`cum_haz()`](https://queelius.github.io/likelihood.model.series.md/reference/cum_haz.md)
+  : Cumulative hazard function for a component hazard function
+
+- [`dexp_series()`](https://queelius.github.io/likelihood.model.series.md/reference/dexp_series.md)
+  : pdf for exponential series.
+
+- [`exp_series_md_c1_c2_c3()`](https://queelius.github.io/likelihood.model.series.md/reference/exp_series_md_c1_c2_c3.md)
+  :
+
+  Constructs a likelihood model for `exp_series_md_c1_c2_c3`.
+
+- [`hazard_exp_series()`](https://queelius.github.io/likelihood.model.series.md/reference/hazard_exp_series.md)
+  : Hazard function for exponential series.
+
+- [`hess_loglik(`*`<exp_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/hess_loglik.exp_series_md_c1_c2_c3.md)
+  :
+
+  Hessian of log-likelihood method for `exp_series_md_c1_c2_c3` model.
+
+- [`hess_loglik(`*`<wei_series_homogeneous_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/hess_loglik.wei_series_homogeneous_md_c1_c2_c3.md)
+  :
+
+  Hessian of log-likelihood method for
+  `wei_series_homogeneous_md_c1_c2_c3`.
+
+- [`hess_loglik(`*`<wei_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/hess_loglik.wei_series_md_c1_c2_c3.md)
+  :
+
+  Hessian of log-likelihood method for `wei_series_md_c1_c2_c3` model.
+
+- [`loglik(`*`<exp_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/loglik.exp_series_md_c1_c2_c3.md)
+  :
+
+  Log-likelihood method for `exp_series_md_c1_c2_c3` model.
+
+- [`loglik(`*`<wei_series_homogeneous_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/loglik.wei_series_homogeneous_md_c1_c2_c3.md)
+  :
+
+  Log-likelihood method for `wei_series_homogeneous_md_c1_c2_c3` model.
+
+- [`loglik(`*`<wei_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/loglik.wei_series_md_c1_c2_c3.md)
+  :
+
+  Log-likelihood method for `wei_series_md_c1_c2_c3` model.
+
+- [`md_bernoulli_cand_c1_c2_c3()`](https://queelius.github.io/likelihood.model.series.md/reference/md_bernoulli_cand_c1_c2_c3.md)
+  : Bernoulli candidate set model for systems with unobserved
+  components.
+
+- [`md_cand_sampler()`](https://queelius.github.io/likelihood.model.series.md/reference/md_cand_sampler.md)
+  : Sample candidate sets for systems with unobserved components.
+
+- [`md_series_lifetime_right_censoring()`](https://queelius.github.io/likelihood.model.series.md/reference/md_series_lifetime_right_censoring.md)
+  : Masked data generation for series system lifetime data
+
+- [`mean(`*`<exp_series>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/mean.exp_series.md)
+  : Mean function for exponential series.
+
+- [`ncomponents()`](https://queelius.github.io/likelihood.model.series.md/reference/ncomponents.md)
+  : Number of components in a series system model
+
+- [`observe_left_censor()`](https://queelius.github.io/likelihood.model.series.md/reference/observe_left_censor.md)
+  : Left-censoring observation scheme (single inspection)
+
+- [`observe_mixture()`](https://queelius.github.io/likelihood.model.series.md/reference/observe_mixture.md)
+  : Mixture of observation schemes
+
+- [`observe_periodic()`](https://queelius.github.io/likelihood.model.series.md/reference/observe_periodic.md)
+  : Periodic inspection observation scheme
+
+- [`observe_right_censor()`](https://queelius.github.io/likelihood.model.series.md/reference/observe_right_censor.md)
+  : Right-censoring observation scheme
+
+- [`pexp_series()`](https://queelius.github.io/likelihood.model.series.md/reference/pexp_series.md)
+  : Cumulative distribution function for exponential series.
+
+- [`qcomp()`](https://queelius.github.io/likelihood.model.series.md/reference/qcomp.md)
+  : Quantile function for a component with custom survival function
+
+- [`qexp_series()`](https://queelius.github.io/likelihood.model.series.md/reference/qexp_series.md)
+  : Quantile function for exponential series.
+
+- [`rcomp()`](https://queelius.github.io/likelihood.model.series.md/reference/rcomp.md)
+  : Random generation for a component with custom survival function
+
+- [`rdata(`*`<exp_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/rdata.exp_series_md_c1_c2_c3.md)
+  :
+
+  Random data generation for `exp_series_md_c1_c2_c3` model.
+
+- [`rdata(`*`<wei_series_homogeneous_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/rdata.wei_series_homogeneous_md_c1_c2_c3.md)
+  :
+
+  Random data generation for `wei_series_homogeneous_md_c1_c2_c3` model.
+
+- [`rdata(`*`<wei_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/rdata.wei_series_md_c1_c2_c3.md)
+  :
+
+  Random data generation for `wei_series_md_c1_c2_c3` model.
+
+- [`rexp_series()`](https://queelius.github.io/likelihood.model.series.md/reference/rexp_series.md)
+  : Random number generation for exponential series.
+
+- [`score(`*`<exp_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/score.exp_series_md_c1_c2_c3.md)
+  :
+
+  Score method for `exp_series_md_c1_c2_c3` model.
+
+- [`score(`*`<wei_series_homogeneous_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/score.wei_series_homogeneous_md_c1_c2_c3.md)
+  :
+
+  Score method for `wei_series_homogeneous_md_c1_c2_c3` model.
+
+- [`score(`*`<wei_series_md_c1_c2_c3>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/score.wei_series_md_c1_c2_c3.md)
+  :
+
+  Score method for `wei_series_md_c1_c2_c3` model.
+
+- [`surv.exp_series()`](https://queelius.github.io/likelihood.model.series.md/reference/surv.exp_series.md)
+  : Survival function for exponential series.
+
+- [`wei_series_homogeneous_md_c1_c2_c3()`](https://queelius.github.io/likelihood.model.series.md/reference/wei_series_homogeneous_md_c1_c2_c3.md)
+  :
+
+  Constructs a likelihood model for
+  `wei_series_homogeneous_md_c1_c2_c3`.
+
+- [`wei_series_md_c1_c2_c3()`](https://queelius.github.io/likelihood.model.series.md/reference/wei_series_md_c1_c2_c3.md)
+  :
+
+  Constructs a likelihood model for `wei_series_md_c1_c2_c3`.
+
+- [`wei_series_system_scale()`](https://queelius.github.io/likelihood.model.series.md/reference/wei_series_system_scale.md)
+  : System scale parameter for homogeneous Weibull series
+
+# Articles
+
+### Tutorials
+
+- [Masked Data Likelihood Model: Components with Exponentially
+  Distributed Lifetimes Arranged In Series
+  Configuration](https://queelius.github.io/likelihood.model.series.md/articles/exponential_series.md):
+- [Homogeneous Weibull Series Systems: Shared Shape
+  Parameter](https://queelius.github.io/likelihood.model.series.md/articles/weibull_homogeneous_series.md):
+- [Heterogeneous Weibull Series Systems: Flexible Hazard
+  Shapes](https://queelius.github.io/likelihood.model.series.md/articles/weibull_series.md):
+- [Censoring Types in Series System Masked
+  Data](https://queelius.github.io/likelihood.model.series.md/articles/censoring_comparison.md):
