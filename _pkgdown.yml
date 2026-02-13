@@ -2,3 +2,10 @@ url: https://queelius.github.io/likelihood.model.series.md/
 template:
   bootstrap: 5
 
+articles:
+  - title: Tutorials
+    contents:
+    - exponential_series
+    - weibull_homogeneous_series
+    - weibull_series
+    - censoring_comparison

@@ -17,7 +17,8 @@ score function that takes the following arguments:
 \item \code{df}: masked data frame
 \item \code{par}: parameter vector (shape, scale1, scale2, ...)
 \item \code{lifetime}: system lifetime column name (default from model)
-\item \code{indicator}: right-censoring indicator column name (default from model)
+\item \code{lifetime_upper}: interval upper bound column name (default from model)
+\item \code{omega}: observation type column name (default from model)
 \item \code{candset}: prefix of Boolean matrix encoding candidate sets
 }
 }
@@ -25,4 +26,9 @@ score function that takes the following arguments:
 Returns a score (gradient) function for a Weibull series system with
 homogeneous shape parameter. The parameter vector is (k, scale_1, ..., scale_m)
 for masked data with candidate sets that satisfy conditions C1, C2, and C3.
+}
+\details{
+Uses a hybrid approach: analytical score for exact and right-censored
+observations, numerical gradient (via numDeriv) for left-censored and
+interval-censored observations.
 }

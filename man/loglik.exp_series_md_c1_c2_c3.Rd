@@ -17,7 +17,8 @@ log-likelihood function that takes the following arguments:
 \item \code{df}: masked data frame
 \item \code{par}: rate parameters of exponential component lifetime distributions
 \item \code{lifetime}: system lifetime column name (default from model)
-\item \code{indicator}: right-censoring indicator column name (default from model)
+\item \code{lifetime_upper}: interval upper bound column name (default from model)
+\item \code{omega}: observation type column name (default from model)
 \item \code{candset}: prefix of Boolean matrix encoding candidate sets
 }
 }
@@ -25,4 +26,9 @@ log-likelihood function that takes the following arguments:
 Returns a log-likelihood function for an exponential series system with
 respect to rate parameters for masked data with candidate sets that satisfy
 conditions C1, C2, and C3.
+}
+\details{
+Supports four observation types: exact failures, right-censored,
+left-censored, and interval-censored. All have closed-form likelihood
+contributions for the exponential model.
 }

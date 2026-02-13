@@ -8,7 +8,8 @@ wei_series_homogeneous_md_c1_c2_c3(
   shape = NULL,
   scales = NULL,
   lifetime = "t",
-  indicator = "delta",
+  lifetime_upper = "t_upper",
+  omega = "omega",
   candset = "x"
 )
 }
@@ -19,10 +20,12 @@ wei_series_homogeneous_md_c1_c2_c3(
 
 \item{lifetime}{column name for system lifetime, defaults to \code{"t"}}
 
-\item{indicator}{column name for right-censoring indicator, defaults to
-\code{"delta"}. TRUE/1 = exact failure time, FALSE/0 = right-censored.
-For backwards compatibility, if this column is not present in the data,
-censoring is inferred from empty candidate sets (all FALSE).}
+\item{lifetime_upper}{column name for interval upper bound, defaults to
+\code{"t_upper"}. Only used for interval-censored observations.}
+
+\item{omega}{column name for observation type, defaults to \code{"omega"}.
+Must contain character values: \code{"exact"}, \code{"right"}, \code{"left"}, or
+\code{"interval"}.}
 
 \item{candset}{column prefix for candidate set indicators, defaults to \code{"x"}}
 }

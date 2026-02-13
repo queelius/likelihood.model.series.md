@@ -32,7 +32,7 @@ create_wei_homog_test_data <- function(n = 100, shape = 1.2,
   }
 
   # Build data frame
-  df <- data.frame(t = t, delta = TRUE)
+  df <- data.frame(t = t, omega = "exact", stringsAsFactors = FALSE)
   for (j in seq_len(m)) {
     df[[paste0("x", j)]] <- cand_matrix[, j]
   }
@@ -49,7 +49,7 @@ create_wei_homog_censored_data <- function(n = 100, shape = 1.2,
   # Apply right censoring
   censored <- df$t > tau
   df$t[censored] <- tau
-  df$delta[censored] <- FALSE
+  df$omega[censored] <- "right"
 
   # For censored observations, empty candidate set
   m <- length(scales)
@@ -72,19 +72,20 @@ test_that("wei_series_homogeneous_md_c1_c2_c3 constructor creates correct object
   expect_s3_class(model, "series_md")
   expect_s3_class(model, "likelihood_model")
   expect_equal(model$lifetime, "t")
-  expect_equal(model$indicator, "delta")
+  expect_equal(model$omega, "omega")
+  expect_equal(model$lifetime_upper, "t_upper")
   expect_equal(model$candset, "x")
 })
 
 test_that("wei_series_homogeneous_md_c1_c2_c3 constructor accepts custom column names", {
   model <- wei_series_homogeneous_md_c1_c2_c3(
     lifetime = "time",
-    indicator = "censored",
+    omega = "obs_type",
     candset = "cand"
   )
 
   expect_equal(model$lifetime, "time")
-  expect_equal(model$indicator, "censored")
+  expect_equal(model$omega, "obs_type")
   expect_equal(model$candset, "cand")
 })
 
@@ -159,7 +160,8 @@ test_that("loglik errors on empty data frame", {
 test_that("loglik errors when lifetime column is missing", {
   model <- wei_series_homogeneous_md_c1_c2_c3()
   ll_fn <- loglik(model)
-  df <- data.frame(x1 = c(TRUE, FALSE), x2 = c(FALSE, TRUE))
+  df <- data.frame(omega = "exact", x1 = c(TRUE, FALSE), x2 = c(FALSE, TRUE),
+                   stringsAsFactors = FALSE)
 
   expect_error(ll_fn(df, par = c(1, 100, 100)), "lifetime variable")
 })
@@ -177,20 +179,6 @@ test_that("loglik handles censored data correctly", {
   model <- wei_series_homogeneous_md_c1_c2_c3()
   ll_fn <- loglik(model)
   df <- create_wei_homog_censored_data(n = 50, tau = 50)
-
-  par <- c(1.2, 100, 150, 200)
-  ll <- ll_fn(df, par = par)
-
-  expect_true(is.finite(ll))
-})
-
-test_that("loglik works with backwards compatibility (no delta column)", {
-  model <- wei_series_homogeneous_md_c1_c2_c3()
-  ll_fn <- loglik(model)
-
-  # Create data without delta column
-  df <- create_wei_homog_test_data(n = 50)
-  df$delta <- NULL
 
   par <- c(1.2, 100, 150, 200)
   ll <- ll_fn(df, par = par)
@@ -445,10 +433,11 @@ test_that("loglik handles singleton candidate sets", {
   # Create data where each candidate set contains exactly one component
   df <- data.frame(
     t = c(10, 20, 30),
-    delta = c(TRUE, TRUE, TRUE),
+    omega = c("exact", "exact", "exact"),
     x1 = c(TRUE, FALSE, FALSE),
     x2 = c(FALSE, TRUE, FALSE),
-    x3 = c(FALSE, FALSE, TRUE)
+    x3 = c(FALSE, FALSE, TRUE),
+    stringsAsFactors = FALSE
   )
 
   model <- wei_series_homogeneous_md_c1_c2_c3()
@@ -464,10 +453,11 @@ test_that("loglik handles all components in candidate set", {
   # Create data where candidate set contains all components
   df <- data.frame(
     t = c(10, 20, 30),
-    delta = c(TRUE, TRUE, TRUE),
+    omega = c("exact", "exact", "exact"),
     x1 = c(TRUE, TRUE, TRUE),
     x2 = c(TRUE, TRUE, TRUE),
-    x3 = c(TRUE, TRUE, TRUE)
+    x3 = c(TRUE, TRUE, TRUE),
+    stringsAsFactors = FALSE
   )
 
   model <- wei_series_homogeneous_md_c1_c2_c3()
@@ -483,15 +473,16 @@ test_that("model works with custom column names", {
   # Create data with non-standard column names
   df <- data.frame(
     time = c(10, 20, 30),
-    censor = c(TRUE, TRUE, TRUE),
+    obs_type = c("exact", "exact", "exact"),
     cand1 = c(TRUE, FALSE, FALSE),
     cand2 = c(FALSE, TRUE, TRUE),
-    cand3 = c(TRUE, TRUE, TRUE)
+    cand3 = c(TRUE, TRUE, TRUE),
+    stringsAsFactors = FALSE
   )
 
   model <- wei_series_homogeneous_md_c1_c2_c3(
     lifetime = "time",
-    indicator = "censor",
+    omega = "obs_type",
     candset = "cand"
   )
 
@@ -505,9 +496,10 @@ test_that("model works with custom column names", {
 test_that("model handles two-component systems", {
   df <- data.frame(
     t = c(10, 20, 30),
-    delta = c(TRUE, TRUE, TRUE),
+    omega = c("exact", "exact", "exact"),
     x1 = c(TRUE, TRUE, FALSE),
-    x2 = c(FALSE, TRUE, TRUE)
+    x2 = c(FALSE, TRUE, TRUE),
+    stringsAsFactors = FALSE
   )
 
   model <- wei_series_homogeneous_md_c1_c2_c3()
@@ -529,10 +521,11 @@ test_that("model handles two-component systems", {
 test_that("model handles single observation", {
   df <- data.frame(
     t = 15.5,
-    delta = TRUE,
+    omega = "exact",
     x1 = TRUE,
     x2 = FALSE,
-    x3 = TRUE
+    x3 = TRUE,
+    stringsAsFactors = FALSE
   )
 
   model <- wei_series_homogeneous_md_c1_c2_c3()
@@ -632,16 +625,17 @@ test_that("rdata generates data frame with correct structure", {
   expect_s3_class(df, "data.frame")
   expect_equal(nrow(df), 100)
   expect_true("t" %in% names(df))
-  expect_true("delta" %in% names(df))
+  expect_true("omega" %in% names(df))
   expect_true("x1" %in% names(df))
   expect_true("x2" %in% names(df))
   expect_true("x3" %in% names(df))
+  expect_true(all(df$omega %in% c("exact", "right")))
 })
 
 test_that("rdata respects custom column names from model", {
   model <- wei_series_homogeneous_md_c1_c2_c3(
     lifetime = "time",
-    indicator = "censored",
+    omega = "obs_type",
     candset = "cand"
   )
   rdata_fn <- rdata(model)
@@ -651,7 +645,7 @@ test_that("rdata respects custom column names from model", {
   df <- rdata_fn(theta = c(1.5, 100, 150), n = 50)
 
   expect_true("time" %in% names(df))
-  expect_true("censored" %in% names(df))
+  expect_true("obs_type" %in% names(df))
   expect_true("cand1" %in% names(df))
   expect_true("cand2" %in% names(df))
 })
@@ -664,7 +658,7 @@ test_that("rdata applies right-censoring correctly", {
   df <- rdata_fn(theta = c(1.5, 100, 150, 200), n = 200, tau = 30)
 
   # Check that censored observations exist and have correct properties
-  censored <- !df$delta
+  censored <- df$omega == "right"
   if (any(censored)) {
     # Censored times should equal tau
     expect_true(all(df$t[censored] == 30))
@@ -684,7 +678,7 @@ test_that("rdata generates candidate sets satisfying C1", {
   df <- rdata_fn(theta = c(1.5, 100, 150, 200), n = 100, p = 0)
 
   # Each exact observation should have exactly one component in candidate set
-  exact <- df$delta
+  exact <- df$omega == "exact"
   cand_sums <- df$x1[exact] + df$x2[exact] + df$x3[exact]
   expect_true(all(cand_sums == 1))
 })
@@ -770,8 +764,9 @@ test_that("fim returns matrix of correct dimensions", {
 test_that("homogeneous Weibull works with single-component system (m=1)", {
   df <- data.frame(
     t = c(10, 20, 30),
-    delta = c(TRUE, TRUE, TRUE),
-    x1 = c(TRUE, TRUE, TRUE)
+    omega = c("exact", "exact", "exact"),
+    x1 = c(TRUE, TRUE, TRUE),
+    stringsAsFactors = FALSE
   )
 
   model <- wei_series_homogeneous_md_c1_c2_c3()
@@ -801,7 +796,7 @@ test_that("homogeneous Weibull loglik is finite with high censoring", {
 
   set.seed(42)
   df <- rdata_fn(theta = c(1.5, 100, 150, 200), n = 200, tau = 5, p = 0.3)
-  cens_frac <- mean(!df$delta)
+  cens_frac <- mean(df$omega == "right")
   expect_gt(cens_frac, 0.5)
 
   ll_fn <- loglik(model)
@@ -861,10 +856,14 @@ test_that("homogeneous Weibull error messages are informative", {
   df_empty <- data.frame(t = numeric(0), x1 = logical(0))
   expect_error(ll_fn(df_empty, par = c(1, 100)), "df is empty")
 
-  df_no_t <- data.frame(x1 = c(TRUE, FALSE))
+  df_no_t <- data.frame(omega = "exact", x1 = c(TRUE, FALSE),
+                         stringsAsFactors = FALSE)
   expect_error(ll_fn(df_no_t, par = c(1, 100)), "lifetime variable")
 
-  df <- data.frame(t = c(1, 2), delta = c(TRUE, TRUE),
-                   x1 = c(TRUE, FALSE), x2 = c(FALSE, TRUE))
+  df <- data.frame(
+    t = c(1, 2), omega = c("exact", "exact"),
+    x1 = c(TRUE, FALSE), x2 = c(FALSE, TRUE),
+    stringsAsFactors = FALSE
+  )
   expect_error(ll_fn(df, par = c(1.2, 100)), "Expected .* parameters but got")
 })

@@ -433,6 +433,9 @@ test_that("masked data can be used with likelihood model", {
   df <- md_bernoulli_cand_c1_c2_c3(df, p = 0.3)
   df <- md_cand_sampler(df)
 
+  # Convert pipeline's delta (logical) to model's omega (character)
+  df$omega <- ifelse(df$delta, "exact", "right")
+
   # Fit likelihood model
   model <- exp_series_md_c1_c2_c3()
   ll_fn <- loglik(model)

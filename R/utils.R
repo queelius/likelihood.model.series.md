@@ -6,13 +6,15 @@
 #' Helper function to extract default column names from a likelihood model
 #' object. Used by all model methods to avoid repeating the same pattern.
 #'
-#' @param model likelihood model object with lifetime, indicator, candset fields
-#' @return list with lifetime, indicator, candset defaults
+#' @param model likelihood model object with lifetime, lifetime_upper, omega,
+#'   candset fields
+#' @return list with lifetime, lifetime_upper, omega, candset defaults
 #' @keywords internal
 extract_model_defaults <- function(model) {
   list(
     lifetime = model$lifetime %||% "t",
-    indicator = model$indicator %||% "delta",
+    lifetime_upper = model$lifetime_upper %||% "t_upper",
+    omega = model$omega %||% "omega",
     candset = model$candset %||% "x"
   )
 }
@@ -31,11 +33,14 @@ extract_model_defaults <- function(model) {
 make_numeric_hessian <- function(score_fn, model) {
   defaults <- extract_model_defaults(model)
   function(df, par, lifetime = defaults$lifetime,
-           indicator = defaults$indicator,
+           lifetime_upper = defaults$lifetime_upper,
+           omega = defaults$omega,
            candset = defaults$candset, ...) {
     # Use Richardson extrapolation of order 6 for numerical stability
     numDeriv::jacobian(
-      func = function(theta) score_fn(df, theta, lifetime, indicator, candset),
+      func = function(theta) {
+        score_fn(df, theta, lifetime, lifetime_upper, omega, candset)
+      },
       x = par,
       method.args = list(r = 6)
     )
@@ -61,22 +66,30 @@ SERIES_SYSTEM_ASSUMPTIONS <- c(
 #' Extract and validate model data from a masked data frame
 #'
 #' Shared validation logic for all likelihood model methods. Checks that the
-#' data frame is non-empty, the lifetime column exists, decodes the candidate
-#' set matrix, and extracts the censoring indicator with backwards compatibility.
+#' data frame is non-empty, required columns exist, decodes the candidate set
+#' matrix, and validates observation types.
 #'
 #' @param df masked data frame
 #' @param lifetime column name for system lifetime
-#' @param indicator column name for right-censoring indicator
+#' @param omega column name for observation type. Must contain character values:
+#'   "exact", "right", "left", or "interval".
 #' @param candset column prefix for candidate set indicators
-#' @return list with components: t (lifetimes), delta (censoring indicators),
-#'   C (candidate set matrix), m (number of components), n (number of obs)
+#' @param lifetime_upper column name for interval upper bound (required when
+#'   interval-censored observations are present)
+#' @return list with components: t (lifetimes), omega (character vector of
+#'   observation types), C (candidate set matrix), m (number of components),
+#'   n (number of observations), t_upper (upper bounds or NULL)
 #' @importFrom md.tools md_decode_matrix
 #' @keywords internal
-extract_model_data <- function(df, lifetime, indicator, candset) {
+extract_model_data <- function(df, lifetime, omega, candset,
+                               lifetime_upper = NULL) {
   n <- nrow(df)
   if (n == 0) stop("df is empty")
   if (!lifetime %in% colnames(df)) {
     stop("lifetime variable not in colnames(df)")
+  }
+  if (!omega %in% colnames(df)) {
+    stop("omega variable '", omega, "' not in colnames(df)")
   }
 
   cmat <- md_decode_matrix(df, candset)
@@ -85,57 +98,121 @@ extract_model_data <- function(df, lifetime, indicator, candset) {
   }
   m <- ncol(cmat)
 
-  # Get censoring indicator (backwards compat: infer from candidate sets)
-  if (indicator %in% colnames(df)) {
-    delta <- as.logical(df[[indicator]])
-  } else {
-    delta <- rowSums(cmat) > 0
+  # Read and validate omega column
+  omega_vals <- as.character(df[[omega]])
+  valid_types <- c("exact", "right", "left", "interval")
+  invalid <- setdiff(unique(omega_vals), valid_types)
+  if (length(invalid) > 0) {
+    stop(
+      "invalid omega values: ", paste(invalid, collapse = ", "),
+      ". Must be one of: ", paste(valid_types, collapse = ", ")
+    )
   }
 
-  list(t = df[[lifetime]], delta = delta, C = cmat, m = m, n = n)
+  # Extract t_upper for interval-censored observations
+  t_upper <- NULL
+  if (!is.null(lifetime_upper) && lifetime_upper %in% colnames(df)) {
+    t_upper <- df[[lifetime_upper]]
+  }
+
+  # Validate observations
+  for (i in seq_len(n)) {
+    has_cand <- any(cmat[i, ])
+    if (omega_vals[i] == "exact" && !has_cand) {
+      stop("C1 violated: exact observation with empty candidate set at row ", i)
+    }
+    if (omega_vals[i] == "left" && !has_cand) {
+      stop(
+        "left-censored observation must have non-empty candidate set at row ", i
+      )
+    }
+    if (omega_vals[i] == "interval") {
+      if (!has_cand) {
+        stop(
+          "interval-censored observation must have non-empty ",
+          "candidate set at row ", i
+        )
+      }
+      if (is.null(t_upper)) {
+        stop(
+          "interval-censored observations require a '",
+          lifetime_upper %||% "t_upper", "' column"
+        )
+      }
+      if (t_upper[i] <= df[[lifetime]][i]) {
+        stop(
+          "interval-censored observation requires t_upper > t at row ", i
+        )
+      }
+    }
+  }
+
+  list(
+    t = df[[lifetime]], omega = omega_vals, C = cmat, m = m, n = n,
+    t_upper = t_upper
+  )
 }
 
 #' Generate masked series system data
 #'
 #' Shared data generation logic for all rdata methods. Takes pre-generated
-#' component lifetimes and applies system lifetime calculation, right-censoring,
-#' and candidate set generation.
+#' component lifetimes and applies an observation mechanism, then generates
+#' candidate sets satisfying conditions C1, C2, C3.
 #'
 #' @param comp_lifetimes n x m matrix of component lifetimes
 #' @param n number of observations
 #' @param m number of components
-#' @param tau right-censoring time
+#' @param tau right-censoring time (used when \code{observe} is NULL)
 #' @param p masking probability for non-failed components
 #' @param default_lifetime column name for system lifetime
-#' @param default_indicator column name for censoring indicator
+#' @param default_omega column name for observation type
 #' @param default_candset column prefix for candidate sets
-#' @return data frame with system lifetime, censoring indicator, and candidate
+#' @param observe observation functor created by \code{observe_*} functions.
+#'   When NULL, uses \code{\link{observe_right_censor}(tau)} for backwards
+#'   compatibility.
+#' @return data frame with system lifetime, observation type, and candidate
 #'   sets
 #' @importFrom stats runif
 #' @keywords internal
 generate_masked_series_data <- function(comp_lifetimes, n, m, tau, p,
-                                        default_lifetime, default_indicator,
-                                        default_candset) {
+                                        default_lifetime, default_omega,
+                                        default_candset, observe = NULL) {
   sys_lifetime <- apply(comp_lifetimes, 1, min)
   failed_comp <- apply(comp_lifetimes, 1, which.min)
 
-  delta <- sys_lifetime <= tau
-  sys_lifetime <- pmin(sys_lifetime, tau)
+  if (is.null(observe)) observe <- observe_right_censor(tau)
+
+  # Apply observation mechanism
+  obs_t <- numeric(n)
+  omega_vals <- character(n)
+  t_upper <- rep(NA_real_, n)
+  for (i in seq_len(n)) {
+    obs <- observe(sys_lifetime[i])
+    obs_t[i] <- obs$t
+    omega_vals[i] <- obs$omega
+    t_upper[i] <- obs$t_upper
+  }
 
   # Candidate sets satisfying C1, C2, C3
+  # Apply masking to all non-right observations (exact, left, interval)
   candset <- matrix(FALSE, nrow = n, ncol = m)
-  for (i in seq_len(n)) {
-    if (delta[i]) {
-      candset[i, failed_comp[i]] <- TRUE
-      if (p > 0 && m > 1) {
-        others <- seq_len(m)[-failed_comp[i]]
-        candset[i, others] <- runif(length(others)) < p
-      }
+  has_failure <- omega_vals != "right"
+  for (i in which(has_failure)) {
+    candset[i, failed_comp[i]] <- TRUE  # C1
+    if (p > 0 && m > 1) {
+      others <- seq_len(m)[-failed_comp[i]]
+      candset[i, others] <- runif(length(others)) < p
     }
   }
 
-  df <- data.frame(sys_lifetime, delta)
-  names(df) <- c(default_lifetime, default_indicator)
+  # Build data frame
+  df <- data.frame(obs_t, omega_vals, stringsAsFactors = FALSE)
+  names(df) <- c(default_lifetime, default_omega)
+
+  # Add t_upper column only if any interval observations exist
+  if (any(omega_vals == "interval")) {
+    df[[paste0(default_lifetime, "_upper")]] <- t_upper
+  }
 
   for (j in seq_len(m)) {
     df[[paste0(default_candset, j)]] <- candset[, j]

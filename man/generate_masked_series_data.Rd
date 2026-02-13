@@ -11,8 +11,9 @@ generate_masked_series_data(
   tau,
   p,
   default_lifetime,
-  default_indicator,
-  default_candset
+  default_omega,
+  default_candset,
+  observe = NULL
 )
 }
 \arguments{
@@ -22,23 +23,27 @@ generate_masked_series_data(
 
 \item{m}{number of components}
 
-\item{tau}{right-censoring time}
+\item{tau}{right-censoring time (used when \code{observe} is NULL)}
 
 \item{p}{masking probability for non-failed components}
 
 \item{default_lifetime}{column name for system lifetime}
 
-\item{default_indicator}{column name for censoring indicator}
+\item{default_omega}{column name for observation type}
 
 \item{default_candset}{column prefix for candidate sets}
+
+\item{observe}{observation functor created by \code{observe_*} functions.
+When NULL, uses \code{\link{observe_right_censor}(tau)} for backwards
+compatibility.}
 }
 \value{
-data frame with system lifetime, censoring indicator, and candidate
+data frame with system lifetime, observation type, and candidate
 sets
 }
 \description{
 Shared data generation logic for all rdata methods. Takes pre-generated
-component lifetimes and applies system lifetime calculation, right-censoring,
-and candidate set generation.
+component lifetimes and applies an observation mechanism, then generates
+candidate sets satisfying conditions C1, C2, C3.
 }
 \keyword{internal}

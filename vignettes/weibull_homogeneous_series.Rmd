@@ -1,0 +1,616 @@
+---
+title: "Homogeneous Weibull Series Systems: Shared Shape Parameter"
+output:
+    rmarkdown::html_vignette:
+        toc: true
+vignette: >
+  %\VignetteIndexEntry{Homogeneous Weibull Series Systems: Shared Shape Parameter}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+header-includes:
+- \renewcommand{\v}[1]{\boldsymbol{#1}}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  echo = TRUE,
+  comment = "#>")
+
+# Set to TRUE to regenerate long-running simulation results
+run_long <- FALSE
+
+library(likelihood.model.series.md)
+library(md.tools)
+library(dplyr)
+options(digits = 4)
+```
+
+
+Theory {#theory}
+=================
+
+## Component lifetime model
+
+Consider a series system with $m$ components where each component lifetime
+follows a Weibull distribution with a **common shape parameter** $k$ but
+individual scale parameters $\beta_1, \ldots, \beta_m$.
+The parameter vector is
+$$
+  \theta = (k, \beta_1, \ldots, \beta_m) \in \mathbb{R}^{m+1}_{>0}.
+$$
+
+The $j$-th component has hazard function
+$$
+  h_j(t \mid k, \beta_j) = \frac{k}{\beta_j}
+    \left(\frac{t}{\beta_j}\right)^{k-1}, \quad t > 0,
+$$
+survival function
+$$
+  R_j(t \mid k, \beta_j) = \exp\!\left(-\left(\frac{t}{\beta_j}\right)^k\right),
+$$
+and pdf
+$$
+  f_j(t \mid k, \beta_j) = h_j(t) \, R_j(t)
+    = \frac{k}{\beta_j}\left(\frac{t}{\beta_j}\right)^{k-1}
+      \exp\!\left(-\left(\frac{t}{\beta_j}\right)^k\right).
+$$
+
+The shape parameter $k$ controls the failure rate behaviour:
+
+- $k < 1$: decreasing failure rate (DFR) -- infant mortality, burn-in
+- $k = 1$: constant failure rate (CFR) -- exponential distribution
+- $k > 1$: increasing failure rate (IFR) -- wear-out, aging
+
+## System lifetime
+
+The system lifetime $T = \min(T_1, \ldots, T_m)$ has reliability
+$$
+  R_{\text{sys}}(t \mid \theta) = \prod_{j=1}^m R_j(t)
+    = \exp\!\left(-\sum_{j=1}^m \left(\frac{t}{\beta_j}\right)^k\right).
+$$
+
+Because all components share the same shape $k$, the exponent simplifies:
+$$
+  \sum_{j=1}^m \left(\frac{t}{\beta_j}\right)^k
+    = t^k \sum_{j=1}^m \beta_j^{-k}
+    = \left(\frac{t}{\beta_{\text{sys}}}\right)^k,
+$$
+where
+$$
+  \beta_{\text{sys}} = \left(\sum_{j=1}^m \beta_j^{-k}\right)^{-1/k}.
+$$
+Thus, the system lifetime is itself Weibull with shape $k$ and scale
+$\beta_{\text{sys}}$:
+$$
+  T \sim \operatorname{Weibull}(k, \beta_{\text{sys}}).
+$$
+This closure under the minimum operation is the defining structural advantage
+of the homogeneous model and is computed by `wei_series_system_scale(k, scales)`.
+
+## Conditional cause probability
+
+The conditional probability that component $j$ caused the system failure at
+time $t$ is
+$$
+  P(K = j \mid T = t, \theta) = \frac{h_j(t)}{h_{\text{sys}}(t)}
+    = \frac{\beta_j^{-k} \cdot (k / \beta_j)(t/\beta_j)^{k-1}}
+           {\sum_l \beta_l^{-k} \cdot (k / \beta_l)(t/\beta_l)^{k-1}}.
+$$
+The $t^{k-1}$ and $k$ factors cancel, yielding
+$$
+  P(K = j \mid T = t, \theta) = \frac{\beta_j^{-k}}{\sum_{l=1}^m \beta_l^{-k}}
+    \eqqcolon w_j.
+$$
+Remarkably, this does **not** depend on the failure time $t$ -- the conditional
+cause probability is constant, just as in the exponential case. This occurs
+because every component hazard shares the same power-law time dependence
+$t^{k-1}$, which cancels in the ratio. We define the **cause weights**
+$$
+  w_j = \frac{\beta_j^{-k}}{\sum_{l=1}^m \beta_l^{-k}}.
+$$
+
+## Marginal cause probability
+
+Since $P(K = j \mid T = t, \theta)$ is independent of $t$,
+the marginal probability integrates trivially:
+$$
+  P(K = j \mid \theta) = \mathbb{E}_T[P(K = j \mid T, \theta)] = w_j
+    = \frac{\beta_j^{-k}}{\sum_{l=1}^m \beta_l^{-k}}.
+$$
+Components with smaller scale parameters (shorter expected lifetimes) are more
+likely to be the cause of system failure.
+
+## Connection to the exponential model
+
+When $k = 1$, the Weibull distribution reduces to the exponential with rate
+$\lambda_j = 1/\beta_j$. In this case:
+
+- The system scale becomes
+  $\beta_{\text{sys}} = (1/\sum_j \beta_j^{-1})$ and the system rate is
+  $\lambda_{\text{sys}} = \sum_j \lambda_j$.
+- The cause weights become $w_j = \lambda_j / \lambda_{\text{sys}}$.
+- All likelihood contributions reduce to the `exp_series_md_c1_c2_c3` forms.
+
+We verify this identity numerically in Section \ref{exponential-identity}.
+
+
+Worked Example {#worked-example}
+================================
+
+We construct a 3-component homogeneous Weibull series system with increasing
+failure rate ($k = 1.5$):
+
+```{r worked-example-params}
+theta <- c(k = 1.5, beta1 = 100, beta2 = 150, beta3 = 200)
+k <- theta[1]
+scales <- theta[-1]
+m <- length(scales)
+
+beta_sys <- wei_series_system_scale(k, scales)
+cat("System scale (beta_sys):", round(beta_sys, 2), "\n")
+cat("System mean lifetime:", round(beta_sys * gamma(1 + 1/k), 2), "\n")
+```
+
+## Component hazards
+
+The `component_hazard()` generic returns a closure for the $j$-th component
+hazard. We overlay all three to visualize how failure intensity changes over
+time:
+
+```{r hazard-plot, fig.width=7, fig.height=4.5}
+model <- wei_series_homogeneous_md_c1_c2_c3()
+t_grid <- seq(0.1, 200, length.out = 300)
+
+cols <- c("#E41A1C", "#377EB8", "#4DAF4A")
+plot(NULL, xlim = c(0, 200), ylim = c(0, 0.06),
+     xlab = "Time t", ylab = "Hazard h_j(t)",
+     main = "Component Hazard Functions")
+for (j in seq_len(m)) {
+  h_j <- component_hazard(model, j)
+  lines(t_grid, h_j(t_grid, theta), col = cols[j], lwd = 2)
+}
+legend("topleft", paste0("Component ", 1:m, " (beta=", scales, ")"),
+       col = cols, lwd = 2, cex = 0.9)
+```
+
+All three hazard curves are increasing ($k > 1$), but component 1 (smallest
+scale) has the steepest rate of increase and dominates at all times.
+
+## Cause probabilities
+
+```{r cause-probs}
+# Analytical cause weights: w_j = beta_j^{-k} / sum(beta_l^{-k})
+w <- scales^(-k) / sum(scales^(-k))
+names(w) <- paste0("Component ", 1:m)
+cat("Cause weights (w_j):\n")
+print(round(w, 4))
+```
+
+The `conditional_cause_probability()` generic confirms these are time-invariant:
+
+```{r cond-cause-plot, fig.width=7, fig.height=4}
+ccp_fn <- conditional_cause_probability(
+  wei_series_homogeneous_md_c1_c2_c3(scales = scales)
+)
+probs <- ccp_fn(t_grid, theta)
+
+plot(NULL, xlim = c(0, 200), ylim = c(0, 0.7),
+     xlab = "Time t", ylab = "P(K = j | T = t)",
+     main = "Conditional Cause Probability vs Time")
+for (j in seq_len(m)) {
+  lines(t_grid, probs[, j], col = cols[j], lwd = 2)
+}
+legend("right", paste0("Component ", 1:m),
+       col = cols, lwd = 2, cex = 0.9)
+abline(h = w, col = cols, lty = 3)
+```
+
+The conditional cause probabilities are flat lines, confirming that the
+homogeneous shape creates time-invariant cause attributions -- a key structural
+simplification shared with the exponential model.
+
+## Data generation with periodic inspection
+
+```{r gen-periodic-data}
+gen <- rdata(model)
+
+set.seed(2024)
+df <- gen(theta, n = 500, p = 0.3,
+          observe = observe_periodic(delta = 20, tau = 250))
+
+cat("Observation types:\n")
+print(table(df$omega))
+cat("\nFirst 6 rows:\n")
+print(head(df), row.names = FALSE)
+```
+
+
+Likelihood Contributions {#likelihood-contributions}
+=====================================================
+
+The log-likelihood under conditions C1, C2, C3 decomposes into individual
+observation contributions. The homogeneous shape is critical: because the
+system lifetime is Weibull($k$, $\beta_{\text{sys}}$), left- and
+interval-censored terms have **closed-form** expressions involving only the
+system Weibull CDF and cause weights $w_c$.
+
+Let $c_i$ denote the candidate set for observation $i$ and define
+$w_{c_i} = \sum_{j \in c_i} \beta_j^{-k} / \sum_l \beta_l^{-k}$.
+
+## Exact observation ($\omega_i = \text{exact}$)
+
+The system failed at observed time $t_i$:
+$$
+  \ell_i = \log\!\left(\sum_{j \in c_i} h_j(t_i)\right)
+    - \sum_{j=1}^m \left(\frac{t_i}{\beta_j}\right)^k.
+$$
+
+## Right-censored ($\omega_i = \text{right}$)
+
+The system survived past $t_i$ (no candidate set information):
+$$
+  \ell_i = -\sum_{j=1}^m \left(\frac{t_i}{\beta_j}\right)^k
+    = -\left(\frac{t_i}{\beta_{\text{sys}}}\right)^k.
+$$
+
+## Left-censored ($\omega_i = \text{left}$)
+
+The system failed before inspection time $\tau_i$:
+$$
+  \ell_i = \log w_{c_i} + \log\!\left(
+    1 - \exp\!\left(-\left(\frac{\tau_i}{\beta_{\text{sys}}}\right)^k\right)
+  \right).
+$$
+This is $\log w_{c_i} + \log F_{\text{sys}}(\tau_i)$, where $F_{\text{sys}}$
+is the system Weibull CDF -- a closed form that does **not** require numerical
+integration. The $w_{c_i}$ term arises because, under homogeneous shapes, the
+cause attribution and system lifetime factor cleanly.
+
+## Interval-censored ($\omega_i = \text{interval}$)
+
+The system failed in $(a_i, b_i)$:
+$$
+  \ell_i = \log w_{c_i}
+    - \left(\frac{a_i}{\beta_{\text{sys}}}\right)^k
+    + \log\!\left(1 - \exp\!\left(
+      -\left(\left(\frac{b_i}{\beta_{\text{sys}}}\right)^k
+       - \left(\frac{a_i}{\beta_{\text{sys}}}\right)^k\right)
+    \right)\right).
+$$
+This is $\log w_{c_i} + \log(R_{\text{sys}}(a_i) - R_{\text{sys}}(b_i))$,
+again in closed form.
+
+## Why homogeneous shapes enable closed forms
+
+In the heterogeneous Weibull model (`wei_series_md_c1_c2_c3`), the system
+survival function $R_{\text{sys}}(t) = \prod_j \exp(-(t/\beta_j)^{k_j})$ does
+not reduce to a single Weibull, so the left- and interval-censored
+contributions require numerical integration via `cubature`. The homogeneous
+constraint $k_j = k$ for all $j$ collapses the product into a single Weibull
+CDF evaluation, and the cause weights $w_{c_i}$ separate from the time
+dependence. This makes the homogeneous model substantially faster and more
+numerically stable for censored data.
+
+
+MLE Fitting {#mle-fitting}
+===========================
+
+We fit the model to the periodically inspected data generated above using the
+`fit()` generic, which returns a solver based on `optim`:
+
+```{r mle-fit, warning=FALSE}
+solver <- fit(model)
+theta0 <- c(1.2, 110, 140, 180)  # Initial guess near true values
+
+estimate <- solver(df, par = theta0, method = "Nelder-Mead")
+print(estimate)
+```
+
+```{r mle-recovery}
+cat("True parameters: ", round(theta, 2), "\n")
+cat("MLE estimates:   ", round(estimate$par, 2), "\n")
+cat("Std errors:      ", round(sqrt(diag(estimate$vcov)), 2), "\n")
+cat("Relative error:  ",
+    round(100 * abs(estimate$par - theta) / theta, 1), "%\n")
+```
+
+## Score and Hessian computation
+
+The score function uses a **hybrid approach**: analytical gradients for exact
+and right-censored observations, and `numDeriv::grad` for left- and
+interval-censored observations. The Hessian is fully numerical, computed as the
+Jacobian of the score via `numDeriv::jacobian`.
+
+```{r score-hessian-verify}
+ll_fn <- loglik(model)
+scr_fn <- score(model)
+hess_fn <- hess_loglik(model)
+
+# Score at MLE should be near zero
+scr_mle <- scr_fn(df, estimate$par)
+cat("Score at MLE:", round(scr_mle, 4), "\n")
+
+# Verify score against numerical gradient
+scr_num <- numDeriv::grad(function(th) ll_fn(df, th), estimate$par)
+cat("Max |analytical - numerical| score:",
+    formatC(max(abs(scr_mle - scr_num)), format = "e", digits = 2), "\n")
+
+# Hessian eigenvalues (should be negative for concavity)
+H <- hess_fn(df, estimate$par)
+cat("Hessian eigenvalues:", round(eigen(H)$values, 2), "\n")
+```
+
+
+Monte Carlo Simulation Study {#monte-carlo}
+=============================================
+
+We compare estimation performance across three shape regimes:
+decreasing failure rate ($k = 0.7$), constant ($k = 1.0$), and increasing
+($k = 1.5$). Each scenario uses $m = 3$ components, $n = 500$ observations,
+Bernoulli masking with $p = 0.3$, and periodic inspection with approximately
+25% right-censoring.
+
+```{r load-precomputed, include=FALSE, eval=!run_long}
+results <- readRDS("precomputed_weibull_homogeneous.rds")
+```
+
+```{r mc-setup, cache=TRUE, eval=run_long}
+set.seed(2024)
+
+B <- 100          # Monte Carlo replications
+n_mc <- 500       # Sample size per replication
+p_mc <- 0.3       # Masking probability
+alpha <- 0.05     # CI level
+
+# Three shape regimes
+scenarios <- list(
+  DFR = c(k = 0.7, beta1 = 100, beta2 = 150, beta3 = 200),
+  CFR = c(k = 1.0, beta1 = 100, beta2 = 150, beta3 = 200),
+  IFR = c(k = 1.5, beta1 = 100, beta2 = 150, beta3 = 200)
+)
+
+results <- list()
+```
+
+```{r mc-run, cache=TRUE, eval=run_long, warning=FALSE, message=FALSE}
+model_mc <- wei_series_homogeneous_md_c1_c2_c3()
+gen_mc <- rdata(model_mc)
+solver_mc <- fit(model_mc)
+
+for (sc_name in names(scenarios)) {
+  th <- scenarios[[sc_name]]
+  k_sc <- th[1]
+  scales_sc <- th[-1]
+  m_sc <- length(scales_sc)
+  npars <- m_sc + 1
+
+  # Choose tau to give ~25% right-censoring
+  beta_sys_sc <- wei_series_system_scale(k_sc, scales_sc)
+  tau_sc <- qweibull(0.75, shape = k_sc, scale = beta_sys_sc)
+  delta_sc <- tau_sc / 10  # ~10 inspection intervals
+
+  estimates <- matrix(NA, nrow = B, ncol = npars)
+  se_est <- matrix(NA, nrow = B, ncol = npars)
+  ci_lower <- matrix(NA, nrow = B, ncol = npars)
+  ci_upper <- matrix(NA, nrow = B, ncol = npars)
+  converged <- logical(B)
+  cens_fracs <- numeric(B)
+
+  for (b in seq_len(B)) {
+    df_b <- gen_mc(th, n = n_mc, p = p_mc,
+                   observe = observe_periodic(delta = delta_sc, tau = tau_sc))
+    cens_fracs[b] <- mean(df_b$omega == "right")
+
+    tryCatch({
+      est_b <- solver_mc(df_b, par = c(1, rep(120, m_sc)),
+                         method = "L-BFGS-B",
+                         lower = rep(1e-6, npars))
+      estimates[b, ] <- est_b$par
+      se_est[b, ] <- sqrt(diag(est_b$vcov))
+      z <- qnorm(1 - alpha / 2)
+      ci_lower[b, ] <- est_b$par - z * se_est[b, ]
+      ci_upper[b, ] <- est_b$par + z * se_est[b, ]
+      converged[b] <- est_b$converged
+    }, error = function(e) {
+      converged[b] <<- FALSE
+    })
+  }
+
+  results[[sc_name]] <- list(
+    theta = th, estimates = estimates, se_est = se_est,
+    ci_lower = ci_lower, ci_upper = ci_upper,
+    converged = converged, cens_fracs = cens_fracs,
+    tau = tau_sc, delta = delta_sc
+  )
+}
+```
+
+```{r mc-save, include=FALSE, eval=run_long}
+saveRDS(results, "precomputed_weibull_homogeneous.rds")
+```
+
+### Bias and MSE by shape regime
+
+```{r mc-results-table}
+summary_rows <- list()
+
+for (sc_name in names(results)) {
+  res <- results[[sc_name]]
+  th <- res$theta
+  valid <- res$converged & !is.na(res$estimates[, 1])
+  est_v <- res$estimates[valid, , drop = FALSE]
+
+  bias <- colMeans(est_v) - th
+  variance <- apply(est_v, 2, var)
+  mse <- bias^2 + variance
+  pnames <- c("k", paste0("beta", seq_along(th[-1])))
+
+  for (j in seq_along(th)) {
+    summary_rows[[length(summary_rows) + 1]] <- data.frame(
+      Regime = sc_name,
+      Parameter = pnames[j],
+      True = th[j],
+      Mean_Est = mean(est_v[, j]),
+      Bias = bias[j],
+      RMSE = sqrt(mse[j]),
+      Rel_Bias_Pct = 100 * bias[j] / th[j],
+      stringsAsFactors = FALSE
+    )
+  }
+}
+
+mc_table <- do.call(rbind, summary_rows)
+
+knitr::kable(mc_table, digits = 3, row.names = FALSE,
+             caption = "Monte Carlo Results by Shape Regime (B=100, n=500)",
+             col.names = c("Regime", "Parameter", "True", "Mean Est.",
+                          "Bias", "RMSE", "Rel. Bias %"))
+```
+
+### Confidence interval coverage
+
+```{r mc-coverage}
+coverage_rows <- list()
+
+for (sc_name in names(results)) {
+  res <- results[[sc_name]]
+  th <- res$theta
+  valid <- res$converged & !is.na(res$ci_lower[, 1])
+  pnames <- c("k", paste0("beta", seq_along(th[-1])))
+
+  for (j in seq_along(th)) {
+    valid_j <- valid & !is.na(res$ci_lower[, j]) & !is.na(res$ci_upper[, j])
+    covered <- (res$ci_lower[valid_j, j] <= th[j]) &
+               (th[j] <= res$ci_upper[valid_j, j])
+    width <- mean(res$ci_upper[valid_j, j] - res$ci_lower[valid_j, j])
+
+    coverage_rows[[length(coverage_rows) + 1]] <- data.frame(
+      Regime = sc_name,
+      Parameter = pnames[j],
+      Coverage = mean(covered),
+      Mean_Width = width,
+      stringsAsFactors = FALSE
+    )
+  }
+}
+
+cov_table <- do.call(rbind, coverage_rows)
+
+knitr::kable(cov_table, digits = 3, row.names = FALSE,
+             caption = "95% Wald CI Coverage by Shape Regime",
+             col.names = c("Regime", "Parameter", "Coverage", "Mean Width"))
+```
+
+### Censoring rates
+
+```{r mc-censoring-rates}
+for (sc_name in names(results)) {
+  res <- results[[sc_name]]
+  conv_rate <- mean(res$converged)
+  cens_rate <- mean(res$cens_fracs[res$converged])
+  cat(sprintf("%s (k=%.1f): convergence=%.1f%%, mean censoring=%.1f%%\n",
+              sc_name, res$theta[1], 100 * conv_rate, 100 * cens_rate))
+}
+```
+
+### Sampling distribution visualization
+
+```{r mc-sampling-dist, fig.width=8, fig.height=7}
+par(mfrow = c(3, 4), mar = c(4, 3, 2, 1), oma = c(0, 0, 2, 0))
+pnames <- c("k", "beta1", "beta2", "beta3")
+
+for (sc_name in names(results)) {
+  res <- results[[sc_name]]
+  th <- res$theta
+  valid <- res$converged & !is.na(res$estimates[, 1])
+  est_v <- res$estimates[valid, , drop = FALSE]
+
+  for (j in seq_along(th)) {
+    hist(est_v[, j], breaks = 20, probability = TRUE,
+         main = paste0(sc_name, ": ", pnames[j]),
+         xlab = pnames[j],
+         col = "lightblue", border = "white", cex.main = 0.9)
+    abline(v = th[j], col = "red", lwd = 2, lty = 2)
+    abline(v = mean(est_v[, j]), col = "blue", lwd = 2)
+  }
+}
+
+mtext("Sampling Distributions by Regime", outer = TRUE, cex = 1.2)
+```
+
+### Interpretation
+
+The Monte Carlo study reveals several patterns:
+
+- **Shape estimation accuracy varies by regime.** The IFR regime ($k = 1.5$)
+  produces the most precise shape estimates because increasing hazards generate
+  more failures early, providing richer information. The DFR regime ($k = 0.7$)
+  has the widest shape CIs because decreasing hazards spread failures over a
+  longer horizon.
+
+- **Scale estimation is robust across regimes.** Relative bias in the scale
+  parameters is typically below 5% in all three regimes, with coverage near
+  the nominal 95%. The scale parameters are well-identified regardless of the
+  shape value.
+
+- **Periodic inspection adds interval-censoring.** Unlike the exponential
+  vignette which used only exact + right observations, this study uses periodic
+  inspection. The closed-form interval-censored contributions (unique to the
+  homogeneous model) keep computation fast despite the additional complexity.
+
+
+Weibull($k=1$) = Exponential Identity {#exponential-identity}
+==============================================================
+
+When $k = 1$, the homogeneous Weibull model reduces to the exponential model.
+We verify this numerically by comparing log-likelihoods on the same data.
+
+```{r exp-identity}
+# Parameters: k=1 with scales equivalent to rates (1/beta_j)
+exp_rates <- c(0.01, 0.008, 0.005)
+wei_scales <- 1 / exp_rates  # beta = 1/lambda
+wei_theta <- c(1, wei_scales)
+
+# Generate data under exponential model
+exp_model <- exp_series_md_c1_c2_c3()
+exp_gen <- rdata(exp_model)
+
+set.seed(42)
+df_test <- exp_gen(exp_rates, n = 200, tau = 300, p = 0.3)
+
+# Evaluate both log-likelihoods
+ll_exp <- loglik(exp_model)
+ll_wei <- loglik(model)
+
+val_exp <- ll_exp(df_test, exp_rates)
+val_wei <- ll_wei(df_test, wei_theta)
+
+cat("Exponential loglik:", round(val_exp, 6), "\n")
+cat("Weibull(k=1) loglik:", round(val_wei, 6), "\n")
+cat("Absolute difference:", formatC(abs(val_exp - val_wei),
+                                     format = "e", digits = 2), "\n")
+```
+
+The two log-likelihoods agree to machine precision, confirming that the
+homogeneous Weibull model is a proper generalization of the exponential series
+model. This also serves as a consistency check on the implementation.
+
+```{r exp-identity-score}
+# Score comparison
+s_exp <- score(exp_model)(df_test, exp_rates)
+s_wei <- score(model)(df_test, wei_theta)
+
+# The exponential score is d/d(lambda_j), the Weibull score includes d/dk
+# and d/d(beta_j). At k=1, d/d(beta_j) = -(1/beta_j^2) * d/d(lambda_j)
+# We compare the scale scores after chain-rule transformation
+s_wei_transformed <- -s_wei[-1] / wei_scales^2
+
+cat("Exponential score:        ", round(s_exp, 4), "\n")
+cat("Weibull(k=1) scale score: ", round(s_wei_transformed, 4), "\n")
+cat("Max |difference|:",
+    formatC(max(abs(s_exp - s_wei_transformed)), format = "e", digits = 2), "\n")
+```
+
+The transformed Weibull scores match the exponential scores, confirming that
+the two parameterizations yield identical inference at $k = 1$.

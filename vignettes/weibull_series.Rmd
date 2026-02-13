@@ -1,0 +1,613 @@
+---
+title: "Heterogeneous Weibull Series Systems: Flexible Hazard Shapes"
+output:
+    rmarkdown::html_vignette:
+        toc: true
+vignette: >
+  %\VignetteIndexEntry{Heterogeneous Weibull Series Systems: Flexible Hazard Shapes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+header-includes:
+- \renewcommand{\v}[1]{\boldsymbol{#1}}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  echo = TRUE,
+  comment = "#>",
+  fig.align = "center")
+
+# Set to TRUE to regenerate long-running simulation results
+run_long <- FALSE
+
+library(likelihood.model.series.md)
+library(md.tools)
+library(dplyr)
+options(digits = 4)
+```
+
+
+## Motivation
+
+Real engineered systems are composed of components with fundamentally different
+failure mechanisms. Consider a pumping station with three subsystems:
+
+1. **Electronic controller** -- dominated by early-life defects (solder joints,
+   capacitor infant mortality). The hazard rate *decreases* over time as weak
+   units are weeded out. This is a decreasing failure rate (DFR), modeled by a
+   Weibull shape $k < 1$.
+
+2. **Seals and gaskets** -- random shocks and chemical degradation produce
+   failures at a roughly constant rate over the component's useful life. This is
+   a constant failure rate (CFR), corresponding to $k = 1$ (exponential).
+
+3. **Mechanical bearing** -- progressive wear-out causes the hazard rate to
+   *increase* over time. This is an increasing failure rate (IFR), modeled by a
+   Weibull shape $k > 1$.
+
+The exponential series model forces $k_j = 1$ for every component, collapsing
+all three mechanisms into a single constant-hazard regime. The homogeneous
+Weibull model (`wei_series_homogeneous_md_c1_c2_c3`) allows $k \neq 1$ but
+constrains all components to share a common shape --- still too restrictive when
+failure physics differ across subsystems.
+
+The **heterogeneous Weibull series model** (`wei_series_md_c1_c2_c3`) removes
+this constraint entirely. Each of the $m$ components has its own shape and
+scale:
+$$
+T_{ij} \sim \operatorname{Weibull}(k_j, \beta_j), \quad j = 1, \ldots, m,
+$$
+giving a $2m$-dimensional parameter vector
+$\theta = (k_1, \beta_1, \ldots, k_m, \beta_m)$.
+
+When all shapes are equal ($k_1 = \cdots = k_m = k$), this model reduces to the
+homogeneous case, making the heterogeneous model a strict generalization.
+
+The additional flexibility comes at a cost: the system lifetime
+$T = \min(T_1, \ldots, T_m)$ is no longer Weibull-distributed when the shapes
+differ, and left-censored or interval-censored likelihood contributions require
+numerical integration rather than closed-form expressions.
+
+This vignette demonstrates the full workflow: hazard profiling, data generation,
+MLE under mixed censoring, model comparison, and Monte Carlo assessment of
+estimator properties.
+
+
+## Component hazard and cause probability profiles
+
+We begin with a 3-component system that illustrates all three hazard regimes.
+The true parameters are:
+
+| Component | Type | Shape $k_j$ | Scale $\beta_j$ |
+|-----------|------|:-----------:|:----------------:|
+| 1 (electronics) | DFR | 0.7 | 200 |
+| 2 (seals) | CFR | 1.0 | 150 |
+| 3 (bearing) | IFR | 2.0 | 100 |
+
+```{r define-theta}
+theta <- c(0.7, 200,   # component 1: DFR (electronics)
+           1.0, 150,   # component 2: CFR (seals)
+           2.0, 100)   # component 3: IFR (bearing)
+m <- length(theta) / 2
+```
+
+### Hazard functions
+
+The Weibull hazard for component $j$ is
+$$
+h_j(t; k_j, \beta_j) = \frac{k_j}{\beta_j}
+  \left(\frac{t}{\beta_j}\right)^{k_j - 1}, \quad t > 0.
+$$
+
+We extract component hazard closures from the model object and plot them:
+
+```{r hazard-plot, fig.width=7, fig.height=4.5}
+model <- wei_series_md_c1_c2_c3(
+  shapes = theta[seq(1, 6, 2)],
+  scales = theta[seq(2, 6, 2)]
+)
+
+h1 <- component_hazard(model, 1)
+h2 <- component_hazard(model, 2)
+h3 <- component_hazard(model, 3)
+
+t_grid <- seq(0.5, 120, length.out = 300)
+
+plot(t_grid, h1(t_grid, theta), type = "l", col = "steelblue", lwd = 2,
+     ylim = c(0, 0.05),
+     xlab = "Time", ylab = "Hazard rate h(t)",
+     main = "Component hazard functions")
+lines(t_grid, h2(t_grid, theta), col = "forestgreen", lwd = 2, lty = 2)
+lines(t_grid, h3(t_grid, theta), col = "firebrick", lwd = 2, lty = 3)
+legend("topright",
+       legend = c("Comp 1: DFR (k=0.7)", "Comp 2: CFR (k=1.0)",
+                  "Comp 3: IFR (k=2.0)"),
+       col = c("steelblue", "forestgreen", "firebrick"),
+       lty = 1:3, lwd = 2, cex = 0.85)
+grid()
+```
+
+The DFR component (blue) has a hazard that starts high and decays -- typical of
+infant-mortality failures. The CFR component (green) is flat, consistent with
+random shocks. The IFR component (red) rises steadily, reflecting wear-out.
+The system hazard $h(t) = \sum_j h_j(t)$ is the vertical sum of these curves.
+
+### Conditional cause probability
+
+The probability that component $j$ caused the system failure, conditional on
+failure at time $t$, is
+$$
+P(K = j \mid T = t, \theta) = \frac{h_j(t; \theta)}{\sum_{l=1}^m h_l(t; \theta)}.
+$$
+
+This is the key quantity for diagnosing which failure mode dominates at different
+points in the system's life:
+
+```{r cause-prob-plot, fig.width=7, fig.height=4.5}
+ccp_fn <- conditional_cause_probability(model)
+
+probs <- ccp_fn(t_grid, theta)
+
+plot(t_grid, probs[, 1], type = "l", col = "steelblue", lwd = 2,
+     ylim = c(0, 1),
+     xlab = "Time", ylab = "P(K = j | T = t)",
+     main = "Conditional cause-of-failure probability")
+lines(t_grid, probs[, 2], col = "forestgreen", lwd = 2, lty = 2)
+lines(t_grid, probs[, 3], col = "firebrick", lwd = 2, lty = 3)
+legend("right",
+       legend = c("Comp 1: DFR", "Comp 2: CFR", "Comp 3: IFR"),
+       col = c("steelblue", "forestgreen", "firebrick"),
+       lty = 1:3, lwd = 2, cex = 0.85)
+grid()
+```
+
+At early times the DFR component dominates because its hazard is highest when
+$t$ is small. As time progresses the IFR component takes over, eventually
+accounting for the majority of failures. The CFR component contributes a roughly
+constant share. This crossover pattern is characteristic of bathtub-curve
+behavior at the system level and cannot be captured by models that force a
+common shape parameter.
+
+
+## Numerical integration for left and interval censoring
+
+### Why numerical integration is necessary
+
+For **exact** and **right-censored** observations, the Weibull log-likelihood
+contribution has a closed form regardless of whether shapes are heterogeneous:
+\begin{align}
+\text{Exact:} \quad & \log \sum_{j \in c_i} h_j(t_i) - \sum_{l=1}^m H_l(t_i), \\
+\text{Right:} \quad & -\sum_{l=1}^m H_l(t_i),
+\end{align}
+where $H_l(t) = (t/\beta_l)^{k_l}$ is the cumulative hazard of component $l$.
+
+For **left-censored** and **interval-censored** observations, the contribution
+involves integrating the "candidate-weighted" density over an interval:
+$$
+\ell_i = \log \int_a^b \left[\sum_{j \in c_i} h_j(u)\right]
+  \exp\!\left(-\sum_{l=1}^m H_l(u)\right) du.
+$$
+
+When all shapes are equal ($k_l = k$ for all $l$), the candidate weight
+$w_c = \sum_{j \in c} \beta_j^{-k} / \sum_l \beta_l^{-k}$ factors out of the
+integral, leaving a standard Weibull CDF difference that has a closed form.
+This is the `w_c` factorization that the homogeneous model exploits.
+
+When shapes differ, no such factorization exists, and `stats::integrate` is
+used internally. The integrand is accessible (for advanced use) via
+`likelihood.model.series.md:::wei_series_integrand`:
+
+```{r integrand-demo}
+shapes <- theta[seq(1, 6, 2)]
+scales <- theta[seq(2, 6, 2)]
+cind <- c(TRUE, TRUE, FALSE)  # candidate set = {1, 2}
+
+# Evaluate the integrand h_c(t) * S(t) at a few time points
+t_eval <- c(10, 50, 100)
+vals <- likelihood.model.series.md:::wei_series_integrand(
+  t_eval, shapes, scales, cind
+)
+names(vals) <- paste0("t=", t_eval)
+vals
+```
+
+```{r integrand-plot, fig.width=7, fig.height=4}
+t_fine <- seq(0.5, 150, length.out = 500)
+
+# Full candidate set: all components
+vals_full <- likelihood.model.series.md:::wei_series_integrand(
+  t_fine, shapes, scales, cind = rep(TRUE, 3)
+)
+
+plot(t_fine, vals_full, type = "l", col = "black", lwd = 2,
+     xlab = "Time", ylab = expression(h[c](t) %.% S(t)),
+     main = "Weibull series integrand (full candidate set)")
+grid()
+```
+
+The integrand is the product of the candidate hazard sum and the system
+survival function. Its integral over $(0, \tau)$ gives the probability that the
+system fails before $\tau$ with the cause in the candidate set.
+
+### Timing comparison
+
+Numerical integration adds per-observation cost. We compare log-likelihood
+evaluation time for exact-only versus mixed-censoring data:
+
+```{r timing-comparison}
+set.seed(123)
+gen <- rdata(model)
+ll_fn <- loglik(model)
+
+# Exact + right only
+df_exact <- gen(theta, n = 100, tau = 120, p = 0.3,
+                observe = observe_right_censor(tau = 120))
+
+# Mixed: includes left and interval censoring
+df_mixed <- gen(theta, n = 100, p = 0.3,
+                observe = observe_mixture(
+                  observe_right_censor(tau = 120),
+                  observe_left_censor(tau = 80),
+                  observe_periodic(delta = 20, tau = 120),
+                  weights = c(0.5, 0.25, 0.25)
+                ))
+
+cat("Observation type counts (exact/right):\n")
+print(table(df_exact$omega))
+
+cat("\nObservation type counts (mixed):\n")
+print(table(df_mixed$omega))
+
+t_exact <- system.time(replicate(5, ll_fn(df_exact, theta)))["elapsed"]
+t_mixed <- system.time(replicate(5, ll_fn(df_mixed, theta)))["elapsed"]
+
+cat(sprintf("\nLoglik time (exact/right only): %.4f s per eval\n", t_exact / 5))
+cat(sprintf("Loglik time (mixed censoring):  %.4f s per eval\n", t_mixed / 5))
+cat(sprintf("Slowdown factor: %.1fx\n", t_mixed / t_exact))
+```
+
+The slowdown is proportional to the number of left/interval observations, since
+each requires a call to `stats::integrate`. For moderate sample sizes this is
+fast enough for iterative optimization.
+
+
+## MLE with mixed censoring
+
+We now demonstrate the full estimation workflow: generate data under a mixed
+observation scheme, then fit the heterogeneous Weibull model.
+
+```{r mle-generate}
+set.seed(7231)
+n_mle <- 300
+
+# Right-censoring only (fast, closed-form likelihood)
+gen <- rdata(model)
+df <- gen(theta, n = n_mle, tau = 120, p = 0.3,
+          observe = observe_right_censor(tau = 120))
+
+cat("Observation types:\n")
+print(table(df$omega))
+cat("\nFirst few rows:\n")
+print(head(df), row.names = FALSE)
+```
+
+We use right-censoring here because exact and right-censored observations have
+closed-form likelihood contributions, making optimization fast. Left-censored
+and interval-censored observations require numerical integration per observation
+per iteration (see Section 5), so MLE with many such observations is
+substantially slower. In practice, the `fit()` interface is the same regardless
+of observation type -- only the wall-clock time differs.
+
+```{r mle-fit, warning=FALSE}
+solver <- fit(model)
+
+# Initial guess: all shapes = 1, scales = 100
+theta0 <- rep(c(1, 100), m)
+
+estimate <- solver(df, par = theta0, method = "Nelder-Mead")
+print(estimate)
+```
+
+```{r mle-recovery}
+# Parameter recovery table
+par_names <- paste0(
+  rep(c("k", "beta"), m), "_",
+  rep(1:m, each = 2)
+)
+recovery <- data.frame(
+  Parameter = par_names,
+  True = theta,
+  Estimate = estimate$par,
+  SE = sqrt(diag(estimate$vcov)),
+  Rel_Error_Pct = 100 * (estimate$par - theta) / theta
+)
+
+knitr::kable(recovery, digits = 3,
+             caption = paste0("Parameter recovery (n = ", n_mle, ")"),
+             col.names = c("Parameter", "True", "MLE", "SE", "Rel. Error %"))
+```
+
+With $n = `r n_mle`$ observations and substantial masking ($p = 0.3$), the MLE
+recovers all six parameters. Shape parameters are typically estimated with
+higher relative error than scales, which is expected: shape controls the
+curvature of the hazard, and distinguishing curvature from level requires more
+information than estimating the level alone.
+
+
+## Model comparison: heterogeneous vs homogeneous
+
+A central question in practice is whether the added complexity of heterogeneous
+shapes is justified by the data. We compare the heterogeneous model (6
+parameters) against the homogeneous model (4 parameters: one common shape plus
+three scales).
+
+```{r model-comparison-generate}
+set.seed(999)
+
+# Generate from the TRUE heterogeneous DGP
+df_comp <- gen(theta, n = 800, tau = 150, p = 0.2,
+               observe = observe_right_censor(tau = 150))
+
+cat("Observation types:\n")
+print(table(df_comp$omega))
+```
+
+```{r model-comparison-fit, warning=FALSE}
+# Fit heterogeneous model (6 parameters)
+model_het <- wei_series_md_c1_c2_c3()
+solver_het <- fit(model_het)
+fit_het <- solver_het(df_comp, par = rep(c(1, 120), m), method = "Nelder-Mead")
+
+# Fit homogeneous model (4 parameters)
+model_hom <- wei_series_homogeneous_md_c1_c2_c3()
+solver_hom <- fit(model_hom)
+theta0_hom <- c(1, 120, 120, 120)
+fit_hom <- solver_hom(df_comp, par = theta0_hom, method = "Nelder-Mead")
+
+cat("Heterogeneous model (2m = 6 params):\n")
+cat("  Log-likelihood:", fit_het$loglik, "\n")
+cat("  Parameters:", round(fit_het$par, 2), "\n\n")
+
+cat("Homogeneous model (m+1 = 4 params):\n")
+cat("  Log-likelihood:", fit_hom$loglik, "\n")
+cat("  Parameters:", round(fit_hom$par, 2), "\n")
+```
+
+```{r model-comparison-lrt}
+# Likelihood ratio test
+# H0: k1 = k2 = k3 (homogeneous, 4 params)
+# H1: k1, k2, k3 free (heterogeneous, 6 params)
+LRT <- 2 * (fit_het$loglik - fit_hom$loglik)
+df_lrt <- 6 - 4  # difference in parameters
+p_value <- pchisq(LRT, df = df_lrt, lower.tail = FALSE)
+
+comparison <- data.frame(
+  Model = c("Heterogeneous (2m)", "Homogeneous (m+1)"),
+  Params = c(6, 4),
+  LogLik = c(fit_het$loglik, fit_hom$loglik),
+  AIC = c(-2 * fit_het$loglik + 2 * 6, -2 * fit_hom$loglik + 2 * 4)
+)
+
+knitr::kable(comparison, digits = 2,
+             caption = "Model comparison: heterogeneous vs homogeneous",
+             col.names = c("Model", "# Params", "Log-Lik", "AIC"))
+
+cat(sprintf("\nLikelihood ratio statistic: %.2f (df = %d, p = %.4f)\n",
+            LRT, df_lrt, p_value))
+```
+
+When the true DGP has heterogeneous shapes $(0.7, 1.0, 2.0)$, the homogeneous
+model is misspecified. The likelihood ratio test and AIC both strongly favor the
+heterogeneous model. The common shape estimate from the homogeneous fit
+represents a compromise value between the true shapes, leading to biased
+estimates of the scale parameters as well.
+
+**Bias-variance tradeoff.** When sample sizes are small or censoring is heavy,
+the homogeneous model may still be preferable despite misspecification: its
+fewer parameters yield lower variance estimates. In such regimes, the MSE of
+the homogeneous estimator can be smaller than that of the heterogeneous
+estimator, even though the latter is unbiased. As $n$ grows, the bias of the
+homogeneous model becomes the dominant error term, and the heterogeneous model
+wins.
+
+
+## Monte Carlo study
+
+We assess the finite-sample properties of the MLE for the heterogeneous
+Weibull model through a Monte Carlo simulation.
+
+**Design:**
+
+- True DGP: $\theta = (0.8, 150, 1.5, 120, 2.0, 100)$ with $m = 3$ components
+  and $2m = 6$ parameters.
+- Sample size: $n = 1000$.
+- Replications: $B = 100$.
+- Masking probability: $p = 0.2$.
+- Right-censoring at $\tau = 200$.
+
+```{r load-precomputed, include=FALSE, eval=!run_long}
+results <- readRDS("precomputed_weibull.rds")
+```
+
+```{r mc-setup, eval=run_long}
+set.seed(42)
+
+theta_mc <- c(0.8, 150, 1.5, 120, 2.0, 100)
+m_mc <- length(theta_mc) / 2
+n_mc <- 1000
+B <- 100
+p_mc <- 0.2
+tau_mc <- 200
+alpha <- 0.05
+
+model_mc <- wei_series_md_c1_c2_c3()
+gen_mc <- rdata(model_mc)
+solver_mc <- fit(model_mc)
+
+# Storage
+estimates <- matrix(NA, nrow = B, ncol = 2 * m_mc)
+se_estimates <- matrix(NA, nrow = B, ncol = 2 * m_mc)
+ci_lower <- matrix(NA, nrow = B, ncol = 2 * m_mc)
+ci_upper <- matrix(NA, nrow = B, ncol = 2 * m_mc)
+converged <- logical(B)
+logliks <- numeric(B)
+```
+
+```{r mc-run, eval=run_long, cache=TRUE, warning=FALSE, message=FALSE}
+theta0_mc <- rep(c(1, 130), m_mc)
+
+for (b in seq_len(B)) {
+  df_b <- gen_mc(theta_mc, n = n_mc, tau = tau_mc, p = p_mc,
+                 observe = observe_right_censor(tau = tau_mc))
+
+  tryCatch({
+    fit_b <- solver_mc(df_b, par = theta0_mc, method = "Nelder-Mead")
+    estimates[b, ] <- fit_b$par
+    se_estimates[b, ] <- sqrt(diag(fit_b$vcov))
+    logliks[b] <- fit_b$loglik
+
+    z <- qnorm(1 - alpha / 2)
+    ci_lower[b, ] <- fit_b$par - z * se_estimates[b, ]
+    ci_upper[b, ] <- fit_b$par + z * se_estimates[b, ]
+    converged[b] <- fit_b$converged
+  }, error = function(e) {
+    converged[b] <<- FALSE
+  })
+
+  if (b %% 20 == 0) cat(sprintf("Replication %d/%d\n", b, B))
+}
+
+cat("Convergence rate:", mean(converged, na.rm = TRUE), "\n")
+```
+
+```{r mc-save, eval=run_long, include=FALSE}
+results <- list(
+  estimates = estimates, se_estimates = se_estimates,
+  ci_lower = ci_lower, ci_upper = ci_upper, converged = converged,
+  logliks = logliks, B = B, alpha = alpha,
+  theta_mc = theta_mc, m_mc = m_mc, n_mc = n_mc,
+  p_mc = p_mc, tau_mc = tau_mc
+)
+saveRDS(results, "precomputed_weibull.rds")
+```
+
+### Bias, variance, and MSE
+
+```{r mc-results}
+theta_mc <- results$theta_mc
+m_mc <- results$m_mc
+alpha <- results$alpha
+
+valid <- results$converged & !is.na(results$estimates[, 1])
+est_valid <- results$estimates[valid, , drop = FALSE]
+
+bias <- colMeans(est_valid) - theta_mc
+variance <- apply(est_valid, 2, var)
+mse <- bias^2 + variance
+rmse <- sqrt(mse)
+
+par_names_mc <- paste0(
+  rep(c("k", "beta"), m_mc), "_",
+  rep(1:m_mc, each = 2)
+)
+
+results_df <- data.frame(
+  Parameter = par_names_mc,
+  True = theta_mc,
+  Mean_Est = colMeans(est_valid),
+  Bias = bias,
+  Variance = variance,
+  MSE = mse,
+  RMSE = rmse,
+  Rel_Bias_Pct = 100 * bias / theta_mc
+)
+
+knitr::kable(results_df, digits = 4,
+             caption = paste0("Monte Carlo results (n = ", results$n_mc,
+                              ", B = ", sum(valid), " converged)"),
+             col.names = c("Parameter", "True", "Mean Est.",
+                          "Bias", "Variance", "MSE", "RMSE",
+                          "Rel. Bias %"))
+```
+
+### Confidence interval coverage
+
+The asymptotic $(1 - \alpha)$% Wald confidence interval for each parameter is
+$$
+\hat\theta_j \pm z_{1-\alpha/2} \cdot \text{SE}(\hat\theta_j),
+$$
+where $\text{SE}$ is derived from the observed information (negative Hessian).
+
+```{r mc-coverage}
+coverage <- numeric(2 * m_mc)
+for (j in seq_len(2 * m_mc)) {
+  valid_j <- valid & !is.na(results$ci_lower[, j]) &
+    !is.na(results$ci_upper[, j])
+  covered <- (results$ci_lower[valid_j, j] <= theta_mc[j]) &
+    (theta_mc[j] <= results$ci_upper[valid_j, j])
+  coverage[j] <- mean(covered)
+}
+
+mean_width <- colMeans(
+  results$ci_upper[valid, ] - results$ci_lower[valid, ], na.rm = TRUE
+)
+
+coverage_df <- data.frame(
+  Parameter = par_names_mc,
+  True = theta_mc,
+  Coverage = coverage,
+  Nominal = 1 - alpha,
+  Mean_Width = mean_width
+)
+
+knitr::kable(coverage_df, digits = 4,
+             caption = paste0(100 * (1 - alpha),
+                              "% CI coverage (nominal = ",
+                              1 - alpha, ")"),
+             col.names = c("Parameter", "True", "Coverage",
+                          "Nominal", "Mean Width"))
+```
+
+### Sampling distribution
+
+```{r mc-sampling-dist, fig.width=8, fig.height=6}
+par(mfrow = c(2, 3), mar = c(4, 4, 2, 1))
+for (j in seq_len(2 * m_mc)) {
+  hist(est_valid[, j], breaks = 20, probability = TRUE,
+       main = par_names_mc[j],
+       xlab = expression(hat(theta)),
+       col = "lightblue", border = "white")
+  abline(v = theta_mc[j], col = "red", lwd = 2, lty = 2)
+  abline(v = mean(est_valid[, j]), col = "blue", lwd = 2)
+  legend("topright", legend = c("True", "Mean"),
+         col = c("red", "blue"), lty = c(2, 1), lwd = 2, cex = 0.7)
+}
+```
+
+### Summary
+
+The Monte Carlo simulation ($n = `r results$n_mc`$,
+$B = `r sum(valid)`$ converged, $p = `r results$p_mc`$) demonstrates the
+following properties of the heterogeneous Weibull MLE:
+
+- **Shape parameters are harder to estimate than scales.** The relative bias
+  and RMSE for shape parameters $(k_1, k_2, k_3)$ are typically larger than for
+  the corresponding scales $(\beta_1, \beta_2, \beta_3)$. This reflects the
+  fundamental difficulty of estimating curvature from masked data: shape
+  determines *how* the hazard changes, while scale determines *where* it sits.
+
+- **DFR shapes ($k < 1$) are the hardest.** Component 1 ($k_1 = 0.8$) tends to
+  show the largest relative estimation error among the shapes. When $k < 1$, the
+  hazard diverges as $t \to 0$, making the likelihood surface more sensitive to
+  the shape parameter near the boundary.
+
+- **Coverage is near nominal.** The Wald confidence intervals achieve
+  approximately 95% coverage across all parameters, validating the asymptotic
+  normal approximation at this sample size.
+
+- **The 2m-parameter model is identifiable.** Despite the doubling of parameters
+  relative to the homogeneous model, all six parameters are consistently
+  recovered. Identifiability relies on the candidate sets conveying information
+  about which component caused the failure; without this (i.e., $p = 1$,
+  maximum masking), the model would not be identifiable.

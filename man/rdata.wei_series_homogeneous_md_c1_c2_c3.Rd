@@ -12,8 +12,8 @@
 \item{...}{additional arguments (passed to returned function)}
 }
 \value{
-function that takes (theta, n, tau, p, ...) and returns a data frame
-with columns: t, delta, x1, x2, ..., xm
+function that takes (theta, n, tau, p, observe, ...) and returns a
+data frame with columns: t, omega, x1, x2, ..., xm
 }
 \description{
 Returns a function that generates random masked data from the homogeneous

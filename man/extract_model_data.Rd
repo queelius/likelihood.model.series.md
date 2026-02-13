@@ -4,24 +4,29 @@
 \alias{extract_model_data}
 \title{Extract and validate model data from a masked data frame}
 \usage{
-extract_model_data(df, lifetime, indicator, candset)
+extract_model_data(df, lifetime, omega, candset, lifetime_upper = NULL)
 }
 \arguments{
 \item{df}{masked data frame}
 
 \item{lifetime}{column name for system lifetime}
 
-\item{indicator}{column name for right-censoring indicator}
+\item{omega}{column name for observation type. Must contain character values:
+"exact", "right", "left", or "interval".}
 
 \item{candset}{column prefix for candidate set indicators}
+
+\item{lifetime_upper}{column name for interval upper bound (required when
+interval-censored observations are present)}
 }
 \value{
-list with components: t (lifetimes), delta (censoring indicators),
-C (candidate set matrix), m (number of components), n (number of obs)
+list with components: t (lifetimes), omega (character vector of
+observation types), C (candidate set matrix), m (number of components),
+n (number of observations), t_upper (upper bounds or NULL)
 }
 \description{
 Shared validation logic for all likelihood model methods. Checks that the
-data frame is non-empty, the lifetime column exists, decodes the candidate
-set matrix, and extracts the censoring indicator with backwards compatibility.
+data frame is non-empty, required columns exist, decodes the candidate set
+matrix, and validates observation types.
 }
 \keyword{internal}

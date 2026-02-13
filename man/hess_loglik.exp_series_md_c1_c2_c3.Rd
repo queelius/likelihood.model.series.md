@@ -17,12 +17,16 @@ hessian function that takes the following arguments:
 \item \code{df}: masked data frame
 \item \code{par}: rate parameters of exponential component lifetime distributions
 \item \code{lifetime}: system lifetime column name (default from model)
-\item \code{indicator}: right-censoring indicator column name (default from model)
+\item \code{lifetime_upper}: interval upper bound column name (default from model)
+\item \code{omega}: observation type column name (default from model)
 \item \code{candset}: prefix of Boolean matrix encoding candidate sets
 }
 }
 \description{
-Returns the observed information matrix (negative Hessian) for an
+Returns the Hessian (second derivative matrix) of the log-likelihood for an
 exponential series system with respect to parameter \code{theta} for masked data
 with candidate sets that satisfy conditions C1, C2, and C3.
+}
+\details{
+All four observation types have closed-form Hessian contributions.
 }

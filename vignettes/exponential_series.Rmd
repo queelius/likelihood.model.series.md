@@ -350,6 +350,7 @@ print(data[,paste0("q",1:m)],n=4)
 Now, to generate candidate sets, we sample from these probabilities:
 ```{r cand-sampler}
 data <- data %>% md_cand_sampler()
+data$omega <- ifelse(data$delta, "exact", "right")
 print(md_boolean_matrix_to_charsets(data,drop_set=TRUE),drop_latent=TRUE,n=6)
 ```
 
@@ -358,8 +359,8 @@ censoring time, right censoring indicator, and the candidate sets. (Note that
 this time we showed the candidate sets in a more friendly way using
 `md_boolean_matrix_to_charsets`.)
 
-Likelihood Model {#likelihood-model}
-================
+Constructing the Likelihood Model {#constructing-model}
+=================================
 The likelihood model is a statistical model that describes the distribution of
 the observed data as a function of the parameters of interest.
 
@@ -535,6 +536,120 @@ close.
 We may measure this sampling variability using the variance-covariance
 matrix, bias, mean squared error (MSE), and confidence intervals.
 
+
+Observation Types and Censoring {#observation-types}
+====================================================
+
+The likelihood model supports four observation types. Each arises from a
+different monitoring scheme:
+
+- **Exact** ($\omega = \text{exact}$): The system failure time $t$ is observed
+  directly, e.g., continuous monitoring.
+- **Right-censored** ($\omega = \text{right}$): The system is known to have
+  survived past $t$, e.g., study ends before failure.
+- **Left-censored** ($\omega = \text{left}$): The system is known to have
+  failed before $t$, e.g., a single inspection finds it failed.
+- **Interval-censored** ($\omega = \text{interval}$): The failure occurred
+  in $(t, t_{\text{upper}})$, e.g., periodic inspections bracket the failure.
+
+For the exponential series system, the individual-observation log-likelihood
+contributions are:
+\begin{align}
+\text{Exact:} \quad & \log \lambda_c - \lambda_{\text{sys}} t \\
+\text{Right:} \quad & -\lambda_{\text{sys}} t \\
+\text{Left:} \quad & \log \lambda_c + \log(1 - e^{-\lambda_{\text{sys}} \tau})
+  - \log \lambda_{\text{sys}} \\
+\text{Interval:} \quad & \log \lambda_c - \lambda_{\text{sys}} a
+  + \log(1 - e^{-\lambda_{\text{sys}}(b - a)}) - \log \lambda_{\text{sys}}
+\end{align}
+where $\lambda_c = \sum_{j \in c_i} \lambda_j$ and
+$\lambda_{\text{sys}} = \sum_j \lambda_j$.
+
+The left-censored contribution can be interpreted as
+$\log w_c + \log F(\tau)$, where $w_c = \lambda_c / \lambda_{\text{sys}}$
+is the candidate cause weight and $F(\tau)$ is the system CDF.
+
+**The exponential model is the only one where all four types have fully
+analytical loglik, score, AND Hessian.** The Weibull models require
+numerical integration or `numDeriv` for left/interval types.
+
+## Observe functors
+
+The package provides composable observation functors for generating data under
+different monitoring schemes:
+
+```{r observe-functors}
+# Periodic inspection every 0.5 time units, study ends at tau = 5
+obs_periodic <- observe_periodic(delta = 0.5, tau = 5)
+
+# Single inspection at tau = 3
+obs_left <- observe_left_censor(tau = 3)
+
+# Mix of continuous and periodic monitoring
+obs_mixed <- observe_mixture(
+  observe_right_censor(tau = 5),
+  observe_left_censor(tau = 3),
+  weights = c(0.7, 0.3)
+)
+```
+
+## Generating mixed-censoring data
+
+```{r mixed-censoring-data}
+gen <- rdata(model)
+
+# Periodic inspections
+set.seed(7231)
+df_periodic <- gen(theta, n = 500, p = 0.3,
+                   observe = observe_periodic(delta = 0.5, tau = 5))
+cat("Periodic inspection observation types:\n")
+print(table(df_periodic$omega))
+
+# Mixed monitoring
+set.seed(7231)
+df_mixed <- gen(theta, n = 500, p = 0.3,
+                observe = observe_mixture(
+                  observe_right_censor(tau = 5),
+                  observe_left_censor(tau = 3),
+                  weights = c(0.7, 0.3)
+                ))
+cat("\nMixed monitoring observation types:\n")
+print(table(df_mixed$omega))
+```
+
+## Likelihood evaluation on mixed-censoring data
+
+All four observation types contribute analytically to the loglik, score, and
+Hessian for the exponential model:
+
+```{r mixed-censoring-eval}
+ll_fn <- loglik(model)
+scr_fn <- score(model)
+hess_fn <- hess_loglik(model)
+
+# Evaluate at true parameters
+ll_val <- ll_fn(df_periodic, theta)
+scr_val <- scr_fn(df_periodic, theta)
+hess_val <- hess_fn(df_periodic, theta)
+
+cat("Log-likelihood (periodic):", round(ll_val, 4), "\n")
+cat("Score (periodic):", round(scr_val, 4), "\n")
+cat("Hessian eigenvalues:", round(eigen(hess_val)$values, 4), "\n")
+```
+
+We verify that the analytical score is consistent with numerical
+differentiation:
+
+```{r score-verify}
+scr_numerical <- numDeriv::grad(
+  func = function(th) ll_fn(df_periodic, th),
+  x = theta
+)
+cat("Max |analytical - numerical| score:",
+    formatC(max(abs(scr_val - scr_numerical)), format = "e", digits = 2), "\n")
+```
+
+
 ## Monte Carlo simulation study
 
 To understand the sampling properties of the MLE, we conduct a Monte Carlo
@@ -585,6 +700,7 @@ for (b in 1:B) {
         md_series_lifetime_right_censoring(tau) %>%
         md_bernoulli_cand_c1_c2_c3(p) %>%
         md_cand_sampler()
+    data_b$omega <- ifelse(data_b$delta, "exact", "right")
 
     # Fit model
     tryCatch({
@@ -761,6 +877,7 @@ for (p_idx in seq_along(p_values)) {
             md_series_lifetime_right_censoring(tau_sens) %>%
             md_bernoulli_cand_c1_c2_c3(p_curr) %>%
             md_cand_sampler()
+        data_b$omega <- ifelse(data_b$delta, "exact", "right")
 
         tryCatch({
             fit_b <- solver(data_b, par = theta0, method = "Nelder-Mead")
@@ -875,6 +992,7 @@ for (q_idx in seq_along(q_values)) {
             md_series_lifetime_right_censoring(tau_curr) %>%
             md_bernoulli_cand_c1_c2_c3(p_cens) %>%
             md_cand_sampler()
+        data_b$omega <- ifelse(data_b$delta, "exact", "right")
 
         tryCatch({
             fit_b <- solver(data_b, par = theta0, method = "Nelder-Mead")
@@ -884,7 +1002,7 @@ for (q_idx in seq_along(q_values)) {
 
     # Compute statistics
     valid_q <- !is.na(est_q[, 1])
-    cens_rate <- 1 - mean(data_b$delta)  # Actual censoring rate
+    cens_rate <- mean(data_b$omega == "right")  # Actual censoring rate
     cens_results[[q_idx]] <- list(
         q = q_curr,
         cens_rate = cens_rate,

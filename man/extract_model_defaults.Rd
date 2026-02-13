@@ -7,10 +7,11 @@
 extract_model_defaults(model)
 }
 \arguments{
-\item{model}{likelihood model object with lifetime, indicator, candset fields}
+\item{model}{likelihood model object with lifetime, lifetime_upper, omega,
+candset fields}
 }
 \value{
-list with lifetime, indicator, candset defaults
+list with lifetime, lifetime_upper, omega, candset defaults
 }
 \description{
 Helper function to extract default column names from a likelihood model

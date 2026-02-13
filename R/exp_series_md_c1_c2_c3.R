@@ -35,10 +35,12 @@
 #' @param rates rate parameters for exponential component lifetimes (optional,
 #'   used as initial values for MLE if provided)
 #' @param lifetime column name for system lifetime, defaults to `"t"`
-#' @param indicator column name for right-censoring indicator, defaults to
-#'   `"delta"`. TRUE/1 = exact failure time, FALSE/0 = right-censored.
-#'   For backwards compatibility, if this column is not present in the data,
-#'   censoring is inferred from empty candidate sets (all FALSE).
+#' @param lifetime_upper column name for interval upper bound, defaults to
+#'   `"t_upper"`. Only used for interval-censored observations.
+#' @param omega column name for observation type, defaults to `"omega"`.
+#'   Must contain character values: `"exact"` (failure at t), `"right"`
+#'   (right-censored at t), `"left"` (left-censored: failed before t),
+#'   or `"interval"` (failed in (t, t_upper)).
 #' @param candset column prefix for candidate set indicators, defaults to `"x"`
 #' @export
 #' @return likelihood model object with class
@@ -49,12 +51,14 @@
 #' # solver <- fit(model)
 #' # mle <- solver(data, par = c(1, 1, 1))
 exp_series_md_c1_c2_c3 <- function(rates = NULL, lifetime = "t",
-                                   indicator = "delta", candset = "x") {
+                                   lifetime_upper = "t_upper",
+                                   omega = "omega", candset = "x") {
   structure(
     list(
       rates = rates,
       lifetime = lifetime,
-      indicator = indicator,
+      lifetime_upper = lifetime_upper,
+      omega = omega,
       candset = candset
     ),
     class = c("exp_series_md_c1_c2_c3", "series_md", "likelihood_model")
@@ -68,13 +72,18 @@ exp_series_md_c1_c2_c3 <- function(rates = NULL, lifetime = "t",
 #' respect to rate parameters for masked data with candidate sets that satisfy
 #' conditions C1, C2, and C3.
 #'
+#' Supports four observation types: exact failures, right-censored,
+#' left-censored, and interval-censored. All have closed-form likelihood
+#' contributions for the exponential model.
+#'
 #' @param model the likelihood model object
 #' @param ... additional arguments (passed to returned function)
 #' @return log-likelihood function that takes the following arguments:
 #'   - `df`: masked data frame
 #'   - `par`: rate parameters of exponential component lifetime distributions
 #'   - `lifetime`: system lifetime column name (default from model)
-#'   - `indicator`: right-censoring indicator column name (default from model)
+#'   - `lifetime_upper`: interval upper bound column name (default from model)
+#'   - `omega`: observation type column name (default from model)
 #'   - `candset`: prefix of Boolean matrix encoding candidate sets
 #' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model loglik
@@ -83,27 +92,44 @@ exp_series_md_c1_c2_c3 <- function(rates = NULL, lifetime = "t",
 loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
   defaults <- extract_model_defaults(model)
 
-  function(df, par, lifetime = defaults$lifetime, indicator = defaults$indicator,
+  function(df, par, lifetime = defaults$lifetime,
+           lifetime_upper = defaults$lifetime_upper,
+           omega = defaults$omega,
            candset = defaults$candset, ...) {
     if (any(par <= 0)) return(-Inf)
-    d <- extract_model_data(df, lifetime, indicator, candset)
+    d <- extract_model_data(df, lifetime, omega, candset, lifetime_upper)
     if (length(par) != d$m) {
       stop(sprintf("Expected %d parameters but got %d", d$m, length(par)))
     }
 
-    # Log-likelihood: -sum(t)*sum(theta) + sum_{i: delta_i=TRUE} log(sum(theta[C_i]))
-    ll <- -sum(d$t) * sum(par)
-    for (i in seq_len(d$n)) {
-      if (d$delta[i]) {
-        if (!any(d$C[i, ])) {
-          stop("C1 violated: exact observation with empty candidate set at row ", i)
-        }
-        theta_c <- sum(par[d$C[i, ]])
-        if (theta_c > 0) {
-          ll <- ll + log(theta_c)
-        }
-      }
+    lambda_sys <- sum(par)
+
+    # Exact + right: survival contribution -lambda_sys * t_i
+    er_idx <- d$omega %in% c("exact", "right")
+    ll <- -sum(d$t[er_idx]) * lambda_sys
+
+    # Exact: add hazard term log(lambda_c)
+    for (i in which(d$omega == "exact")) {
+      lambda_c <- sum(par[d$C[i, ]])
+      ll <- ll + log(lambda_c)
     }
+
+    # Left-censored: log(lambda_c) + log(1 - exp(-lambda_sys*tau)) - log(lambda_sys)
+    for (i in which(d$omega == "left")) {
+      lambda_c <- sum(par[d$C[i, ]])
+      ll <- ll + log(lambda_c) + log(-expm1(-lambda_sys * d$t[i])) -
+        log(lambda_sys)
+    }
+
+    # Interval-censored: log(lambda_c) - lambda_sys*a + log(1 - exp(-lambda_sys*(b-a))) - log(lambda_sys)
+    for (i in which(d$omega == "interval")) {
+      lambda_c <- sum(par[d$C[i, ]])
+      a <- d$t[i]
+      b <- d$t_upper[i]
+      ll <- ll + log(lambda_c) - lambda_sys * a +
+        log(-expm1(-lambda_sys * (b - a))) - log(lambda_sys)
+    }
+
     ll
   }
 }
@@ -115,13 +141,17 @@ loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
 #' respect to parameter `theta` for masked component failure with candidate
 #' sets that satisfy conditions C1, C2, and C3.
 #'
+#' All four observation types (exact, right, left, interval) have closed-form
+#' score contributions.
+#'
 #' @param model the likelihood model object
 #' @param ... additional arguments (passed to returned function)
 #' @return score function that takes the following arguments:
 #'   - `df`: masked data frame
 #'   - `par`: rate parameters of exponential component lifetime distributions
 #'   - `lifetime`: system lifetime column name (default from model)
-#'   - `indicator`: right-censoring indicator column name (default from model)
+#'   - `lifetime_upper`: interval upper bound column name (default from model)
+#'   - `omega`: observation type column name (default from model)
 #'   - `candset`: prefix of Boolean matrix encoding candidate sets
 #' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model score
@@ -130,21 +160,54 @@ loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
 score.exp_series_md_c1_c2_c3 <- function(model, ...) {
   defaults <- extract_model_defaults(model)
 
-  function(df, par, lifetime = defaults$lifetime, indicator = defaults$indicator,
+  function(df, par, lifetime = defaults$lifetime,
+           lifetime_upper = defaults$lifetime_upper,
+           omega = defaults$omega,
            candset = defaults$candset, ...) {
     if (any(par <= 0)) return(rep(NA, length(par)))
-    d <- extract_model_data(df, lifetime, indicator, candset)
+    d <- extract_model_data(df, lifetime, omega, candset, lifetime_upper)
     if (length(par) != d$m) {
       stop(sprintf("Expected %d parameters but got %d", d$m, length(par)))
     }
 
-    # Score: d/d(theta_j) = -sum(t) + sum_{i: delta_i} C[i,j] / (C[i,] %*% theta)
-    v <- rep(-sum(d$t), d$m)
-    if (any(d$delta)) {
-      c_delta <- d$C[d$delta, , drop = FALSE]
-      theta_c <- as.numeric(c_delta %*% par)
-      v <- v + as.numeric(colSums(c_delta / theta_c))
+    lambda_sys <- sum(par)
+
+    # Exact + right: -sum(t_i) + sum_{i:exact} C[i,j] / lambda_c_i
+    er_idx <- d$omega %in% c("exact", "right")
+    v <- rep(-sum(d$t[er_idx]), d$m)
+
+    exact_idx <- d$omega == "exact"
+    if (any(exact_idx)) {
+      c_exact <- d$C[exact_idx, , drop = FALSE]
+      theta_c <- as.numeric(c_exact %*% par)
+      v <- v + as.numeric(colSums(c_exact / theta_c))
     }
+
+    # Left-censored: C[i,j]/lambda_c + tau*exp(-lambda_sys*tau)/(1-exp(-lambda_sys*tau)) - 1/lambda_sys
+    for (i in which(d$omega == "left")) {
+      cind <- d$C[i, ]
+      lambda_c <- sum(par[cind])
+      tau_i <- d$t[i]
+      x <- lambda_sys * tau_i
+      # tau*exp(-x)/(1-exp(-x)) = tau/(exp(x)-1)
+      ratio <- tau_i / expm1(x)
+      v <- v + as.numeric(cind) / lambda_c + ratio - 1 / lambda_sys
+    }
+
+    # Interval-censored: C[i,j]/lambda_c + N/D - 1/lambda_sys
+    # where D = exp(-lambda*a) - exp(-lambda*b), N = -a*exp(-lambda*a) + b*exp(-lambda*b)
+    for (i in which(d$omega == "interval")) {
+      cind <- d$C[i, ]
+      lambda_c <- sum(par[cind])
+      a <- d$t[i]
+      b <- d$t_upper[i]
+      ea <- exp(-lambda_sys * a)
+      eb <- exp(-lambda_sys * b)
+      D <- ea - eb
+      N <- -a * ea + b * eb
+      v <- v + as.numeric(cind) / lambda_c + N / D - 1 / lambda_sys
+    }
+
     v
   }
 }
@@ -152,9 +215,11 @@ score.exp_series_md_c1_c2_c3 <- function(model, ...) {
 
 #' Hessian of log-likelihood method for `exp_series_md_c1_c2_c3` model.
 #'
-#' Returns the observed information matrix (negative Hessian) for an
+#' Returns the Hessian (second derivative matrix) of the log-likelihood for an
 #' exponential series system with respect to parameter `theta` for masked data
 #' with candidate sets that satisfy conditions C1, C2, and C3.
+#'
+#' All four observation types have closed-form Hessian contributions.
 #'
 #' @param model the likelihood model object
 #' @param ... additional arguments (passed to returned function)
@@ -162,7 +227,8 @@ score.exp_series_md_c1_c2_c3 <- function(model, ...) {
 #'   - `df`: masked data frame
 #'   - `par`: rate parameters of exponential component lifetime distributions
 #'   - `lifetime`: system lifetime column name (default from model)
-#'   - `indicator`: right-censoring indicator column name (default from model)
+#'   - `lifetime_upper`: interval upper bound column name (default from model)
+#'   - `omega`: observation type column name (default from model)
 #'   - `candset`: prefix of Boolean matrix encoding candidate sets
 #' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model hess_loglik
@@ -171,22 +237,56 @@ score.exp_series_md_c1_c2_c3 <- function(model, ...) {
 hess_loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
   defaults <- extract_model_defaults(model)
 
-  function(df, par, lifetime = defaults$lifetime, indicator = defaults$indicator,
+  function(df, par, lifetime = defaults$lifetime,
+           lifetime_upper = defaults$lifetime_upper,
+           omega = defaults$omega,
            candset = defaults$candset, ...) {
     if (any(par <= 0)) return(matrix(NA, length(par), length(par)))
-    d <- extract_model_data(df, lifetime, indicator, candset)
+    d <- extract_model_data(df, lifetime, omega, candset, lifetime_upper)
     if (length(par) != d$m) {
       stop(sprintf("Expected %d parameters but got %d", d$m, length(par)))
     }
 
-    # Hessian: H[j,k] = -sum_{i: delta_i} C[i,j]*C[i,k] / (C[i,] %*% theta)^2
+    lambda_sys <- sum(par)
+
+    # Candidate-set contribution: -C[i,j]*C[i,k]/lambda_c^2
+    # for exact, left, and interval observations
+    has_cand_idx <- d$omega %in% c("exact", "left", "interval")
     hess <- matrix(0, nrow = d$m, ncol = d$m)
-    if (any(d$delta)) {
-      c_delta <- d$C[d$delta, , drop = FALSE]
-      theta_c <- as.numeric(c_delta %*% par)
+    if (any(has_cand_idx)) {
+      c_cand <- d$C[has_cand_idx, , drop = FALSE]
+      theta_c <- as.numeric(c_cand %*% par)
       weights <- -1 / theta_c^2
-      hess <- unname(crossprod(c_delta * weights, c_delta))
+      hess <- unname(crossprod(c_cand * weights, c_cand))
     }
+
+    # Scalar contributions (same value added to ALL entries of H)
+    # Left: -tau^2*exp(-x)/(1-exp(-x))^2 + 1/lambda_sys^2
+    # Interval: (N'*D - N^2)/D^2 + 1/lambda_sys^2
+    scalar_sum <- 0
+
+    for (i in which(d$omega == "left")) {
+      tau_i <- d$t[i]
+      x <- lambda_sys * tau_i
+      ex <- exp(-x)
+      denom <- 1 - ex
+      scalar_sum <- scalar_sum - tau_i^2 * ex / denom^2 + 1 / lambda_sys^2
+    }
+
+    for (i in which(d$omega == "interval")) {
+      a <- d$t[i]
+      b <- d$t_upper[i]
+      ea <- exp(-lambda_sys * a)
+      eb <- exp(-lambda_sys * b)
+      D <- ea - eb
+      N <- -a * ea + b * eb
+      Np <- a^2 * ea - b^2 * eb
+      scalar_sum <- scalar_sum + (Np * D - N^2) / D^2 + 1 / lambda_sys^2
+    }
+
+    # Adding a scalar to a matrix adds it to every element in R
+    hess <- hess + scalar_sum
+
     hess
   }
 }
@@ -219,8 +319,8 @@ assumptions.exp_series_md_c1_c2_c3 <- function(model, ...) {
 #'
 #' @param model the likelihood model object
 #' @param ... additional arguments (passed to returned function)
-#' @return function that takes (theta, n, tau, p, ...) and returns a data frame
-#'   with columns: t, delta, x1, x2, ..., xm
+#' @return function that takes (theta, n, tau, p, observe, ...) and returns a
+#'   data frame with columns: t, omega, x1, x2, ..., xm
 #' @importFrom likelihood.model rdata
 #' @importFrom stats rexp runif
 #' @method rdata exp_series_md_c1_c2_c3
@@ -228,7 +328,7 @@ assumptions.exp_series_md_c1_c2_c3 <- function(model, ...) {
 rdata.exp_series_md_c1_c2_c3 <- function(model, ...) {
   defaults <- extract_model_defaults(model)
 
-  function(theta, n, tau = Inf, p = 0, ...) {
+  function(theta, n, tau = Inf, p = 0, observe = NULL, ...) {
     m <- length(theta)
     if (any(theta <= 0)) stop("All rates must be positive")
     if (p < 0 || p > 1) stop("p must be in [0, 1]")
@@ -240,7 +340,43 @@ rdata.exp_series_md_c1_c2_c3 <- function(model, ...) {
 
     generate_masked_series_data(
       comp_lifetimes, n, m, tau, p,
-      defaults$lifetime, defaults$indicator, defaults$candset
+      defaults$lifetime, defaults$omega, defaults$candset,
+      observe = observe
     )
+  }
+}
+
+
+#' @method ncomponents exp_series_md_c1_c2_c3
+#' @export
+ncomponents.exp_series_md_c1_c2_c3 <- function(model, ...) {
+  if (is.null(model$rates)) NULL else length(model$rates)
+}
+
+
+#' @method component_hazard exp_series_md_c1_c2_c3
+#' @export
+component_hazard.exp_series_md_c1_c2_c3 <- function(model, j, ...) {
+  function(t, par, ...) {
+    rep(par[j], length(t))
+  }
+}
+
+
+#' @method conditional_cause_probability exp_series_md_c1_c2_c3
+#' @export
+conditional_cause_probability.exp_series_md_c1_c2_c3 <- function(model, ...) {
+  function(t, par, ...) {
+    probs <- par / sum(par)
+    matrix(probs, nrow = length(t), ncol = length(par), byrow = TRUE)
+  }
+}
+
+
+#' @method cause_probability exp_series_md_c1_c2_c3
+#' @export
+cause_probability.exp_series_md_c1_c2_c3 <- function(model, ...) {
+  function(par, ...) {
+    par / sum(par)
   }
 }
