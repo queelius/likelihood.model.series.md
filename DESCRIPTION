@@ -22,12 +22,10 @@ Config/testthat/edition: 3
 Imports:
     dplyr,
     stats,
-    md.tools,
     likelihood.model,
     generics,
     numDeriv
 Remotes:
-    github::queelius/md.tools,
     github::queelius/algebraic.mle,
     github::queelius/algebraic.dist,
     github::queelius/likelihood.model
@@ -36,4 +34,4 @@ Depends:
 LazyData: true
 VignetteBuilder: knitr
 URL: https://queelius.github.io/likelihood.model.series.md/
-BugReports: https://queelius.github.io/likelihood.model.series.md/issues
+BugReports: https://github.com/queelius/likelihood.model.series.md/issues

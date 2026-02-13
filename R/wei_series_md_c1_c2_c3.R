@@ -98,7 +98,6 @@ wei_series_integrand <- function(t, shapes, scales, cind) {
 #'   - `lifetime_upper`: interval upper bound column name (default from model)
 #'   - `omega`: observation type column name (default from model)
 #'   - `candset`: prefix of Boolean matrix encoding candidate sets
-#' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model loglik
 #' @importFrom stats integrate
 #' @method loglik wei_series_md_c1_c2_c3
@@ -192,7 +191,6 @@ loglik.wei_series_md_c1_c2_c3 <- function(model, ...) {
 #'   - `lifetime_upper`: interval upper bound column name (default from model)
 #'   - `omega`: observation type column name (default from model)
 #'   - `candset`: prefix of Boolean matrix encoding candidate sets
-#' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model score
 #' @importFrom numDeriv grad
 #' @method score wei_series_md_c1_c2_c3
@@ -388,7 +386,7 @@ rdata.wei_series_md_c1_c2_c3 <- function(model, ...) {
     generate_masked_series_data(
       comp_lifetimes, n, m, tau, p,
       defaults$lifetime, defaults$omega, defaults$candset,
-      observe = observe
+      defaults$lifetime_upper, observe = observe
     )
   }
 }

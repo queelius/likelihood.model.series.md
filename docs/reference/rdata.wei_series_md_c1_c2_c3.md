@@ -22,5 +22,5 @@ rdata(model, ...)
 
 ## Value
 
-function that takes (theta, n, tau, p, ...) and returns a data frame
-with columns: t, delta, x1, x2, ..., xm
+function that takes (theta, n, tau, p, observe, ...) and returns a data
+frame with columns: t, omega, x1, x2, ..., xm

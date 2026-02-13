@@ -23,13 +23,13 @@ run_long <- FALSE
 # likelihood.model.series.md re-exports generics from likelihood.model
 # (loglik, score, hess_loglik, fit, assumptions, fim)
 library(likelihood.model.series.md)
-library(md.tools)  # for md_encode_matrix, md_boolean_matrix_to_charsets
+# md_encode_matrix and md_boolean_matrix_to_charsets are provided by this package
 library(dplyr)     # for %>% pipe operator
 options(digits = 4)
 ```
 
 
-The R package `likelihood.md.series.system` is a framework for
+The R package `likelihood.model.series.md` is a framework for
 estimating the parameters of latent component lifetimes from *masked data*
 in a series system.
 
@@ -64,15 +64,14 @@ R_{T_i}(t_i|\v\lambda) = \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t_i\biggr)
 \end{equation}
 where $t > 0$.
 \begin{proof}
-By Theorem \ref{thm:sys_reliability_function},
+By the series system reliability theorem,
 $$
     R_{T_i}(t_i;\v\lambda) = \prod_{j=1}^{m} R_j(t_i;\lambda_j).
 $$
 Plugging in the component reliability functions given by
 Equation \eqref{eq:expo_reliability} obtains the result
 \begin{align*}
-R_{T_i}(t_i|\v\lambda) = \prod_{j=1}^{m}
-    &= \exp(-\lambda_j t)\\
+R_{T_i}(t_i;\v\lambda) &= \prod_{j=1}^{m} \exp(-\lambda_j t_i)\\
     &= \exp \biggl(-\sum_{j=1}^{m}{\lambda_j} t_i\biggr).
 \end{align*}
 \end{proof}
@@ -99,10 +98,10 @@ The series system's failure rate function is given by
 \label{eq:expo_sys_failure_rate}
 h(\cdot|\v\lambda) = \sum_{j=1}^{m} \lambda_j
 \end{equation}
-whose proof follows from Theorem \ref{thm:sys_failure_rate}.
+whose proof follows from the series system failure rate theorem.
 
-We see that the failure rate $\v\lambda = \sum_{j=1}^n \lambda$ is *constant*,
-consistent with the the exponential distribution being the only continuous
+We see that the system failure rate $\lambda_{\text{sys}} = \sum_{j=1}^m \lambda_j$ is *constant*,
+consistent with the exponential distribution being the only continuous
 distribution that has a constant failure rate.
 
 The pdf of the series system is given by
@@ -131,7 +130,7 @@ f_{K_i|T_i}(k|t,\v\lambda) = f_{K_i}(k|\v\lambda) =
 \end{equation}
 where $k \in \{1,\ldots,m\}$ and $t > 0$.
 \begin{proof}
-By Theorem \ref{thm:f_given_s_form_2},
+By the conditional cause-of-failure theorem,
 $$
 f_{K_i|T_i}(k|t,\v\lambda) = \frac{h_k(t|\lambda_k)}{h_{T_i}(t;\v\lambda)}.
 $$
@@ -168,7 +167,7 @@ exponential series system family, i.e., the component lifetimes are
 exponentially and independently distributed and we denote the
 true parameter value by $\theta$.
 
-The principle object of study is $\v\lambda, which in the case of
+The principal object of study is $\v\lambda$, which in the case of
 the exponential series system family consists of $m$ rate (scale)
 parameters for each component lifetime, $\v\lambda = (\lambda_1, \ldots, \lambda_m)'$.
 
@@ -211,7 +210,7 @@ In every model we consider, we assume that the candidate set $\mathcal{C}_i$
 is only a function of the component lifetimes $T_{i 1},\ldots,T_{i m}$, $\theta$,
 and the right-censoring time $\tau_i$. That is, the candidate set $\mathcal{C}_i$
 is independent of any other factors (or held constant for the duration of the
-experiment), like ambient temperature, and these factors also have a neglible
+experiment), like ambient temperature, and these factors also have a negligible
 effect on the series system lifetime and thus we can ignore them.
 
 ### Reduced likelihood model
@@ -250,7 +249,7 @@ We show that $g(c_i,t_i)$ is proportional to
 $$
     g(c_i,t_i) \propto \sum_{j \in c_i} f_j(t_i|\theta_j) \prod_{l=j,l \neq j}^m R_l(t_i|\theta_l),
 $$
-and thus 
+and thus the reduced likelihood is proportional to the full likelihood, yielding the same MLEs.
 
 Note, however, that different ways in which the conditions are met will yield
 MLEs with different sampling distributions, e.g., more or less efficient estimators.
@@ -271,10 +270,10 @@ $$
 $$
 \begin{proof}
 Since there are $m-1$ non-failed components (the failed component $j$ is 
-in $c_i$ with probability $1$), there are $2^(m-1)$ possible
+in $c_i$ with probability $1$), there are $2^{m-1}$ possible
 candidate sets (the size of the power set of the non-failed component indexes).
 Each of these candidate sets has equal probability of occurring, and thus
-the probability of any particular candidate set is $1/2^(m-1)$.
+the probability of any particular candidate set is $1/2^{m-1}$.
 \end{proof}
 
 ### Bernoulli candidate set model #2
@@ -325,7 +324,7 @@ comp_times <- matrix(nrow=n,ncol=m)
 for (j in 1:m)
     comp_times[,j] <- rexp(n,theta[j])
 comp_times <- md_encode_matrix(comp_times,"t")
-print(comp_times,n=4)
+head(comp_times, 4)
 ```
 
 Next, we use the function `md_series_lifetime_right_censoring` to decorate the
@@ -335,7 +334,8 @@ $\Pr\{T_i > \tau\} = 0.75$:
 q <- 0.25
 tau <- rep(-(1/sum(theta))*log(q),n)
 data <- comp_times %>% md_series_lifetime_right_censoring(tau)
-print(data,n=4,drop_latent=TRUE)
+latent <- attr(data, "latent")
+head(data[, !colnames(data) %in% latent], 4)
 ```
 
 ## Masked component cause of failure
@@ -344,14 +344,16 @@ appropriate set of parameters to satisfy conditions $C_1$, $C_2$, and $C_3$:
 ```{r bernoulli-cand, warning=F, message=F}
 p <- .3
 data <- data %>% md_bernoulli_cand_c1_c2_c3(p)
-print(data[,paste0("q",1:m)],n=4)
+head(data[, paste0("q", 1:m)], 4)
 ```
 
 Now, to generate candidate sets, we sample from these probabilities:
 ```{r cand-sampler}
 data <- data %>% md_cand_sampler()
 data$omega <- ifelse(data$delta, "exact", "right")
-print(md_boolean_matrix_to_charsets(data,drop_set=TRUE),drop_latent=TRUE,n=6)
+display <- md_boolean_matrix_to_charsets(data, drop_set = TRUE)
+latent <- attr(display, "latent")
+head(display[, !colnames(display) %in% latent], 6)
 ```
 
 We see that after dropping latent (unobserved) columns, we only have the right
@@ -374,18 +376,19 @@ model <- exp_series_md_c1_c2_c3()
 
 Maximum likelihood estimation {#mle}
 ====================================
-The log-likelihood for our masked data model when we assume Conditions
-\ref{cond:c_contains_k}, \ref{cond:equal_prob_failure_cause}, and
-\ref{cond:masked_indept_theta} is given by
+The log-likelihood for our masked data model under masking conditions
+C1 (failed component in candidate set), C2 (uniform candidate set
+probability), and C3 (masking independent of parameters) is given by
 \begin{equation}
-\label{eq:}
+\label{eq:loglik_masked}
 \ell(\lambda) =
     \sum_{i=1}^{n} (1-\delta_i) \log \biggl(\sum_{j \in c_i} \lambda_j \biggr) -
     \biggl( \sum_{i=1}^{n} s_i \biggr)
     \biggl( \sum_{j=1}^{m} \lambda_j \biggr).
 \end{equation}
 \begin{proof}
-By Equation \eqref{eq:loglike}, 
+By the general masked-data log-likelihood (summing over the survival and
+candidate-set contributions for each observation),
 $$
 \ell(\lambda) = \sum_{i=1}^n \log R(s_i;\lambda) + \sum_{i=1}^n (1-\delta_i)
     \log \biggl\{ \sum_{k\in c_i} h_k(s_i;{\lambda_k}) \biggr\}.
@@ -406,14 +409,14 @@ The $j$-th component of the output of the score function is given by
   1_{\{p \in c_i \text{ and } \delta_i = 0\}} - \sum_{i=1}^{n} s_i.
 \end{equation}
 
-We may find an MLE by solving the maximum likelihood equation \eqref{eq:mle_eq},
-i.e., a set of (stationary) points satisfying
+We may find an MLE by solving the score equation,
+i.e., finding stationary points satisfying
 $$
 \frac{\partial \ell}{\partial \lambda_j}\Biggr|_{\hat\lambda_j} = 0
 $$
 for $j=1,\ldots,m$.
 We approximate a solution to this problem by using the iterative
-Newton-Raphson method as described in Section \ref{sec:iterative}.
+Newton-Raphson method.
 
 The Newton-Raphson method needs the observed information matrix, which is a
 function of $\lambda$ of type $\mathbb{R}^m \mapsto \mathbb{R}^{m \times m}$.
@@ -1058,10 +1061,11 @@ loss in this model:
   Censoring is more damaging because it eliminates *both* the failure time and
   the candidate set, whereas masking only dilutes the candidate set.
 
-- **Clear inflection around 50% censoring.** MSE is still manageable at 50%
-  ($0.040$) but jumps to $0.059$ at 70% and $0.183$ at 90%. The relationship
-  between censoring rate and MSE is convex --- each additional percentage point
-  of censoring is more damaging than the last.
+- **Convex MSE growth, accelerating sharply above 70%.** MSE grows gradually
+  from 10% to 70% censoring ($0.019 \to 0.059$, roughly linear), then
+  accelerates: $0.088$ at 80% and $0.183$ at 90%. The inflection point is
+  near 70--80% censoring, beyond which each additional percentage point of
+  censoring is dramatically more damaging.
 
 - **Bias remains modest even under extreme censoring.** Mean $|\text{bias}|$
   grows from 0.005 (10% censoring) to 0.034 (90% censoring) but stays small
@@ -1098,9 +1102,9 @@ Based on these sensitivity analyses:
    $p = 0.3$. If reducing the masking probability below 0.3 requires expensive
    diagnostic equipment, the incremental benefit may not justify the cost.
 
-3. **The 50% censoring threshold.** Below $\sim 50\%$ censoring, estimation
-   quality degrades gradually. Above it, MSE grows convexly --- avoid
-   experimental designs where more than half the systems survive past the
+3. **The 70% censoring threshold.** Below $\sim 70\%$ censoring, MSE growth is
+   roughly linear and moderate. Above 70%, MSE accelerates sharply --- avoid
+   experimental designs where more than two-thirds of systems survive past the
    observation window.
 
 4. **CI widths for sample size planning.** At $n = 7500$ with $p = 0.3$ and

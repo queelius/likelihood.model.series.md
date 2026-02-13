@@ -85,7 +85,6 @@ exp_series_md_c1_c2_c3 <- function(rates = NULL, lifetime = "t",
 #'   - `lifetime_upper`: interval upper bound column name (default from model)
 #'   - `omega`: observation type column name (default from model)
 #'   - `candset`: prefix of Boolean matrix encoding candidate sets
-#' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model loglik
 #' @method loglik exp_series_md_c1_c2_c3
 #' @export
@@ -153,7 +152,6 @@ loglik.exp_series_md_c1_c2_c3 <- function(model, ...) {
 #'   - `lifetime_upper`: interval upper bound column name (default from model)
 #'   - `omega`: observation type column name (default from model)
 #'   - `candset`: prefix of Boolean matrix encoding candidate sets
-#' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model score
 #' @method score exp_series_md_c1_c2_c3
 #' @export
@@ -230,7 +228,6 @@ score.exp_series_md_c1_c2_c3 <- function(model, ...) {
 #'   - `lifetime_upper`: interval upper bound column name (default from model)
 #'   - `omega`: observation type column name (default from model)
 #'   - `candset`: prefix of Boolean matrix encoding candidate sets
-#' @importFrom md.tools md_decode_matrix
 #' @importFrom likelihood.model hess_loglik
 #' @method hess_loglik exp_series_md_c1_c2_c3
 #' @export
@@ -341,7 +338,7 @@ rdata.exp_series_md_c1_c2_c3 <- function(model, ...) {
     generate_masked_series_data(
       comp_lifetimes, n, m, tau, p,
       defaults$lifetime, defaults$omega, defaults$candset,
-      observe = observe
+      defaults$lifetime_upper, observe = observe
     )
   }
 }

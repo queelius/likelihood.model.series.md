@@ -272,3 +272,22 @@ test_that("cum_haz with increasing hazard", {
   expect_equal(ch(2), 2, tolerance = 1e-5)
   expect_equal(ch(4), 8, tolerance = 1e-5)
 })
+
+
+# ==============================================================================
+# Coverage gap: extract_model_data with missing omega column
+# ==============================================================================
+
+test_that("extract_model_data errors when omega column is missing", {
+  model <- exp_series_md_c1_c2_c3(omega = "observation_type")
+  ll_fn <- loglik(model)
+
+  df <- data.frame(
+    t = c(1, 2), omega = c("exact", "exact"),
+    x1 = c(TRUE, FALSE), x2 = c(FALSE, TRUE),
+    stringsAsFactors = FALSE
+  )
+
+  # The model expects omega column named "observation_type" but df has "omega"
+  expect_error(ll_fn(df, par = c(0.5, 0.3)), "omega variable")
+})

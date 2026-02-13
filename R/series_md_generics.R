@@ -92,22 +92,13 @@ cause_probability.series_md <- function(model, ...) {
   cond_fn <- conditional_cause_probability(model)
   rdata_fn <- rdata(model)
 
-  function(par, n_mc = 10000, tau = Inf, p = 0, ...) {
-    df <- rdata_fn(theta = par, n = n_mc, tau = tau, p = p)
-    # Use only exact (uncensored) observations for the expectation
+  function(par, n_mc = 10000, ...) {
+    # Generate uncensored data: tau=Inf ensures all observations are exact,
+    # p=0 means no masking (irrelevant for this computation)
+    df <- rdata_fn(theta = par, n = n_mc, tau = Inf, p = 0)
     defaults <- extract_model_defaults(model)
-    omega_col <- defaults$omega
-    if (omega_col %in% colnames(df)) {
-      is_exact <- df[[omega_col]] == "exact"
-    } else {
-      is_exact <- rep(TRUE, nrow(df))
-    }
-    t_exact <- df[[defaults$lifetime]][is_exact]
-    if (length(t_exact) == 0) {
-      m <- ncomponents(model)
-      return(rep(NA_real_, m))
-    }
-    probs <- cond_fn(t_exact, par, ...)
+    t_vals <- df[[defaults$lifetime]]
+    probs <- cond_fn(t_vals, par, ...)
     colMeans(probs)
   }
 }

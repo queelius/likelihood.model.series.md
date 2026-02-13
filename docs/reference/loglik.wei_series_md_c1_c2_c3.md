@@ -32,7 +32,15 @@ log-likelihood function that takes the following arguments:
 
 - `lifetime`: system lifetime column name (default from model)
 
-- `indicator`: right-censoring indicator column name (default from
+- `lifetime_upper`: interval upper bound column name (default from
   model)
 
+- `omega`: observation type column name (default from model)
+
 - `candset`: prefix of Boolean matrix encoding candidate sets
+
+## Details
+
+Supports four observation types. Left-censored and interval-censored
+observations require numerical integration (via stats::integrate)
+because heterogeneous shapes prevent a closed-form solution.

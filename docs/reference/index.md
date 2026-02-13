@@ -20,6 +20,15 @@
 
   Assumptions for `wei_series_md_c1_c2_c3` model.
 
+- [`cause_probability()`](https://queelius.github.io/likelihood.model.series.md/reference/cause_probability.md)
+  : Marginal cause-of-failure probability
+
+- [`component_hazard()`](https://queelius.github.io/likelihood.model.series.md/reference/component_hazard.md)
+  : Component hazard function
+
+- [`conditional_cause_probability()`](https://queelius.github.io/likelihood.model.series.md/reference/conditional_cause_probability.md)
+  : Conditional cause-of-failure probability
+
 - [`cum_haz()`](https://queelius.github.io/likelihood.model.series.md/reference/cum_haz.md)
   : Cumulative hazard function for a component hazard function
 
@@ -69,14 +78,35 @@
   : Bernoulli candidate set model for systems with unobserved
   components.
 
+- [`md_boolean_matrix_to_charsets()`](https://queelius.github.io/likelihood.model.series.md/reference/md_boolean_matrix_to_charsets.md)
+  : Convert Boolean candidate set columns to character set notation
+
 - [`md_cand_sampler()`](https://queelius.github.io/likelihood.model.series.md/reference/md_cand_sampler.md)
   : Sample candidate sets for systems with unobserved components.
+
+- [`md_encode_matrix()`](https://queelius.github.io/likelihood.model.series.md/reference/md_encode_matrix.md)
+  : Encode a matrix as a data frame with prefixed column names
 
 - [`md_series_lifetime_right_censoring()`](https://queelius.github.io/likelihood.model.series.md/reference/md_series_lifetime_right_censoring.md)
   : Masked data generation for series system lifetime data
 
 - [`mean(`*`<exp_series>`*`)`](https://queelius.github.io/likelihood.model.series.md/reference/mean.exp_series.md)
   : Mean function for exponential series.
+
+- [`ncomponents()`](https://queelius.github.io/likelihood.model.series.md/reference/ncomponents.md)
+  : Number of components in a series system model
+
+- [`observe_left_censor()`](https://queelius.github.io/likelihood.model.series.md/reference/observe_left_censor.md)
+  : Left-censoring observation scheme (single inspection)
+
+- [`observe_mixture()`](https://queelius.github.io/likelihood.model.series.md/reference/observe_mixture.md)
+  : Mixture of observation schemes
+
+- [`observe_periodic()`](https://queelius.github.io/likelihood.model.series.md/reference/observe_periodic.md)
+  : Periodic inspection observation scheme
+
+- [`observe_right_censor()`](https://queelius.github.io/likelihood.model.series.md/reference/observe_right_censor.md)
+  : Right-censoring observation scheme
 
 - [`pexp_series()`](https://queelius.github.io/likelihood.model.series.md/reference/pexp_series.md)
   : Cumulative distribution function for exponential series.

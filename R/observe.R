@@ -50,11 +50,8 @@ observe_right_censor <- function(tau) {
 #' obs(150)  # right-censored: list(t = 100, omega = "right", t_upper = NA)
 observe_left_censor <- function(tau) {
   function(t_true) {
-    if (t_true <= tau) {
-      list(t = tau, omega = "left", t_upper = NA_real_)
-    } else {
-      list(t = tau, omega = "right", t_upper = NA_real_)
-    }
+    omega <- if (t_true <= tau) "left" else "right"
+    list(t = tau, omega = omega, t_upper = NA_real_)
   }
 }
 

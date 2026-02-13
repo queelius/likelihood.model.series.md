@@ -30,17 +30,13 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/exponential_series.html">Masked Data Likelihood Model: Components with Exponentially Distributed Lifetimes Arranged In Series Configuration</a></li>
-  </ul>
-</li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/queelius/likelihood.model.series.md/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -57,13 +53,13 @@
       <h1>Masked Data Likelihood Model: Components with Exponentially Distributed Lifetimes Arranged In Series Configuration</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/queelius/likelihood.model.series.md/blob/HEAD/vignettes/exponential_series.Rmd" class="external-link"><code>vignettes/exponential_series.Rmd</code></a></small>
       <div class="d-none name"><code>exponential_series.Rmd</code></div>
     </div>
 
     
     
-<p>The R package <code>likelihood.md.series.system</code> is a framework
+<p>The R package <code>likelihood.model.series.md</code> is a framework
 for estimating the parameters of latent component lifetimes from
 <em>masked data</em> in a series system.</p>
 <div class="section level2">
@@ -114,12 +110,11 @@ exponentially distributed.
 \label{eq:expo_sys_failure_rate}
 h(\cdot|\boldsymbol{\lambda}) = \sum_{j=1}^{m} \lambda_j
 \end{equation}</annotation></semantics></math> whose proof follows from
-Theorem .</p>
-<p>We see that the failure rate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝛌</mi><mo>=</mo><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></msubsup><mi>λ</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\lambda }= \sum_{j=1}^n \lambda</annotation></semantics></math>
-is <em>constant</em>, consistent with the the exponential distribution
-being the only continuous distribution that has a constant failure
-rate.</p>
+the series system failure rate theorem.</p>
+<p>We see that the system failure rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mtext mathvariant="normal">sys</mtext></msub><mo>=</mo><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></msubsup><msub><mi>λ</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_{\text{sys}} = \sum_{j=1}^m \lambda_j</annotation></semantics></math>
+is <em>constant</em>, consistent with the exponential distribution being
+the only continuous distribution that has a constant failure rate.</p>
 The pdf of the series system is given by
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><msub><mi>T</mi><mi>i</mi></msub></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>t</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>𝛌</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo minsize="2.4" maxsize="2.4" stretchy="false" form="prefix">(</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><msub><mi>λ</mi><mi>j</mi></msub><mo minsize="2.4" maxsize="2.4" stretchy="false" form="postfix">)</mo><mo>exp</mo><mo minsize="2.4" maxsize="2.4" stretchy="false" form="prefix">(</mo><mo>−</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><msub><mi>λ</mi><mi>j</mi></msub><msub><mi>t</mi><mi>i</mi></msub><mo minsize="2.4" maxsize="2.4" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
 \label{eq:expo_sys_pdf}
@@ -167,8 +162,9 @@ components. The true DGP for the system lifetime is in the exponential
 series system family, i.e., the component lifetimes are exponentially
 and independently distributed and we denote the true parameter value by
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>.</p>
-<p>The principle object of study is $, which in the case of the
-exponential series system family consists of
+<p>The principal object of study is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛌</mi><annotation encoding="application/x-tex">\boldsymbol{\lambda}</annotation></semantics></math>,
+which in the case of the exponential series system family consists of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
 rate (scale) parameters for each component lifetime,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝛌</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>λ</mi><mi>m</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>′</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\lambda }= (\lambda_1, \ldots, \lambda_m)'</annotation></semantics></math>.</p>
@@ -230,7 +226,7 @@ That is, the candidate set
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝒞</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\mathcal{C}_i</annotation></semantics></math>
 is independent of any other factors (or held constant for the duration
 of the experiment), like ambient temperature, and these factors also
-have a neglible effect on the series system lifetime and thus we can
+have a negligible effect on the series system lifetime and thus we can
 ignore them.</p>
 <div class="section level4">
 <h4 id="reduced-likelihood-model">Reduced likelihood model<a class="anchor" aria-label="anchor" href="#reduced-likelihood-model"></a>
@@ -298,7 +294,8 @@ Thus, we can write the likelihood function as
 is proportional to
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>c</mi><mi>i</mi></msub><mo>,</mo><msub><mi>t</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>∝</mo><munder><mo>∑</mo><mrow><mi>j</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></munder><msub><mi>f</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>t</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>θ</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><munderover><mo>∏</mo><mrow><mi>l</mi><mo>=</mo><mi>j</mi><mo>,</mo><mi>l</mi><mo>≠</mo><mi>j</mi></mrow><mi>m</mi></munderover><msub><mi>R</mi><mi>l</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>t</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>θ</mi><mi>l</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
     g(c_i,t_i) \propto \sum_{j \in c_i} f_j(t_i|\theta_j) \prod_{l=j,l \neq j}^m R_l(t_i|\theta_l),
-</annotation></semantics></math> and thus</p>
+</annotation></semantics></math> and thus the reduced likelihood is
+proportional to the full likelihood, yielding the same MLEs.</p>
 <p>Note, however, that different ways in which the conditions are met
 will yield MLEs with different sampling distributions, e.g., more or
 less efficient estimators.</p>
@@ -389,16 +386,13 @@ components for this series system:</p>
 <span><span class="va">comp_times</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>nrow<span class="op">=</span><span class="va">n</span>,ncol<span class="op">=</span><span class="va">m</span><span class="op">)</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">m</span><span class="op">)</span></span>
 <span>    <span class="va">comp_times</span><span class="op">[</span>,<span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>,<span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">comp_times</span> <span class="op">&lt;-</span> <span class="fu">md_encode_matrix</span><span class="op">(</span><span class="va">comp_times</span>,<span class="st">"t"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">comp_times</span>,n<span class="op">=</span><span class="fl">4</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,500 × 5</span></span></span>
-<span><span class="co">#&gt;      t1     t2    t3     t4    t5</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>  2.95 1.67   0.777 0.047<span style="text-decoration: underline;">6</span> 0.380</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>  1.10 2.20   2.59  3.27   0.626</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>  1.20 0.095<span style="text-decoration: underline;">6</span> 3.74  1.80   2.13 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>  1.44 0.046<span style="text-decoration: underline;">0</span> 0.123 0.522  0.102</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,496 more rows</span></span></span></code></pre></div>
+<span><span class="va">comp_times</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/md_encode_matrix.html">md_encode_matrix</a></span><span class="op">(</span><span class="va">comp_times</span>,<span class="st">"t"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">comp_times</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      t1      t2     t3      t4     t5</span></span>
+<span><span class="co">#&gt; 1 2.953 1.67343 0.7765 0.04761 0.3798</span></span>
+<span><span class="co">#&gt; 2 1.099 2.20079 2.5923 3.26549 0.6260</span></span>
+<span><span class="co">#&gt; 3 1.202 0.09557 3.7371 1.80056 2.1282</span></span>
+<span><span class="co">#&gt; 4 1.443 0.04595 0.1229 0.52177 0.1025</span></span></code></pre></div>
 <p>Next, we use the function
 <code>md_series_lifetime_right_censoring</code> to decorate the masked
 data with the right-censor-censoring time chosen by the probability
@@ -407,16 +401,13 @@ data with the right-censor-censoring time chosen by the probability
 <code class="sourceCode R"><span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fl">0.25</span></span>
 <span><span class="va">tau</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">q</span><span class="op">)</span>,<span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">comp_times</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">data</span>,n<span class="op">=</span><span class="fl">4</span>,drop_latent<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Latent variables:  t1 t2 t3 t4 t5 </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,500 × 2</span></span></span>
-<span><span class="co">#&gt;        t delta</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 0.047<span style="text-decoration: underline;">6</span> TRUE </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 0.262  FALSE</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 0.095<span style="text-decoration: underline;">6</span> TRUE </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 0.046<span style="text-decoration: underline;">0</span> TRUE </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,496 more rows</span></span></span></code></pre></div>
+<span><span class="va">latent</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"latent"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">latent</span><span class="op">]</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="co">#&gt;         t delta</span></span>
+<span><span class="co">#&gt; 1 0.04761  TRUE</span></span>
+<span><span class="co">#&gt; 2 0.26156 FALSE</span></span>
+<span><span class="co">#&gt; 3 0.09557  TRUE</span></span>
+<span><span class="co">#&gt; 4 0.04595  TRUE</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="masked-component-cause-of-failure">Masked component cause of failure<a class="anchor" aria-label="anchor" href="#masked-component-cause-of-failure"></a>
 </h3>
@@ -429,32 +420,34 @@ and
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">.3</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/md_bernoulli_cand_c1_c2_c3.html">md_bernoulli_cand_c1_c2_c3</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"q"</span>,<span class="fl">1</span><span class="op">:</span><span class="va">m</span><span class="op">)</span><span class="op">]</span>,n<span class="op">=</span><span class="fl">4</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Latent variables:  q1 q2 q3 q4 q5 t1 t2 t3 t4 t5 </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,500 × 5</span></span></span>
-<span><span class="co">#&gt;      q1    q2    q3    q4    q5</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>   0.3   0.3   0.3   1     0.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>   0     0     0     0     0  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>   0.3   1     0.3   0.3   0.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>   0.3   1     0.3   0.3   0.3</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,496 more rows</span></span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"q"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">m</span><span class="op">)</span><span class="op">]</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    q1  q2  q3  q4  q5</span></span>
+<span><span class="co">#&gt; 1 0.3 0.3 0.3 1.0 0.3</span></span>
+<span><span class="co">#&gt; 2 0.0 0.0 0.0 0.0 0.0</span></span>
+<span><span class="co">#&gt; 3 0.3 1.0 0.3 0.3 0.3</span></span>
+<span><span class="co">#&gt; 4 0.3 1.0 0.3 0.3 0.3</span></span></code></pre></div>
 <p>Now, to generate candidate sets, we sample from these
 probabilities:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/md_cand_sampler.html">md_cand_sampler</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu">md_boolean_matrix_to_charsets</span><span class="op">(</span><span class="va">data</span>,drop_set<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>,drop_latent<span class="op">=</span><span class="cn">TRUE</span>,n<span class="op">=</span><span class="fl">6</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Latent variables:  q1 q2 q3 q4 q5 t1 t2 t3 t4 t5 </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,500 × 3</span></span></span>
-<span><span class="co">#&gt;        t delta x        </span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 0.047<span style="text-decoration: underline;">6</span> TRUE  {1, 4}   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 0.262  FALSE {}       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 0.095<span style="text-decoration: underline;">6</span> TRUE  {2, 4}   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 0.046<span style="text-decoration: underline;">0</span> TRUE  {1, 2, 3}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 0.029<span style="text-decoration: underline;">0</span> TRUE  {4, 5}   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 0.160  TRUE  {2, 5}   </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,494 more rows</span></span></span></code></pre></div>
+<span><span class="va">data</span><span class="op">$</span><span class="va">omega</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">delta</span>, <span class="st">"exact"</span>, <span class="st">"right"</span><span class="op">)</span></span>
+<span><span class="va">display</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/md_boolean_matrix_to_charsets.html">md_boolean_matrix_to_charsets</a></span><span class="op">(</span><span class="va">data</span>, drop_set <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">latent</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">display</span>, <span class="st">"latent"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">display</span><span class="op">[</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">display</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">latent</span><span class="op">]</span>, <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      t1      t2     t3      t4     t5       t delta  q1  q2  q3  q4  q5 omega</span></span>
+<span><span class="co">#&gt; 1 2.953 1.67343 0.7765 0.04761 0.3798 0.04761  TRUE 0.3 0.3 0.3 1.0 0.3 exact</span></span>
+<span><span class="co">#&gt; 2 1.099 2.20079 2.5923 3.26549 0.6260 0.26156 FALSE 0.0 0.0 0.0 0.0 0.0 right</span></span>
+<span><span class="co">#&gt; 3 1.202 0.09557 3.7371 1.80056 2.1282 0.09557  TRUE 0.3 1.0 0.3 0.3 0.3 exact</span></span>
+<span><span class="co">#&gt; 4 1.443 0.04595 0.1229 0.52177 0.1025 0.04595  TRUE 0.3 1.0 0.3 0.3 0.3 exact</span></span>
+<span><span class="co">#&gt; 5 2.409 0.46744 0.5819 0.02899 0.2009 0.02899  TRUE 0.3 0.3 0.3 1.0 0.3 exact</span></span>
+<span><span class="co">#&gt; 6 4.400 1.92722 0.3933 1.56782 0.1597 0.15967  TRUE 0.3 0.3 0.3 0.3 1.0 exact</span></span>
+<span><span class="co">#&gt;           x</span></span>
+<span><span class="co">#&gt; 1    {1, 4}</span></span>
+<span><span class="co">#&gt; 2        {}</span></span>
+<span><span class="co">#&gt; 3    {2, 4}</span></span>
+<span><span class="co">#&gt; 4 {1, 2, 3}</span></span>
+<span><span class="co">#&gt; 5    {4, 5}</span></span>
+<span><span class="co">#&gt; 6    {2, 5}</span></span></code></pre></div>
 <p>We see that after dropping latent (unobserved) columns, we only have
 the right censoring time, right censoring indicator, and the candidate
 sets. (Note that this time we showed the candidate sets in a more
@@ -462,7 +455,7 @@ friendly way using <code>md_boolean_matrix_to_charsets</code>.)</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="likelihood-model-1">Likelihood Model<a class="anchor" aria-label="anchor" href="#likelihood-model-1"></a>
+<h2 id="constructing-model">Constructing the Likelihood Model<a class="anchor" aria-label="anchor" href="#constructing-model"></a>
 </h2>
 <p>The likelihood model is a statistical model that describes the
 distribution of the observed data as a function of the parameters of
@@ -476,10 +469,11 @@ code:</p>
 <div class="section level2">
 <h2 id="mle">Maximum likelihood estimation<a class="anchor" aria-label="anchor" href="#mle"></a>
 </h2>
-The log-likelihood for our masked data model when we assume Conditions ,
-, and is given by
+The log-likelihood for our masked data model under masking conditions C1
+(failed component in candidate set), C2 (uniform candidate set
+probability), and C3 (masking independent of parameters) is given by
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ℓ</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>λ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>δ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>log</mo><mo minsize="2.4" maxsize="2.4" stretchy="false" form="prefix">(</mo><munder><mo>∑</mo><mrow><mi>j</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></munder><msub><mi>λ</mi><mi>j</mi></msub><mo minsize="2.4" maxsize="2.4" stretchy="false" form="postfix">)</mo><mo>−</mo><mo minsize="2.4" maxsize="2.4" stretchy="false" form="prefix">(</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>s</mi><mi>i</mi></msub><mo minsize="2.4" maxsize="2.4" stretchy="false" form="postfix">)</mo><mo minsize="2.4" maxsize="2.4" stretchy="false" form="prefix">(</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><msub><mi>λ</mi><mi>j</mi></msub><mo minsize="2.4" maxsize="2.4" stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
-\label{eq:}
+\label{eq:loglik_masked}
 \ell(\lambda) =
     \sum_{i=1}^{n} (1-\delta_i) \log \biggl(\sum_{j \in c_i} \lambda_j \biggr) -
     \biggl( \sum_{i=1}^{n} s_i \biggr)
@@ -496,14 +490,14 @@ component of the output of the score function is given by
   \sum_{i=1}^{n} \biggl( \sum_{j \in c_i} \lambda_j \biggr)^{-1}
   1_{\{p \in c_i \text{ and } \delta_i = 0\}} - \sum_{i=1}^{n} s_i.
 \end{equation}</annotation></semantics></math></p>
-<p>We may find an MLE by solving the maximum likelihood equation , i.e.,
-a set of (stationary) points satisfying
+<p>We may find an MLE by solving the score equation, i.e., finding
+stationary points satisfying
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><mo>ℓ</mo></mrow><mrow><mi>∂</mi><msub><mi>λ</mi><mi>j</mi></msub></mrow></mfrac><msub><mo minsize="3.0" maxsize="3.0" stretchy="false" form="prefix">|</mo><msub><mover><mi>λ</mi><mo accent="true">̂</mo></mover><mi>j</mi></msub></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">
 \frac{\partial \ell}{\partial \lambda_j}\Biggr|_{\hat\lambda_j} = 0
 </annotation></semantics></math> for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>m</mi></mrow><annotation encoding="application/x-tex">j=1,\ldots,m</annotation></semantics></math>.
 We approximate a solution to this problem by using the iterative
-Newton-Raphson method as described in Section .</p>
+Newton-Raphson method.</p>
 <p>The Newton-Raphson method needs the observed information matrix,
 which is a function of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
@@ -639,6 +633,146 @@ but it is reasonably close. We may measure this sampling variability
 using the variance-covariance matrix, bias, mean squared error (MSE),
 and confidence intervals.</p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="observation-types">Observation Types and Censoring<a class="anchor" aria-label="anchor" href="#observation-types"></a>
+</h2>
+<p>The likelihood model supports four observation types. Each arises
+from a different monitoring scheme:</p>
+<ul>
+<li>
+<strong>Exact</strong>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ω</mi><mo>=</mo><mtext mathvariant="normal">exact</mtext></mrow><annotation encoding="application/x-tex">\omega = \text{exact}</annotation></semantics></math>):
+The system failure time
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+is observed directly, e.g., continuous monitoring.</li>
+<li>
+<strong>Right-censored</strong>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ω</mi><mo>=</mo><mtext mathvariant="normal">right</mtext></mrow><annotation encoding="application/x-tex">\omega = \text{right}</annotation></semantics></math>):
+The system is known to have survived past
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+e.g., study ends before failure.</li>
+<li>
+<strong>Left-censored</strong>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ω</mi><mo>=</mo><mtext mathvariant="normal">left</mtext></mrow><annotation encoding="application/x-tex">\omega = \text{left}</annotation></semantics></math>):
+The system is known to have failed before
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+e.g., a single inspection finds it failed.</li>
+<li>
+<strong>Interval-censored</strong>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ω</mi><mo>=</mo><mtext mathvariant="normal">interval</mtext></mrow><annotation encoding="application/x-tex">\omega = \text{interval}</annotation></semantics></math>):
+The failure occurred in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>,</mo><msub><mi>t</mi><mtext mathvariant="normal">upper</mtext></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(t, t_{\text{upper}})</annotation></semantics></math>,
+e.g., periodic inspections bracket the failure.</li>
+</ul>
+<p>For the exponential series system, the individual-observation
+log-likelihood contributions are:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">Exact:</mtext><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left"><mo>log</mo><msub><mi>λ</mi><mi>c</mi></msub><mo>−</mo><msub><mi>λ</mi><mtext mathvariant="normal">sys</mtext></msub><mi>t</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">Right:</mtext><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left"><mo>−</mo><msub><mi>λ</mi><mtext mathvariant="normal">sys</mtext></msub><mi>t</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">Left:</mtext><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left"><mo>log</mo><msub><mi>λ</mi><mi>c</mi></msub><mo>+</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><msub><mi>λ</mi><mtext mathvariant="normal">sys</mtext></msub><mi>τ</mi></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>log</mo><msub><mi>λ</mi><mtext mathvariant="normal">sys</mtext></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">Interval:</mtext><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left"><mo>log</mo><msub><mi>λ</mi><mi>c</mi></msub><mo>−</mo><msub><mi>λ</mi><mtext mathvariant="normal">sys</mtext></msub><mi>a</mi><mo>+</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><msub><mi>λ</mi><mtext mathvariant="normal">sys</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>b</mi><mo>−</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>log</mo><msub><mi>λ</mi><mtext mathvariant="normal">sys</mtext></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
+\text{Exact:} \quad &amp; \log \lambda_c - \lambda_{\text{sys}} t \\
+\text{Right:} \quad &amp; -\lambda_{\text{sys}} t \\
+\text{Left:} \quad &amp; \log \lambda_c + \log(1 - e^{-\lambda_{\text{sys}} \tau})
+  - \log \lambda_{\text{sys}} \\
+\text{Interval:} \quad &amp; \log \lambda_c - \lambda_{\text{sys}} a
+  + \log(1 - e^{-\lambda_{\text{sys}}(b - a)}) - \log \lambda_{\text{sys}}
+\end{align}</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>c</mi></msub><mo>=</mo><msub><mo>∑</mo><mrow><mi>j</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><msub><mi>λ</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_c = \sum_{j \in c_i} \lambda_j</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mtext mathvariant="normal">sys</mtext></msub><mo>=</mo><msub><mo>∑</mo><mi>j</mi></msub><msub><mi>λ</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_{\text{sys}} = \sum_j \lambda_j</annotation></semantics></math>.</p>
+<p>The left-censored contribution can be interpreted as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><msub><mi>w</mi><mi>c</mi></msub><mo>+</mo><mo>log</mo><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\log w_c + \log F(\tau)</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mi>c</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>c</mi></msub><mi>/</mi><msub><mi>λ</mi><mtext mathvariant="normal">sys</mtext></msub></mrow><annotation encoding="application/x-tex">w_c = \lambda_c / \lambda_{\text{sys}}</annotation></semantics></math>
+is the candidate cause weight and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F(\tau)</annotation></semantics></math>
+is the system CDF.</p>
+<p><strong>The exponential model is the only one where all four types
+have fully analytical loglik, score, AND Hessian.</strong> The Weibull
+models require numerical integration or <code>numDeriv</code> for
+left/interval types.</p>
+<div class="section level3">
+<h3 id="observe-functors">Observe functors<a class="anchor" aria-label="anchor" href="#observe-functors"></a>
+</h3>
+<p>The package provides composable observation functors for generating
+data under different monitoring schemes:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Periodic inspection every 0.5 time units, study ends at tau = 5</span></span>
+<span><span class="va">obs_periodic</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/observe_periodic.html">observe_periodic</a></span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.5</span>, tau <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Single inspection at tau = 3</span></span>
+<span><span class="va">obs_left</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/observe_left_censor.html">observe_left_censor</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Mix of continuous and periodic monitoring</span></span>
+<span><span class="va">obs_mixed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/observe_mixture.html">observe_mixture</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/observe_right_censor.html">observe_right_censor</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/observe_left_censor.html">observe_left_censor</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.7</span>, <span class="fl">0.3</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="generating-mixed-censoring-data">Generating mixed-censoring data<a class="anchor" aria-label="anchor" href="#generating-mixed-censoring-data"></a>
+</h3>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gen</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Periodic inspections</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7231</span><span class="op">)</span></span>
+<span><span class="va">df_periodic</span> <span class="op">&lt;-</span> <span class="fu">gen</span><span class="op">(</span><span class="va">theta</span>, n <span class="op">=</span> <span class="fl">500</span>, p <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>                   observe <span class="op">=</span> <span class="fu"><a href="../reference/observe_periodic.html">observe_periodic</a></span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.5</span>, tau <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Periodic inspection observation types:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Periodic inspection observation types:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">df_periodic</span><span class="op">$</span><span class="va">omega</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; interval </span></span>
+<span><span class="co">#&gt;      500</span></span>
+<span></span>
+<span><span class="co"># Mixed monitoring</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7231</span><span class="op">)</span></span>
+<span><span class="va">df_mixed</span> <span class="op">&lt;-</span> <span class="fu">gen</span><span class="op">(</span><span class="va">theta</span>, n <span class="op">=</span> <span class="fl">500</span>, p <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>                observe <span class="op">=</span> <span class="fu"><a href="../reference/observe_mixture.html">observe_mixture</a></span><span class="op">(</span></span>
+<span>                  <span class="fu"><a href="../reference/observe_right_censor.html">observe_right_censor</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>                  <span class="fu"><a href="../reference/observe_left_censor.html">observe_left_censor</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>                  weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.7</span>, <span class="fl">0.3</span><span class="op">)</span></span>
+<span>                <span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\nMixed monitoring observation types:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Mixed monitoring observation types:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">df_mixed</span><span class="op">$</span><span class="va">omega</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; exact  left </span></span>
+<span><span class="co">#&gt;   344   156</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="likelihood-evaluation-on-mixed-censoring-data">Likelihood evaluation on mixed-censoring data<a class="anchor" aria-label="anchor" href="#likelihood-evaluation-on-mixed-censoring-data"></a>
+</h3>
+<p>All four observation types contribute analytically to the loglik,
+score, and Hessian for the exponential model:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ll_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span><span class="va">scr_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span><span class="va">hess_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Evaluate at true parameters</span></span>
+<span><span class="va">ll_val</span> <span class="op">&lt;-</span> <span class="fu">ll_fn</span><span class="op">(</span><span class="va">df_periodic</span>, <span class="va">theta</span><span class="op">)</span></span>
+<span><span class="va">scr_val</span> <span class="op">&lt;-</span> <span class="fu">scr_fn</span><span class="op">(</span><span class="va">df_periodic</span>, <span class="va">theta</span><span class="op">)</span></span>
+<span><span class="va">hess_val</span> <span class="op">&lt;-</span> <span class="fu">hess_fn</span><span class="op">(</span><span class="va">df_periodic</span>, <span class="va">theta</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Log-likelihood (periodic):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ll_val</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Log-likelihood (periodic): -589.4</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Score (periodic):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">scr_val</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Score (periodic): -21.95 12.48 -8.39 -8.58 4.447</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Hessian eigenvalues:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/eigen.html" class="external-link">eigen</a></span><span class="op">(</span><span class="va">hess_val</span><span class="op">)</span><span class="op">$</span><span class="va">values</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Hessian eigenvalues: -24.44 -34.03 -35.33 -43.87 -56.17</span></span></code></pre></div>
+<p>We verify that the analytical score is consistent with numerical
+differentiation:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">scr_numerical</span> <span class="op">&lt;-</span> <span class="fu">numDeriv</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/numDeriv/man/grad.html" class="external-link">grad</a></span><span class="op">(</span></span>
+<span>  func <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">th</span><span class="op">)</span> <span class="fu">ll_fn</span><span class="op">(</span><span class="va">df_periodic</span>, <span class="va">th</span><span class="op">)</span>,</span>
+<span>  x <span class="op">=</span> <span class="va">theta</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Max |analytical - numerical| score:"</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/formatc.html" class="external-link">formatC</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">scr_val</span> <span class="op">-</span> <span class="va">scr_numerical</span><span class="op">)</span><span class="op">)</span>, format <span class="op">=</span> <span class="st">"e"</span>, digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Max |analytical - numerical| score: 5.39e-07</span></span></code></pre></div>
+</div>
 <div class="section level3">
 <h3 id="monte-carlo-simulation-study">Monte Carlo simulation study<a class="anchor" aria-label="anchor" href="#monte-carlo-simulation-study"></a>
 </h3>
@@ -669,7 +803,7 @@ Carlo simulation study. We repeatedly:</p>
 <strong>Coverage probability</strong>: Proportion of CIs containing
 the true value</li>
 </ul>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7231</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Simulation parameters</span></span>
@@ -682,20 +816,21 @@ the true value</li>
 <span><span class="va">ci_lower</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">NA</span>, nrow <span class="op">=</span> <span class="va">B</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
 <span><span class="va">ci_upper</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">NA</span>, nrow <span class="op">=</span> <span class="va">B</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
 <span><span class="va">converged</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/logical.html" class="external-link">logical</a></span><span class="op">(</span><span class="va">B</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">b</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">B</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="co"># Generate component lifetimes</span></span>
 <span>    <span class="va">comp_times_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="va">n</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
 <span>    <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">m</span><span class="op">)</span> <span class="op">{</span></span>
 <span>        <span class="va">comp_times_b</span><span class="op">[</span>, <span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
 <span>    <span class="op">}</span></span>
-<span>    <span class="va">comp_times_b</span> <span class="op">&lt;-</span> <span class="fu">md_encode_matrix</span><span class="op">(</span><span class="va">comp_times_b</span>, <span class="st">"t"</span><span class="op">)</span></span>
+<span>    <span class="va">comp_times_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/md_encode_matrix.html">md_encode_matrix</a></span><span class="op">(</span><span class="va">comp_times_b</span>, <span class="st">"t"</span><span class="op">)</span></span>
 <span></span>
 <span>    <span class="co"># Apply masking pipeline</span></span>
 <span>    <span class="va">data_b</span> <span class="op">&lt;-</span> <span class="va">comp_times_b</span> <span class="op">%&gt;%</span></span>
 <span>        <span class="fu"><a href="../reference/md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>        <span class="fu"><a href="../reference/md_bernoulli_cand_c1_c2_c3.html">md_bernoulli_cand_c1_c2_c3</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>        <span class="fu"><a href="../reference/md_cand_sampler.html">md_cand_sampler</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>    <span class="va">data_b</span><span class="op">$</span><span class="va">omega</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">data_b</span><span class="op">$</span><span class="va">delta</span>, <span class="st">"exact"</span>, <span class="st">"right"</span><span class="op">)</span></span>
 <span></span>
 <span>    <span class="co"># Fit model</span></span>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
@@ -717,7 +852,7 @@ the true value</li>
 <div class="section level4">
 <h4 id="bias-variance-and-mse">Bias, Variance, and MSE<a class="anchor" aria-label="anchor" href="#bias-variance-and-mse"></a>
 </h4>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compute summary statistics (only for converged runs)</span></span>
 <span><span class="va">valid</span> <span class="op">&lt;-</span> <span class="va">converged</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">estimates</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">est_valid</span> <span class="op">&lt;-</span> <span class="va">estimates</span><span class="op">[</span><span class="va">valid</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
@@ -830,7 +965,7 @@ Wald confidence interval is:
 </annotation></semantics></math></p>
 <p>We assess coverage probability: the proportion of intervals that
 contain the true parameter value.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compute coverage for each component</span></span>
 <span><span class="va">coverage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">m</span><span class="op">)</span> <span class="op">{</span></span>
@@ -904,7 +1039,7 @@ contain the true parameter value.</p>
 <div class="section level4">
 <h4 id="sampling-distribution-visualization">Sampling Distribution Visualization<a class="anchor" aria-label="anchor" href="#sampling-distribution-visualization"></a>
 </h4>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot sampling distributions</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">m</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">m</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -981,7 +1116,7 @@ As
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
 increases, more non-failed components are included, making estimation
 more difficult.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7231</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Use smaller sample for sensitivity study</span></span>
@@ -997,7 +1132,7 @@ more difficult.</p>
 <span></span>
 <span><span class="co"># Storage</span></span>
 <span><span class="va">mask_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">p_idx</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">p_values</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">p_curr</span> <span class="op">&lt;-</span> <span class="va">p_values</span><span class="op">[</span><span class="va">p_idx</span><span class="op">]</span></span>
 <span>    <span class="va">est_p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">NA</span>, nrow <span class="op">=</span> <span class="va">B_sens</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
@@ -1006,12 +1141,13 @@ more difficult.</p>
 <span>        <span class="co"># Generate data</span></span>
 <span>        <span class="va">comp_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="va">n_sens</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
 <span>        <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">m</span><span class="op">)</span> <span class="va">comp_b</span><span class="op">[</span>, <span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n_sens</span>, <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>        <span class="va">comp_b</span> <span class="op">&lt;-</span> <span class="fu">md_encode_matrix</span><span class="op">(</span><span class="va">comp_b</span>, <span class="st">"t"</span><span class="op">)</span></span>
+<span>        <span class="va">comp_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/md_encode_matrix.html">md_encode_matrix</a></span><span class="op">(</span><span class="va">comp_b</span>, <span class="st">"t"</span><span class="op">)</span></span>
 <span></span>
 <span>        <span class="va">data_b</span> <span class="op">&lt;-</span> <span class="va">comp_b</span> <span class="op">%&gt;%</span></span>
 <span>            <span class="fu"><a href="../reference/md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring</a></span><span class="op">(</span><span class="va">tau_sens</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>            <span class="fu"><a href="../reference/md_bernoulli_cand_c1_c2_c3.html">md_bernoulli_cand_c1_c2_c3</a></span><span class="op">(</span><span class="va">p_curr</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>            <span class="fu"><a href="../reference/md_cand_sampler.html">md_cand_sampler</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>        <span class="va">data_b</span><span class="op">$</span><span class="va">omega</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">data_b</span><span class="op">$</span><span class="va">delta</span>, <span class="st">"exact"</span>, <span class="st">"right"</span><span class="op">)</span></span>
 <span></span>
 <span>        <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>            <span class="va">fit_b</span> <span class="op">&lt;-</span> <span class="fu">solver</span><span class="op">(</span><span class="va">data_b</span>, par <span class="op">=</span> <span class="va">theta0</span>, method <span class="op">=</span> <span class="st">"Nelder-Mead"</span><span class="op">)</span></span>
@@ -1029,7 +1165,7 @@ more difficult.</p>
 <span>              <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">est_p</span><span class="op">[</span><span class="va">valid_p</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span>, <span class="fl">2</span>, <span class="va">var</span><span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract bias and MSE for plotting</span></span>
 <span><span class="va">bias_mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">mask_results</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">bias</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mse_mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">mask_results</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">mse</span><span class="op">)</span><span class="op">)</span></span>
@@ -1050,7 +1186,7 @@ more difficult.</p>
 <span>     main <span class="op">=</span> <span class="st">"MSE vs Masking Probability"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/grid.html" class="external-link">grid</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exponential_series_files/figure-html/masking-sensitivity-plot-1.png" class="r-plt" width="768"></p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mask_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    p <span class="op">=</span> <span class="va">p_values</span>,</span>
 <span>    Mean_Abs_Bias <span class="op">=</span> <span class="va">bias_mat</span>,</span>
@@ -1156,7 +1292,7 @@ contribution.</p></li>
 When a system is right-censored, we know the system survived beyond the
 censoring time, but we don’t observe the actual failure time or failed
 component.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7231</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Censoring quantiles (proportion surviving past tau)</span></span>
@@ -1169,7 +1305,7 @@ component.</p>
 <span></span>
 <span><span class="co"># Storage</span></span>
 <span><span class="va">cens_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">q_idx</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">q_values</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">q_curr</span> <span class="op">&lt;-</span> <span class="va">q_values</span><span class="op">[</span><span class="va">q_idx</span><span class="op">]</span></span>
 <span>    <span class="va">tau_curr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">q_curr</span><span class="op">)</span>, <span class="va">n_sens</span><span class="op">)</span></span>
@@ -1179,12 +1315,13 @@ component.</p>
 <span>        <span class="co"># Generate data</span></span>
 <span>        <span class="va">comp_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="va">n_sens</span>, ncol <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
 <span>        <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">m</span><span class="op">)</span> <span class="va">comp_b</span><span class="op">[</span>, <span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n_sens</span>, <span class="va">theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>        <span class="va">comp_b</span> <span class="op">&lt;-</span> <span class="fu">md_encode_matrix</span><span class="op">(</span><span class="va">comp_b</span>, <span class="st">"t"</span><span class="op">)</span></span>
+<span>        <span class="va">comp_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/md_encode_matrix.html">md_encode_matrix</a></span><span class="op">(</span><span class="va">comp_b</span>, <span class="st">"t"</span><span class="op">)</span></span>
 <span></span>
 <span>        <span class="va">data_b</span> <span class="op">&lt;-</span> <span class="va">comp_b</span> <span class="op">%&gt;%</span></span>
 <span>            <span class="fu"><a href="../reference/md_series_lifetime_right_censoring.html">md_series_lifetime_right_censoring</a></span><span class="op">(</span><span class="va">tau_curr</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>            <span class="fu"><a href="../reference/md_bernoulli_cand_c1_c2_c3.html">md_bernoulli_cand_c1_c2_c3</a></span><span class="op">(</span><span class="va">p_cens</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>            <span class="fu"><a href="../reference/md_cand_sampler.html">md_cand_sampler</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>        <span class="va">data_b</span><span class="op">$</span><span class="va">omega</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">data_b</span><span class="op">$</span><span class="va">delta</span>, <span class="st">"exact"</span>, <span class="st">"right"</span><span class="op">)</span></span>
 <span></span>
 <span>        <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>            <span class="va">fit_b</span> <span class="op">&lt;-</span> <span class="fu">solver</span><span class="op">(</span><span class="va">data_b</span>, par <span class="op">=</span> <span class="va">theta0</span>, method <span class="op">=</span> <span class="st">"Nelder-Mead"</span><span class="op">)</span></span>
@@ -1194,7 +1331,7 @@ component.</p>
 <span></span>
 <span>    <span class="co"># Compute statistics</span></span>
 <span>    <span class="va">valid_q</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">est_q</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">cens_rate</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">data_b</span><span class="op">$</span><span class="va">delta</span><span class="op">)</span>  <span class="co"># Actual censoring rate</span></span>
+<span>    <span class="va">cens_rate</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">data_b</span><span class="op">$</span><span class="va">omega</span> <span class="op">==</span> <span class="st">"right"</span><span class="op">)</span>  <span class="co"># Actual censoring rate</span></span>
 <span>    <span class="va">cens_results</span><span class="op">[[</span><span class="va">q_idx</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>        q <span class="op">=</span> <span class="va">q_curr</span>,</span>
 <span>        cens_rate <span class="op">=</span> <span class="va">cens_rate</span>,</span>
@@ -1204,7 +1341,7 @@ component.</p>
 <span>              <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">est_q</span><span class="op">[</span><span class="va">valid_q</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span>, <span class="fl">2</span>, <span class="va">var</span><span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract statistics</span></span>
 <span><span class="va">cens_rates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">cens_results</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">cens_rate</span><span class="op">)</span></span>
 <span><span class="va">bias_cens</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">cens_results</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">bias</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -1226,7 +1363,7 @@ component.</p>
 <span>     main <span class="op">=</span> <span class="st">"MSE vs Censoring Rate"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/grid.html" class="external-link">grid</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exponential_series_files/figure-html/censoring-sensitivity-plot-1.png" class="r-plt" width="768"></p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cens_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    Cens_Rate_Pct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">cens_rates</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>    Mean_Abs_Bias <span class="op">=</span> <span class="va">bias_cens</span>,</span>
@@ -1313,16 +1450,16 @@ degradation, far exceeding the
 range from masking. Censoring is more damaging because it eliminates
 <em>both</em> the failure time and the candidate set, whereas masking
 only dilutes the candidate set.</p></li>
-<li><p><strong>Clear inflection around 50% censoring.</strong> MSE is
-still manageable at 50%
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.040</mn><annotation encoding="application/x-tex">0.040</annotation></semantics></math>)
-but jumps to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.059</mn><annotation encoding="application/x-tex">0.059</annotation></semantics></math>
-at 70% and
+<li><p><strong>Convex MSE growth, accelerating sharply above
+70%.</strong> MSE grows gradually from 10% to 70% censoring
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.019</mn><mo>→</mo><mn>0.059</mn></mrow><annotation encoding="application/x-tex">0.019 \to 0.059</annotation></semantics></math>,
+roughly linear), then accelerates:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.088</mn><annotation encoding="application/x-tex">0.088</annotation></semantics></math>
+at 80% and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.183</mn><annotation encoding="application/x-tex">0.183</annotation></semantics></math>
-at 90%. The relationship between censoring rate and MSE is convex — each
-additional percentage point of censoring is more damaging than the
-last.</p></li>
+at 90%. The inflection point is near 70–80% censoring, beyond which each
+additional percentage point of censoring is dramatically more
+damaging.</p></li>
 <li><p><strong>Bias remains modest even under extreme
 censoring.</strong> Mean
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">|</mo><mtext mathvariant="normal">bias</mtext><mo stretchy="true" form="postfix">|</mo></mrow><annotation encoding="application/x-tex">|\text{bias}|</annotation></semantics></math>
@@ -1364,11 +1501,11 @@ to
 If reducing the masking probability below 0.3 requires expensive
 diagnostic equipment, the incremental benefit may not justify the
 cost.</p></li>
-<li><p><strong>The 50% censoring threshold.</strong> Below
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>50</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\sim 50\%</annotation></semantics></math>
-censoring, estimation quality degrades gradually. Above it, MSE grows
-convexly — avoid experimental designs where more than half the systems
-survive past the observation window.</p></li>
+<li><p><strong>The 70% censoring threshold.</strong> Below
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>70</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\sim 70\%</annotation></semantics></math>
+censoring, MSE growth is roughly linear and moderate. Above 70%, MSE
+accelerates sharply — avoid experimental designs where more than
+two-thirds of systems survive past the observation window.</p></li>
 <li><p><strong>CI widths for sample size planning.</strong> At
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>7500</mn></mrow><annotation encoding="application/x-tex">n = 7500</annotation></semantics></math>
 with

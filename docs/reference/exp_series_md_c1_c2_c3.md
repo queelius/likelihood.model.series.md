@@ -10,7 +10,8 @@ C3, described below.
 exp_series_md_c1_c2_c3(
   rates = NULL,
   lifetime = "t",
-  indicator = "delta",
+  lifetime_upper = "t_upper",
+  omega = "omega",
   candset = "x"
 )
 ```
@@ -26,12 +27,17 @@ exp_series_md_c1_c2_c3(
 
   column name for system lifetime, defaults to `"t"`
 
-- indicator:
+- lifetime_upper:
 
-  column name for right-censoring indicator, defaults to `"delta"`.
-  TRUE/1 = exact failure time, FALSE/0 = right-censored. For backwards
-  compatibility, if this column is not present in the data, censoring is
-  inferred from empty candidate sets (all FALSE).
+  column name for interval upper bound, defaults to `"t_upper"`. Only
+  used for interval-censored observations.
+
+- omega:
+
+  column name for observation type, defaults to `"omega"`. Must contain
+  character values: `"exact"` (failure at t), `"right"` (right-censored
+  at t), `"left"` (left-censored: failed before t), or `"interval"`
+  (failed in (t, t_upper)).
 
 - candset:
 

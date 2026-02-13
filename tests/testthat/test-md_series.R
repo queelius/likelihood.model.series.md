@@ -445,3 +445,18 @@ test_that("masked data can be used with likelihood model", {
 
   expect_true(is.finite(ll))
 })
+
+
+# ==============================================================================
+# Coverage gap: md_cand_sampler with no matching probability columns
+# ==============================================================================
+
+test_that("md_cand_sampler errors when no probability columns match prefix", {
+  df <- data.frame(
+    a1 = c(0.5, 0.3),
+    a2 = c(0.3, 0.5)
+  )
+
+  # Default prefix is "q" but data has "a" columns
+  expect_error(md_cand_sampler(df), "No component probabilities found")
+})

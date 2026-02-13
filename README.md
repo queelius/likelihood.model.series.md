@@ -6,9 +6,8 @@
 <!-- badges: end -->
 
 Maximum likelihood estimation for series system parameters from masked
-component failure data. Implements likelihood models for systems where
-component lifetimes may be right-censored and the component cause of
-failure is identified only up to a candidate set.
+component failure data. Supports exact, right-censored, left-censored,
+and interval-censored observations with composable observation schemes.
 
 ## Installation
 
@@ -28,36 +27,25 @@ devtools::install_github("queelius/likelihood.model.series.md")
 
 ## Models
 
-Three likelihood models are provided, all using S3 generic dispatch:
+Three likelihood models, all using S3 generic dispatch:
 
 | Model | Parameters | Description |
 |-------|-----------|-------------|
-| `exp_series_md_c1_c2_c3` | m rates (λ₁, ..., λₘ) | Exponential component lifetimes |
-| `wei_series_md_c1_c2_c3` | 2m params (k₁, β₁, ..., kₘ, βₘ) | Weibull with per-component shapes |
-| `wei_series_homogeneous_md_c1_c2_c3` | m+1 params (k, β₁, ..., βₘ) | Weibull with shared shape |
+| `exp_series_md_c1_c2_c3` | m rates: (λ₁, ..., λₘ) | Exponential components. Closed-form loglik, score, and Hessian for all four observation types. |
+| `wei_series_homogeneous_md_c1_c2_c3` | m+1: (k, β₁, ..., βₘ) | Weibull with shared shape. Closed-form loglik; hybrid analytical/numerical score. |
+| `wei_series_md_c1_c2_c3` | 2m: (k₁, β₁, ..., kₘ, βₘ) | Weibull with per-component shapes. Numerical integration for left/interval types. |
 
-Each model implements: `loglik()`, `score()`, `hess_loglik()`, `rdata()`, `assumptions()`
+Each model implements S3 methods for: `loglik()`, `score()`, `hess_loglik()`, `rdata()`,
+`assumptions()`, `component_hazard()`, `cause_probability()`,
+`conditional_cause_probability()`, `ncomponents()`
 
-## Masking Conditions
-
-The candidate set models satisfy three conditions that yield a reduced
-likelihood depending only on observed data:
-
-- **C1**: The failed component is in the candidate set with probability 1
-- **C2**: Given that the failed component is in the candidate set, the
-  probability of observing any particular candidate set is the same
-  regardless of which component in the set actually failed
-- **C3**: Masking probabilities are independent of the system parameters θ
-
-## Usage
+## Quick Start
 
 ```r
 library(likelihood.model.series.md)
 
-# --- Exponential model ---
+# Create model and generate data
 model <- exp_series_md_c1_c2_c3()
-
-# Generate masked series data
 gen <- rdata(model)
 df <- gen(theta = c(1.0, 1.1, 0.95), n = 500, tau = 3, p = 0.3)
 
@@ -67,65 +55,82 @@ mle <- solver(df, par = c(1, 1, 1))
 mle$theta.hat   # estimated rates
 mle$sigma       # asymptotic standard errors
 
-# Log-likelihood, score, and Hessian
-ll <- loglik(model)
-s  <- score(model)
-H  <- hess_loglik(model)
-
-ll(df, par = mle$theta.hat)
-s(df, par = mle$theta.hat)
-H(df, par = mle$theta.hat)
-
-# --- Weibull model (shared shape) ---
-wmodel <- wei_series_homogeneous_md_c1_c2_c3()
-wsolver <- fit(wmodel)
-# theta: (shape, scale1, scale2, ...)
-# wmle <- wsolver(data, par = c(1.2, 1000, 900, 850))
+# Evaluate likelihood functions at the MLE
+loglik(model)(df, par = mle$theta.hat)
+score(model)(df, par = mle$theta.hat)
+hess_loglik(model)(df, par = mle$theta.hat)
 ```
 
-## Data Format
+## Observation Types
 
-The data frame passed to model functions uses these column conventions:
+The package supports four observation types via composable **observation functors**
+that separate the observation mechanism from the data-generating process:
+
+| Type | Column `omega` | Description |
+|------|---------------|-------------|
+| Exact | `"exact"` | Failure time observed precisely |
+| Right-censored | `"right"` | System survived past observation time |
+| Left-censored | `"left"` | System failed before inspection time |
+| Interval-censored | `"interval"` | Failure occurred in window `[t, t_upper]` |
+
+```r
+# Right-censoring at tau (default, backwards-compatible)
+df <- gen(theta, n = 500, tau = 5, p = 0.3)
+
+# Periodic inspection every 0.5 time units
+df <- gen(theta, n = 500, p = 0.3,
+          observe = observe_periodic(delta = 0.5, tau = 5))
+
+# Mixed monitoring: 60% continuous, 20% single inspection, 20% periodic
+df <- gen(theta, n = 500, p = 0.3,
+          observe = observe_mixture(
+            observe_right_censor(tau = 5),
+            observe_left_censor(tau = 3),
+            observe_periodic(delta = 0.5, tau = 5),
+            weights = c(0.6, 0.2, 0.2)
+          ))
+```
+
+## Masking Conditions
+
+The candidate set models satisfy three conditions (C1, C2, C3) that yield a
+reduced likelihood depending only on observed data:
+
+- **C1**: The failed component is always in the candidate set
+- **C2**: Candidate set probabilities are symmetric across components in the set
+- **C3**: Masking probabilities are independent of system parameters
+
+## Data Format
 
 | Column | Description |
 |--------|-------------|
 | `t` | System lifetime (observed) |
-| `delta` | Right-censoring indicator (TRUE = exact, FALSE = censored) |
+| `omega` | Observation type: `"exact"`, `"right"`, `"left"`, or `"interval"` |
+| `t_upper` | Upper bound for interval-censored observations (NA otherwise) |
 | `x1, x2, ..., xm` | Boolean candidate set indicators |
 
-Column names are configurable via the `lifetime`, `indicator`, and `candset`
-parameters when constructing a model.
+For backwards compatibility, a `delta` column (TRUE/FALSE) is also accepted
+in place of `omega` for exact/right-censored data.
 
-## Simulation Framework
+## Vignettes
 
-The `simulations/` directory contains a standalone, resumable Monte Carlo
-framework for studying MLE properties under varying masking, censoring, and
-sample size conditions. Five experiments are included:
-
-1. Main MC study (bias, variance, MSE, coverage)
-2. Masking probability sensitivity
-3. Censoring rate sensitivity
-4. Sample size scaling
-5. Joint masking × censoring interaction
-
-See [`simulations/README.md`](simulations/README.md) for details. Results
-can be exported for the package vignette via `simulations/export_for_vignette.R`.
-
-## Vignette
-
-The package includes a tutorial vignette with worked examples and
-data-driven analysis of MLE properties:
+Four tutorial vignettes with worked examples and Monte Carlo studies:
 
 ```r
 vignette("exponential_series", package = "likelihood.model.series.md")
+vignette("weibull_homogeneous_series", package = "likelihood.model.series.md")
+vignette("weibull_series", package = "likelihood.model.series.md")
+vignette("censoring_comparison", package = "likelihood.model.series.md")
 ```
+
+Browse online at <https://queelius.github.io/likelihood.model.series.md/articles/>.
 
 ## Related Packages
 
-- [likelihood.model](https://github.com/queelius/likelihood.model) — generics for likelihood models (`loglik`, `score`, `fit`, etc.)
-- [algebraic.mle](https://github.com/queelius/algebraic.mle) — MLE objects with inference methods
-- [algebraic.dist](https://github.com/queelius/algebraic.dist) — distribution utilities
-- [md.tools](https://github.com/queelius/md.tools) — masked data encoding/decoding
+- [likelihood.model](https://github.com/queelius/likelihood.model) -- generics for likelihood models (`loglik`, `score`, `fit`, etc.)
+- [algebraic.mle](https://github.com/queelius/algebraic.mle) -- MLE objects with inference methods
+- [algebraic.dist](https://github.com/queelius/algebraic.dist) -- distribution utilities
+- [md.tools](https://github.com/queelius/md.tools) -- masked data encoding/decoding
 
 ## License
 

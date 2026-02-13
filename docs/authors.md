@@ -7,6 +7,9 @@
 
 ## Citation
 
+Source:
+[`DESCRIPTION`](https://github.com/queelius/likelihood.model.series.md/blob/HEAD/DESCRIPTION)
+
 Towell A (2026). *likelihood.model.series.md: Likelihood Models for
 Series Systems with Masked Component Cause of Failure*. R package
 version 0.9, <https://queelius.github.io/likelihood.model.series.md/>.

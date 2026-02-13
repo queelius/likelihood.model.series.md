@@ -1,8 +1,8 @@
 # Generate masked series system data
 
 Shared data generation logic for all rdata methods. Takes pre-generated
-component lifetimes and applies system lifetime calculation,
-right-censoring, and candidate set generation.
+component lifetimes and applies an observation mechanism, then generates
+candidate sets satisfying conditions C1, C2, C3.
 
 ## Usage
 
@@ -14,8 +14,10 @@ generate_masked_series_data(
   tau,
   p,
   default_lifetime,
-  default_indicator,
-  default_candset
+  default_omega,
+  default_candset,
+  default_lifetime_upper = paste0(default_lifetime, "_upper"),
+  observe = NULL
 )
 ```
 
@@ -35,7 +37,7 @@ generate_masked_series_data(
 
 - tau:
 
-  right-censoring time
+  right-censoring time (used when `observe` is NULL)
 
 - p:
 
@@ -45,14 +47,24 @@ generate_masked_series_data(
 
   column name for system lifetime
 
-- default_indicator:
+- default_omega:
 
-  column name for censoring indicator
+  column name for observation type
 
 - default_candset:
 
   column prefix for candidate sets
 
+- default_lifetime_upper:
+
+  column name for interval upper bound
+
+- observe:
+
+  observation functor created by `observe_*` functions. When NULL, uses
+  [`observe_right_censor`](https://queelius.github.io/likelihood.model.series.md/reference/observe_right_censor.md)`(tau)`
+  for backwards compatibility.
+
 ## Value
 
-data frame with system lifetime, censoring indicator, and candidate sets
+data frame with system lifetime, observation type, and candidate sets

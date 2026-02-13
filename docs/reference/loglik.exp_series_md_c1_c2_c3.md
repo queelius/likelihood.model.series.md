@@ -31,7 +31,15 @@ log-likelihood function that takes the following arguments:
 
 - `lifetime`: system lifetime column name (default from model)
 
-- `indicator`: right-censoring indicator column name (default from
+- `lifetime_upper`: interval upper bound column name (default from
   model)
 
+- `omega`: observation type column name (default from model)
+
 - `candset`: prefix of Boolean matrix encoding candidate sets
+
+## Details
+
+Supports four observation types: exact failures, right-censored,
+left-censored, and interval-censored. All have closed-form likelihood
+contributions for the exponential model.

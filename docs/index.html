@@ -32,17 +32,13 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/exponential_series.html">Masked Data Likelihood Model: Components with Exponentially Distributed Lifetimes Arranged In Series Configuration</a></li>
-  </ul>
-</li>
+<li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/queelius/likelihood.model.series.md/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,7 +51,7 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>Maximum likelihood estimation for series system parameters from masked component failure data. Implements likelihood models for systems where component lifetimes may be right-censored and the component cause of failure is identified only up to a candidate set.</p>
+<p>Maximum likelihood estimation for series system parameters from masked component failure data. Supports exact, right-censored, left-censored, and interval-censored observations with composable observation schemes.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -71,7 +67,7 @@
 <div class="section level2">
 <h2 id="models">Models<a class="anchor" aria-label="anchor" href="#models"></a>
 </h2>
-<p>Three likelihood models are provided, all using S3 generic dispatch:</p>
+<p>Three likelihood models, all using S3 generic dispatch:</p>
 <table class="table">
 <colgroup>
 <col width="22%">
@@ -86,46 +82,31 @@
 <tbody>
 <tr class="odd">
 <td><code>exp_series_md_c1_c2_c3</code></td>
-<td>m rates (λ₁, …, λₘ)</td>
-<td>Exponential component lifetimes</td>
+<td>m rates: (λ₁, …, λₘ)</td>
+<td>Exponential components. Closed-form loglik, score, and Hessian for all four observation types.</td>
 </tr>
 <tr class="even">
-<td><code>wei_series_md_c1_c2_c3</code></td>
-<td>2m params (k₁, β₁, …, kₘ, βₘ)</td>
-<td>Weibull with per-component shapes</td>
+<td><code>wei_series_homogeneous_md_c1_c2_c3</code></td>
+<td>m+1: (k, β₁, …, βₘ)</td>
+<td>Weibull with shared shape. Closed-form loglik; hybrid analytical/numerical score.</td>
 </tr>
 <tr class="odd">
-<td><code>wei_series_homogeneous_md_c1_c2_c3</code></td>
-<td>m+1 params (k, β₁, …, βₘ)</td>
-<td>Weibull with shared shape</td>
+<td><code>wei_series_md_c1_c2_c3</code></td>
+<td>2m: (k₁, β₁, …, kₘ, βₘ)</td>
+<td>Weibull with per-component shapes. Numerical integration for left/interval types.</td>
 </tr>
 </tbody>
 </table>
-<p>Each model implements: <code><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/assumptions.html" class="external-link">assumptions()</a></code></p>
+<p>Each model implements S3 methods for: <code><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata()</a></code>, <code><a href="https://queelius.github.io/likelihood.model/reference/assumptions.html" class="external-link">assumptions()</a></code>, <code><a href="reference/component_hazard.html">component_hazard()</a></code>, <code><a href="reference/cause_probability.html">cause_probability()</a></code>, <code><a href="reference/conditional_cause_probability.html">conditional_cause_probability()</a></code>, <code><a href="reference/ncomponents.html">ncomponents()</a></code></p>
 </div>
 <div class="section level2">
-<h2 id="masking-conditions">Masking Conditions<a class="anchor" aria-label="anchor" href="#masking-conditions"></a>
-</h2>
-<p>The candidate set models satisfy three conditions that yield a reduced likelihood depending only on observed data:</p>
-<ul>
-<li>
-<strong>C1</strong>: The failed component is in the candidate set with probability 1</li>
-<li>
-<strong>C2</strong>: Given that the failed component is in the candidate set, the probability of observing any particular candidate set is the same regardless of which component in the set actually failed</li>
-<li>
-<strong>C3</strong>: Masking probabilities are independent of the system parameters θ</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
+<h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://queelius.github.io/likelihood.model.series.md/">likelihood.model.series.md</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># --- Exponential model ---</span></span>
+<span><span class="co"># Create model and generate data</span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/exp_series_md_c1_c2_c3.html">exp_series_md_c1_c2_c3</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Generate masked series data</span></span>
 <span><span class="va">gen</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/rdata.html" class="external-link">rdata</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">gen</span><span class="op">(</span>theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.0</span>, <span class="fl">1.1</span>, <span class="fl">0.95</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">500</span>, tau <span class="op">=</span> <span class="fl">3</span>, p <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
 <span></span>
@@ -135,26 +116,89 @@
 <span><span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span>   <span class="co"># estimated rates</span></span>
 <span><span class="va">mle</span><span class="op">$</span><span class="va">sigma</span>       <span class="co"># asymptotic standard errors</span></span>
 <span></span>
-<span><span class="co"># Log-likelihood, score, and Hessian</span></span>
-<span><span class="va">ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
-<span><span class="va">s</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
-<span><span class="va">H</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span><span class="co"># Evaluate likelihood functions at the MLE</span></span>
+<span><span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/loglik.html" class="external-link">loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/score.html" class="external-link">score</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://queelius.github.io/likelihood.model/reference/hess_loglik.html" class="external-link">hess_loglik</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="observation-types">Observation Types<a class="anchor" aria-label="anchor" href="#observation-types"></a>
+</h2>
+<p>The package supports four observation types via composable <strong>observation functors</strong> that separate the observation mechanism from the data-generating process:</p>
+<table class="table">
+<colgroup>
+<col width="17%">
+<col width="44%">
+<col width="38%">
+</colgroup>
+<thead><tr class="header">
+<th>Type</th>
+<th>Column <code>omega</code>
+</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Exact</td>
+<td><code>"exact"</code></td>
+<td>Failure time observed precisely</td>
+</tr>
+<tr class="even">
+<td>Right-censored</td>
+<td><code>"right"</code></td>
+<td>System survived past observation time</td>
+</tr>
+<tr class="odd">
+<td>Left-censored</td>
+<td><code>"left"</code></td>
+<td>System failed before inspection time</td>
+</tr>
+<tr class="even">
+<td>Interval-censored</td>
+<td><code>"interval"</code></td>
+<td>Failure occurred in window <code>[t, t_upper]</code>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Right-censoring at tau (default, backwards-compatible)</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">gen</span><span class="op">(</span><span class="va">theta</span>, n <span class="op">=</span> <span class="fl">500</span>, tau <span class="op">=</span> <span class="fl">5</span>, p <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ll</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span><span class="op">)</span></span>
-<span><span class="fu">s</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span><span class="op">)</span></span>
-<span><span class="fu">H</span><span class="op">(</span><span class="va">df</span>, par <span class="op">=</span> <span class="va">mle</span><span class="op">$</span><span class="va">theta.hat</span><span class="op">)</span></span>
+<span><span class="co"># Periodic inspection every 0.5 time units</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">gen</span><span class="op">(</span><span class="va">theta</span>, n <span class="op">=</span> <span class="fl">500</span>, p <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>          observe <span class="op">=</span> <span class="fu"><a href="reference/observe_periodic.html">observe_periodic</a></span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.5</span>, tau <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># --- Weibull model (shared shape) ---</span></span>
-<span><span class="va">wmodel</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/wei_series_homogeneous_md_c1_c2_c3.html">wei_series_homogeneous_md_c1_c2_c3</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">wsolver</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">wmodel</span><span class="op">)</span></span>
-<span><span class="co"># theta: (shape, scale1, scale2, ...)</span></span>
-<span><span class="co"># wmle &lt;- wsolver(data, par = c(1.2, 1000, 900, 850))</span></span></code></pre></div>
+<span><span class="co"># Mixed monitoring: 60% continuous, 20% single inspection, 20% periodic</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">gen</span><span class="op">(</span><span class="va">theta</span>, n <span class="op">=</span> <span class="fl">500</span>, p <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>          observe <span class="op">=</span> <span class="fu"><a href="reference/observe_mixture.html">observe_mixture</a></span><span class="op">(</span></span>
+<span>            <span class="fu"><a href="reference/observe_right_censor.html">observe_right_censor</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="reference/observe_left_censor.html">observe_left_censor</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="reference/observe_periodic.html">observe_periodic</a></span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.5</span>, tau <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>            weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span><span class="op">)</span></span>
+<span>          <span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="masking-conditions">Masking Conditions<a class="anchor" aria-label="anchor" href="#masking-conditions"></a>
+</h2>
+<p>The candidate set models satisfy three conditions (C1, C2, C3) that yield a reduced likelihood depending only on observed data:</p>
+<ul>
+<li>
+<strong>C1</strong>: The failed component is always in the candidate set</li>
+<li>
+<strong>C2</strong>: Candidate set probabilities are symmetric across components in the set</li>
+<li>
+<strong>C3</strong>: Masking probabilities are independent of system parameters</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="data-format">Data Format<a class="anchor" aria-label="anchor" href="#data-format"></a>
 </h2>
-<p>The data frame passed to model functions uses these column conventions:</p>
 <table class="table">
+<colgroup>
+<col width="38%">
+<col width="61%">
+</colgroup>
 <thead><tr class="header">
 <th>Column</th>
 <th>Description</th>
@@ -165,49 +209,45 @@
 <td>System lifetime (observed)</td>
 </tr>
 <tr class="even">
-<td><code>delta</code></td>
-<td>Right-censoring indicator (TRUE = exact, FALSE = censored)</td>
+<td><code>omega</code></td>
+<td>Observation type: <code>"exact"</code>, <code>"right"</code>, <code>"left"</code>, or <code>"interval"</code>
+</td>
 </tr>
 <tr class="odd">
+<td><code>t_upper</code></td>
+<td>Upper bound for interval-censored observations (NA otherwise)</td>
+</tr>
+<tr class="even">
 <td><code>x1, x2, ..., xm</code></td>
 <td>Boolean candidate set indicators</td>
 </tr>
 </tbody>
 </table>
-<p>Column names are configurable via the <code>lifetime</code>, <code>indicator</code>, and <code>candset</code> parameters when constructing a model.</p>
+<p>For backwards compatibility, a <code>delta</code> column (TRUE/FALSE) is also accepted in place of <code>omega</code> for exact/right-censored data.</p>
 </div>
 <div class="section level2">
-<h2 id="simulation-framework">Simulation Framework<a class="anchor" aria-label="anchor" href="#simulation-framework"></a>
+<h2 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a>
 </h2>
-<p>The <code>simulations/</code> directory contains a standalone, resumable Monte Carlo framework for studying MLE properties under varying masking, censoring, and sample size conditions. Five experiments are included:</p>
-<ol style="list-style-type: decimal">
-<li>Main MC study (bias, variance, MSE, coverage)</li>
-<li>Masking probability sensitivity</li>
-<li>Censoring rate sensitivity</li>
-<li>Sample size scaling</li>
-<li>Joint masking × censoring interaction</li>
-</ol>
-<p>See <a href="simulations/README.html"><code>simulations/README.md</code></a> for details. Results can be exported for the package vignette via <code>simulations/export_for_vignette.R</code>.</p>
-</div>
-<div class="section level2">
-<h2 id="vignette">Vignette<a class="anchor" aria-label="anchor" href="#vignette"></a>
-</h2>
-<p>The package includes a tutorial vignette with worked examples and data-driven analysis of MLE properties:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"exponential_series"</span>, package <span class="op">=</span> <span class="st">"likelihood.model.series.md"</span><span class="op">)</span></span></code></pre></div>
+<p>Four tutorial vignettes with worked examples and Monte Carlo studies:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"exponential_series"</span>, package <span class="op">=</span> <span class="st">"likelihood.model.series.md"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"weibull_homogeneous_series"</span>, package <span class="op">=</span> <span class="st">"likelihood.model.series.md"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"weibull_series"</span>, package <span class="op">=</span> <span class="st">"likelihood.model.series.md"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"censoring_comparison"</span>, package <span class="op">=</span> <span class="st">"likelihood.model.series.md"</span><span class="op">)</span></span></code></pre></div>
+<p>Browse online at <a href="https://queelius.github.io/likelihood.model.series.md/articles/" class="uri">https://queelius.github.io/likelihood.model.series.md/articles/</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="related-packages">Related Packages<a class="anchor" aria-label="anchor" href="#related-packages"></a>
 </h2>
 <ul>
 <li>
-<a href="https://github.com/queelius/likelihood.model" class="external-link">likelihood.model</a> — generics for likelihood models (<code>loglik</code>, <code>score</code>, <code>fit</code>, etc.)</li>
+<a href="https://github.com/queelius/likelihood.model" class="external-link">likelihood.model</a> – generics for likelihood models (<code>loglik</code>, <code>score</code>, <code>fit</code>, etc.)</li>
 <li>
-<a href="https://github.com/queelius/algebraic.mle" class="external-link">algebraic.mle</a> — MLE objects with inference methods</li>
+<a href="https://github.com/queelius/algebraic.mle" class="external-link">algebraic.mle</a> – MLE objects with inference methods</li>
 <li>
-<a href="https://github.com/queelius/algebraic.dist" class="external-link">algebraic.dist</a> — distribution utilities</li>
+<a href="https://github.com/queelius/algebraic.dist" class="external-link">algebraic.dist</a> – distribution utilities</li>
 <li>
-<a href="https://github.com/queelius/md.tools" class="external-link">md.tools</a> — masked data encoding/decoding</li>
+<a href="https://github.com/queelius/md.tools" class="external-link">md.tools</a> – masked data encoding/decoding</li>
 </ul>
 </div>
 <div class="section level2">
@@ -219,7 +259,8 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://queelius.github.io/likelihood.model.series.md/issues">Report a bug</a></li>
+<li><a href="https://github.com/queelius/likelihood.model.series.md/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/queelius/likelihood.model.series.md/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 

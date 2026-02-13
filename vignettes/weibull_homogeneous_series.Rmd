@@ -21,7 +21,6 @@ knitr::opts_chunk$set(
 run_long <- FALSE
 
 library(likelihood.model.series.md)
-library(md.tools)
 library(dplyr)
 options(digits = 4)
 ```
@@ -132,7 +131,7 @@ $\lambda_j = 1/\beta_j$. In this case:
 - The cause weights become $w_j = \lambda_j / \lambda_{\text{sys}}$.
 - All likelihood contributions reduce to the `exp_series_md_c1_c2_c3` forms.
 
-We verify this identity numerically in Section \ref{exponential-identity}.
+We verify this identity numerically in the [Weibull(k=1) = Exponential Identity](#exponential-identity) section below.
 
 
 Worked Example {#worked-example}
@@ -543,16 +542,20 @@ mtext("Sampling Distributions by Regime", outer = TRUE, cex = 1.2)
 
 The Monte Carlo study reveals several patterns:
 
-- **Shape estimation accuracy varies by regime.** The IFR regime ($k = 1.5$)
-  produces the most precise shape estimates because increasing hazards generate
-  more failures early, providing richer information. The DFR regime ($k = 0.7$)
-  has the widest shape CIs because decreasing hazards spread failures over a
-  longer horizon.
+- **Shape estimation accuracy varies by regime.** In absolute terms, the DFR
+  regime ($k = 0.7$) has the smallest shape RMSE, while IFR ($k = 1.5$) has
+  the best *relative* precision (RMSE/$k$). IFR has the widest absolute
+  confidence intervals simply because the parameter value is largest; the
+  relative CI width (width/$k$) is actually smallest for IFR. The steeper
+  curvature of the IFR hazard function provides stronger signal about the
+  shape parameter relative to its magnitude.
 
 - **Scale estimation is robust across regimes.** Relative bias in the scale
-  parameters is typically below 5% in all three regimes, with coverage near
-  the nominal 95%. The scale parameters are well-identified regardless of the
-  shape value.
+  parameters is below 5% in all three regimes. Coverage is near the nominal
+  95% for most parameters, though a few (e.g., CFR $\beta_2$) show
+  undercoverage around 90%, which is borderline significant at $B = 100$
+  replications. In the DFR regime, scale parameters exhibit positive bias
+  that increases with the true scale value.
 
 - **Periodic inspection adds interval-censoring.** Unlike the exponential
   vignette which used only exact + right observations, this study uses periodic

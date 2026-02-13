@@ -79,7 +79,6 @@ SERIES_SYSTEM_ASSUMPTIONS <- c(
 #' @return list with components: t (lifetimes), omega (character vector of
 #'   observation types), C (candidate set matrix), m (number of components),
 #'   n (number of observations), t_upper (upper bounds or NULL)
-#' @importFrom md.tools md_decode_matrix
 #' @keywords internal
 extract_model_data <- function(df, lifetime, omega, candset,
                                lifetime_upper = NULL) {
@@ -115,24 +114,21 @@ extract_model_data <- function(df, lifetime, omega, candset,
     t_upper <- df[[lifetime_upper]]
   }
 
-  # Validate observations
+  # Validate observations: all non-right observations need non-empty candidate sets
   for (i in seq_len(n)) {
-    has_cand <- any(cmat[i, ])
-    if (omega_vals[i] == "exact" && !has_cand) {
-      stop("C1 violated: exact observation with empty candidate set at row ", i)
-    }
-    if (omega_vals[i] == "left" && !has_cand) {
-      stop(
-        "left-censored observation must have non-empty candidate set at row ", i
-      )
-    }
-    if (omega_vals[i] == "interval") {
-      if (!has_cand) {
-        stop(
-          "interval-censored observation must have non-empty ",
-          "candidate set at row ", i
-        )
+    if (omega_vals[i] == "right") next
+
+    if (!any(cmat[i, ])) {
+      msg <- if (omega_vals[i] == "exact") {
+        paste0("C1 violated: exact observation with empty candidate set at row ", i)
+      } else {
+        paste0(omega_vals[i], "-censored observation must have non-empty ",
+               "candidate set at row ", i)
       }
+      stop(msg)
+    }
+
+    if (omega_vals[i] == "interval") {
       if (is.null(t_upper)) {
         stop(
           "interval-censored observations require a '",
@@ -167,6 +163,7 @@ extract_model_data <- function(df, lifetime, omega, candset,
 #' @param default_lifetime column name for system lifetime
 #' @param default_omega column name for observation type
 #' @param default_candset column prefix for candidate sets
+#' @param default_lifetime_upper column name for interval upper bound
 #' @param observe observation functor created by \code{observe_*} functions.
 #'   When NULL, uses \code{\link{observe_right_censor}(tau)} for backwards
 #'   compatibility.
@@ -176,7 +173,9 @@ extract_model_data <- function(df, lifetime, omega, candset,
 #' @keywords internal
 generate_masked_series_data <- function(comp_lifetimes, n, m, tau, p,
                                         default_lifetime, default_omega,
-                                        default_candset, observe = NULL) {
+                                        default_candset,
+                                        default_lifetime_upper = paste0(default_lifetime, "_upper"),
+                                        observe = NULL) {
   sys_lifetime <- apply(comp_lifetimes, 1, min)
   failed_comp <- apply(comp_lifetimes, 1, which.min)
 
@@ -211,7 +210,7 @@ generate_masked_series_data <- function(comp_lifetimes, n, m, tau, p,
 
   # Add t_upper column only if any interval observations exist
   if (any(omega_vals == "interval")) {
-    df[[paste0(default_lifetime, "_upper")]] <- t_upper
+    df[[default_lifetime_upper]] <- t_upper
   }
 
   for (j in seq_len(m)) {

@@ -124,8 +124,10 @@ models): `dexp_series`, `pexp_series`, `qexp_series`, `rexp_series`,
 
 ### External Dependencies (GitHub Remotes)
 
-- `md.tools`: `md_decode_matrix()`, `md_encode_matrix()`,
-  `md_mark_latent()`
+- `md.tools`:
+  [`md_decode_matrix()`](https://queelius.github.io/likelihood.model.series.md/reference/md_decode_matrix.md),
+  [`md_encode_matrix()`](https://queelius.github.io/likelihood.model.series.md/reference/md_encode_matrix.md),
+  [`md_mark_latent()`](https://queelius.github.io/likelihood.model.series.md/reference/md_mark_latent.md)
 - `algebraic.mle`: MLE objects with `$theta.hat`, `$sigma`, `$info`
 - `algebraic.dist`: Distribution utilities
 - `likelihood.model`: Generics `loglik`, `score`, `hess_loglik`,

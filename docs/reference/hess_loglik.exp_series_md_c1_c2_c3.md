@@ -1,8 +1,8 @@
 # Hessian of log-likelihood method for `exp_series_md_c1_c2_c3` model.
 
-Returns the observed information matrix (negative Hessian) for an
-exponential series system with respect to parameter `theta` for masked
-data with candidate sets that satisfy conditions C1, C2, and C3.
+Returns the Hessian (second derivative matrix) of the log-likelihood for
+an exponential series system with respect to parameter `theta` for
+masked data with candidate sets that satisfy conditions C1, C2, and C3.
 
 ## Usage
 
@@ -31,7 +31,13 @@ hessian function that takes the following arguments:
 
 - `lifetime`: system lifetime column name (default from model)
 
-- `indicator`: right-censoring indicator column name (default from
+- `lifetime_upper`: interval upper bound column name (default from
   model)
 
+- `omega`: observation type column name (default from model)
+
 - `candset`: prefix of Boolean matrix encoding candidate sets
+
+## Details
+
+All four observation types have closed-form Hessian contributions.

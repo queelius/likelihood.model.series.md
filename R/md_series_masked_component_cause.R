@@ -25,7 +25,6 @@
 #'     if TRUE, then the system lifetime is right-censored, otherwise it is
 #'     observed. If NULL, then no right-censoring is assumed. Defaults to
 #'     `delta`.
-#' @importFrom md.tools md_decode_matrix md_encode_matrix md_mark_latent
 #' @importFrom dplyr %>% bind_cols
 #' @export
 md_bernoulli_cand_c1_c2_c3 <- function(
@@ -74,7 +73,6 @@ md_bernoulli_cand_c1_c2_c3 <- function(
 #'             `q`, e.g., `q1, q2, q3`.
 #' @param candset column prefix for candidate sets (as Boolean matrix),
 #'                defaults to `x`, e.g., `x1, x2, x3`.
-#' @importFrom md.tools md_decode_matrix md_encode_matrix
 #' @importFrom dplyr %>% bind_cols
 #' @importFrom stats runif
 #' @export
@@ -90,7 +88,7 @@ md_cand_sampler <- function(df, prob = "q", candset = "x") {
     }
 
     Q <- md_decode_matrix(df, prob)
-    m <- ncol(Q)
+    m <- if (is.null(Q)) 0L else ncol(Q)
     if (m == 0) {
         stop("No component probabilities found")
     }

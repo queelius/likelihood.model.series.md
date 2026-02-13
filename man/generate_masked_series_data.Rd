@@ -13,6 +13,7 @@ generate_masked_series_data(
   default_lifetime,
   default_omega,
   default_candset,
+  default_lifetime_upper = paste0(default_lifetime, "_upper"),
   observe = NULL
 )
 }
@@ -32,6 +33,8 @@ generate_masked_series_data(
 \item{default_omega}{column name for observation type}
 
 \item{default_candset}{column prefix for candidate sets}
+
+\item{default_lifetime_upper}{column name for interval upper bound}
 
 \item{observe}{observation functor created by \code{observe_*} functions.
 When NULL, uses \code{\link{observe_right_censor}(tau)} for backwards

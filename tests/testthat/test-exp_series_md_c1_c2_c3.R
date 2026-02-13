@@ -951,3 +951,36 @@ test_that("loglik allows empty candidate set for censored observations", {
   ll <- ll_fn(df_valid, par = c(0.5, 0.3, 0.2))
   expect_true(is.finite(ll))
 })
+
+
+# ==============================================================================
+# Coverage gap: hess_loglik parameter count mismatch
+# ==============================================================================
+
+test_that("hess_loglik errors when parameter count is wrong", {
+  model <- exp_series_md_c1_c2_c3()
+  hess_fn <- hess_loglik(model)
+
+  df <- data.frame(
+    t = c(1, 2), omega = c("exact", "exact"),
+    x1 = c(TRUE, FALSE), x2 = c(FALSE, TRUE),
+    stringsAsFactors = FALSE
+  )
+
+  expect_error(hess_fn(df, par = c(0.5)), "Expected .* parameters but got")
+})
+
+
+# ==============================================================================
+# Coverage gap: rdata with invalid masking probability p
+# ==============================================================================
+
+test_that("rdata errors when p is out of [0,1]", {
+  model <- exp_series_md_c1_c2_c3()
+  rdata_fn <- rdata(model)
+
+  expect_error(rdata_fn(theta = c(0.5, 0.3), n = 10, p = -0.1),
+               "p must be in")
+  expect_error(rdata_fn(theta = c(0.5, 0.3), n = 10, p = 1.5),
+               "p must be in")
+})

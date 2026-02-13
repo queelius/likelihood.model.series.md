@@ -1,14 +1,13 @@
 # Extract and validate model data from a masked data frame
 
 Shared validation logic for all likelihood model methods. Checks that
-the data frame is non-empty, the lifetime column exists, decodes the
-candidate set matrix, and extracts the censoring indicator with
-backwards compatibility.
+the data frame is non-empty, required columns exist, decodes the
+candidate set matrix, and validates observation types.
 
 ## Usage
 
 ``` r
-extract_model_data(df, lifetime, indicator, candset)
+extract_model_data(df, lifetime, omega, candset, lifetime_upper = NULL)
 ```
 
 ## Arguments
@@ -21,15 +20,22 @@ extract_model_data(df, lifetime, indicator, candset)
 
   column name for system lifetime
 
-- indicator:
+- omega:
 
-  column name for right-censoring indicator
+  column name for observation type. Must contain character values:
+  "exact", "right", "left", or "interval".
 
 - candset:
 
   column prefix for candidate set indicators
 
+- lifetime_upper:
+
+  column name for interval upper bound (required when interval-censored
+  observations are present)
+
 ## Value
 
-list with components: t (lifetimes), delta (censoring indicators), C
-(candidate set matrix), m (number of components), n (number of obs)
+list with components: t (lifetimes), omega (character vector of
+observation types), C (candidate set matrix), m (number of components),
+n (number of observations), t_upper (upper bounds or NULL)

@@ -13,7 +13,6 @@
 #' @param right_censoring_indicator right-censoring indicator variable, defaults
 #'                                  to `delta`
 #' @return (masked) data frame with masked data as described in the paper
-#' @importFrom md.tools md_decode_matrix md_mark_latent
 #' @importFrom dplyr %>%
 #' @export
 md_series_lifetime_right_censoring <- function(

@@ -13,8 +13,9 @@ extract_model_defaults(model)
 
 - model:
 
-  likelihood model object with lifetime, indicator, candset fields
+  likelihood model object with lifetime, lifetime_upper, omega, candset
+  fields
 
 ## Value
 
-list with lifetime, indicator, candset defaults
+list with lifetime, lifetime_upper, omega, candset defaults

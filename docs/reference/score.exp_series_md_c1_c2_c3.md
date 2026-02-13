@@ -31,7 +31,14 @@ score function that takes the following arguments:
 
 - `lifetime`: system lifetime column name (default from model)
 
-- `indicator`: right-censoring indicator column name (default from
+- `lifetime_upper`: interval upper bound column name (default from
   model)
 
+- `omega`: observation type column name (default from model)
+
 - `candset`: prefix of Boolean matrix encoding candidate sets
+
+## Details
+
+All four observation types (exact, right, left, interval) have
+closed-form score contributions.

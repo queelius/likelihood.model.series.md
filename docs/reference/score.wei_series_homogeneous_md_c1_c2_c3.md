@@ -32,7 +32,15 @@ score function that takes the following arguments:
 
 - `lifetime`: system lifetime column name (default from model)
 
-- `indicator`: right-censoring indicator column name (default from
+- `lifetime_upper`: interval upper bound column name (default from
   model)
 
+- `omega`: observation type column name (default from model)
+
 - `candset`: prefix of Boolean matrix encoding candidate sets
+
+## Details
+
+Uses a hybrid approach: analytical score for exact and right-censored
+observations, numerical gradient (via numDeriv) for left-censored and
+interval-censored observations.

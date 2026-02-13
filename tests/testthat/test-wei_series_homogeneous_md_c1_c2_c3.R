@@ -867,3 +867,74 @@ test_that("homogeneous Weibull error messages are informative", {
   )
   expect_error(ll_fn(df, par = c(1.2, 100)), "Expected .* parameters but got")
 })
+
+
+# ==============================================================================
+# Coverage gap: score parameter count mismatch
+# ==============================================================================
+
+test_that("score errors when parameter count is wrong", {
+  model <- wei_series_homogeneous_md_c1_c2_c3()
+  score_fn <- score(model)
+
+  df <- data.frame(
+    t = c(1, 2), omega = c("exact", "exact"),
+    x1 = c(TRUE, FALSE), x2 = c(FALSE, TRUE),
+    stringsAsFactors = FALSE
+  )
+
+  # 2 components need m+1 = 3 parameters (shape, scale1, scale2), giving 2
+  expect_error(score_fn(df, par = c(1.2, 100)), "Expected .* parameters but got")
+})
+
+
+# ==============================================================================
+# Coverage gap: rdata with theta too short or invalid p
+# ==============================================================================
+
+test_that("rdata errors when theta has fewer than 2 elements", {
+  model <- wei_series_homogeneous_md_c1_c2_c3()
+  rdata_fn <- rdata(model)
+
+  expect_error(rdata_fn(theta = c(1.5), n = 10),
+               "theta must have at least 2 elements")
+})
+
+test_that("rdata errors when p is out of [0,1]", {
+  model <- wei_series_homogeneous_md_c1_c2_c3()
+  rdata_fn <- rdata(model)
+
+  expect_error(rdata_fn(theta = c(1.5, 100, 150), n = 10, p = -0.1),
+               "p must be in")
+  expect_error(rdata_fn(theta = c(1.5, 100, 150), n = 10, p = 1.5),
+               "p must be in")
+})
+
+
+# ==============================================================================
+# Coverage gap: custom lifetime_upper column name with interval censoring
+# ==============================================================================
+
+test_that("Weibull homogeneous model respects custom lifetime_upper with intervals", {
+  model <- wei_series_homogeneous_md_c1_c2_c3(
+    lifetime = "time", lifetime_upper = "time_hi",
+    omega = "obs_type", candset = "c"
+  )
+  gen <- rdata(model)
+
+  set.seed(42)
+  df <- gen(
+    theta = c(1.5, 100, 150), n = 200, p = 0.3,
+    observe = observe_periodic(delta = 10, tau = 80)
+  )
+
+  expect_true("time" %in% names(df))
+  expect_true("obs_type" %in% names(df))
+  if (any(df$obs_type == "interval")) {
+    expect_true("time_hi" %in% names(df))
+  }
+
+  ll_fn <- loglik(model)
+  ll_val <- ll_fn(df, par = c(1.5, 100, 150))
+  expect_true(is.finite(ll_val))
+})

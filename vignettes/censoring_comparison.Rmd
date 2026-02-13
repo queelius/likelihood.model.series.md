@@ -21,7 +21,6 @@ knitr::opts_chunk$set(
 run_long <- FALSE
 
 library(likelihood.model.series.md)
-library(md.tools)
 library(dplyr)
 options(digits = 4)
 ```
@@ -234,7 +233,7 @@ The five configurations are:
 |--------|-------------|-----------------|
 | A | 100% exact | `observe_right_censor(tau = Inf)` |
 | B | 75% exact + 25% right | `observe_right_censor(tau)` with $\tau$ set for 25% censoring |
-| C | 75% exact + 25% left | `observe_left_censor(tau)` with $\tau$ set for 25% censoring |
+| C | ~75% left + ~25% right | `observe_left_censor(tau)` — failed before $\tau$ are left-censored, survivors right-censored |
 | D | 75% exact + 12.5% left + 12.5% interval | `observe_mixture(...)` |
 | E | 50% exact + 20% right + 15% left + 15% interval | `observe_mixture(...)` |
 
@@ -458,16 +457,20 @@ The simulation confirms the information ordering described in the overview:
 1. **Exact observations dominate.** Configuration A (100% exact) achieves the
    lowest MSE. Any form of censoring degrades estimation quality.
 
-2. **Interval-censoring outperforms one-sided censoring.** Configuration D,
-   which includes interval-censored observations from periodic inspection,
-   achieves lower MSE than configurations B or C, which use only right- or
-   left-censoring. Interval-censoring brackets the failure time from both
-   sides, preserving more information.
+2. **Interval-censoring outperforms one-sided censoring.** Configuration D
+   achieves lower MSE than B or C. While D also benefits from a high fraction
+   of exact observations (~71%), the interval-censored observations bracket
+   the failure time from both sides, preserving more information than either
+   left- or right-censoring alone.
 
-3. **Left and right censoring are comparably informative** for the
-   exponential model. Configurations B and C produce similar MSE values. This
-   is a consequence of the memoryless property: knowing $T > \tau$ and knowing
-   $T < \tau$ are symmetric information losses when the hazard is constant.
+3. **Left-censoring is remarkably informative for the exponential model.**
+   Configuration C has *zero* exact observations --- every observation is either
+   left-censored (~75%) or right-censored (~25%) --- yet achieves *lower* MSE
+   than Configuration B (75% exact + 25% right). This striking result is a
+   consequence of the memoryless property: for the exponential model, knowing
+   that a system failed before $\tau$ (left-censored) carries nearly as much
+   information as knowing the exact failure time. Left-censoring loses
+   surprisingly little information when the hazard is constant.
 
 4. **Mixed monitoring is viable.** Configuration E, which mixes all four
    observation types, converges reliably and produces reasonable estimates

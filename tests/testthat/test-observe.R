@@ -460,3 +460,34 @@ test_that("p=0 with left-censoring gives singleton candidate sets", {
     expect_true(all(cand_sums == 1))
   }
 })
+
+
+# =============================================================================
+# 9. Custom column names with interval-censored data
+# =============================================================================
+
+test_that("rdata with custom lifetime_upper uses correct column name", {
+  model <- exp_series_md_c1_c2_c3(
+    lifetime = "time", lifetime_upper = "time_hi",
+    omega = "obs_type", candset = "c"
+  )
+  gen <- rdata(model)
+
+  set.seed(123)
+  df <- gen(
+    theta = c(0.5, 0.3), n = 200, p = 0.3,
+    observe = observe_periodic(delta = 1, tau = 5)
+  )
+
+  # Custom column names should be used
+  expect_true("time" %in% names(df))
+  expect_true("obs_type" %in% names(df))
+  expect_true("time_hi" %in% names(df))
+  expect_false("t_upper" %in% names(df))
+
+  # The data should be valid for loglik evaluation
+  ll_fn <- loglik(model)
+  ll_val <- ll_fn(df, par = c(0.5, 0.3))
+  expect_true(is.finite(ll_val))
+})
+

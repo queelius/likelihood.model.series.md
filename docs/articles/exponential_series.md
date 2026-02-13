@@ -1,8 +1,8 @@
 # Masked Data Likelihood Model: Components with Exponentially Distributed Lifetimes Arranged In Series Configuration
 
-The R package `likelihood.md.series.system` is a framework for
-estimating the parameters of latent component lifetimes from *masked
-data* in a series system.
+The R package `likelihood.model.series.md` is a framework for estimating
+the parameters of latent component lifetimes from *masked data* in a
+series system.
 
 ## Exponentially Distributed Component Lifetimes
 
@@ -27,11 +27,12 @@ is also exponentially distributed.
 
 The series system’s failure rate function is given by
 $$h\left( \cdot |{\mathbf{λ}} \right) = \sum\limits_{j = 1}^{m}\lambda_{j}$$
-whose proof follows from Theorem .
+whose proof follows from the series system failure rate theorem.
 
-We see that the failure rate ${\mathbf{λ}} = \sum_{j = 1}^{n}\lambda$ is
-*constant*, consistent with the the exponential distribution being the
-only continuous distribution that has a constant failure rate.
+We see that the system failure rate
+$\lambda_{\text{sys}} = \sum_{j = 1}^{m}\lambda_{j}$ is *constant*,
+consistent with the exponential distribution being the only continuous
+distribution that has a constant failure rate.
 
 The pdf of the series system is given by
 $$f_{T_{i}}\left( t_{i}|{\mathbf{λ}} \right) = (\sum\limits_{j = 1}^{m}\lambda_{j})\exp( - \sum\limits_{j = 1}^{m}\lambda_{j}t_{i})$$
@@ -53,7 +54,7 @@ family, i.e., the component lifetimes are exponentially and
 independently distributed and we denote the true parameter value by
 $\theta$.
 
-The principle object of study is \$, which in the case of the
+The principal object of study is $\mathbf{λ}$, which in the case of the
 exponential series system family consists of $m$ rate (scale) parameters
 for each component lifetime,
 ${\mathbf{λ}} = \left( \lambda_{1},\ldots,\lambda_{m} \right)\prime$.
@@ -96,7 +97,7 @@ $T_{i1},\ldots,T_{im}$, $\theta$, and the right-censoring time
 $\tau_{i}$. That is, the candidate set $\mathcal{C}_{i}$ is independent
 of any other factors (or held constant for the duration of the
 experiment), like ambient temperature, and these factors also have a
-neglible effect on the series system lifetime and thus we can ignore
+negligible effect on the series system lifetime and thus we can ignore
 them.
 
 #### Reduced likelihood model
@@ -134,7 +135,8 @@ $$L(\theta) = \prod\limits_{i = 1}^{n}f_{T_{i}}\left( t_{i}|\theta \right)g\left
 
 We show that $g\left( c_{i},t_{i} \right)$ is proportional to
 $$g\left( c_{i},t_{i} \right) \propto \sum\limits_{j \in c_{i}}f_{j}\left( t_{i}|\theta_{j} \right)\prod\limits_{l = j,l \neq j}^{m}R_{l}\left( t_{i}|\theta_{l} \right),$$
-and thus
+and thus the reduced likelihood is proportional to the full likelihood,
+yielding the same MLEs.
 
 Note, however, that different ways in which the conditions are met will
 yield MLEs with different sampling distributions, e.g., more or less
@@ -197,15 +199,12 @@ comp_times <- matrix(nrow=n,ncol=m)
 for (j in 1:m)
     comp_times[,j] <- rexp(n,theta[j])
 comp_times <- md_encode_matrix(comp_times,"t")
-print(comp_times,n=4)
-#> # A tibble: 7,500 × 5
-#>      t1     t2    t3     t4    t5
-#>   <dbl>  <dbl> <dbl>  <dbl> <dbl>
-#> 1  2.95 1.67   0.777 0.0476 0.380
-#> 2  1.10 2.20   2.59  3.27   0.626
-#> 3  1.20 0.0956 3.74  1.80   2.13 
-#> 4  1.44 0.0460 0.123 0.522  0.102
-#> # ℹ 7,496 more rows
+head(comp_times, 4)
+#>      t1      t2     t3      t4     t5
+#> 1 2.953 1.67343 0.7765 0.04761 0.3798
+#> 2 1.099 2.20079 2.5923 3.26549 0.6260
+#> 3 1.202 0.09557 3.7371 1.80056 2.1282
+#> 4 1.443 0.04595 0.1229 0.52177 0.1025
 ```
 
 Next, we use the function `md_series_lifetime_right_censoring` to
@@ -216,16 +215,13 @@ the probability $\Pr\{ T_{i} > \tau\} = 0.75$:
 q <- 0.25
 tau <- rep(-(1/sum(theta))*log(q),n)
 data <- comp_times %>% md_series_lifetime_right_censoring(tau)
-print(data,n=4,drop_latent=TRUE)
-#> Latent variables:  t1 t2 t3 t4 t5 
-#> # A tibble: 7,500 × 2
-#>        t delta
-#>    <dbl> <lgl>
-#> 1 0.0476 TRUE 
-#> 2 0.262  FALSE
-#> 3 0.0956 TRUE 
-#> 4 0.0460 TRUE 
-#> # ℹ 7,496 more rows
+latent <- attr(data, "latent")
+head(data[, !colnames(data) %in% latent], 4)
+#>         t delta
+#> 1 0.04761  TRUE
+#> 2 0.26156 FALSE
+#> 3 0.09557  TRUE
+#> 4 0.04595  TRUE
 ```
 
 ### Masked component cause of failure
@@ -237,34 +233,36 @@ and $C_{3}$:
 ``` r
 p <- .3
 data <- data %>% md_bernoulli_cand_c1_c2_c3(p)
-print(data[,paste0("q",1:m)],n=4)
-#> Latent variables:  q1 q2 q3 q4 q5 t1 t2 t3 t4 t5 
-#> # A tibble: 7,500 × 5
-#>      q1    q2    q3    q4    q5
-#>   <dbl> <dbl> <dbl> <dbl> <dbl>
-#> 1   0.3   0.3   0.3   1     0.3
-#> 2   0     0     0     0     0  
-#> 3   0.3   1     0.3   0.3   0.3
-#> 4   0.3   1     0.3   0.3   0.3
-#> # ℹ 7,496 more rows
+head(data[, paste0("q", 1:m)], 4)
+#>    q1  q2  q3  q4  q5
+#> 1 0.3 0.3 0.3 1.0 0.3
+#> 2 0.0 0.0 0.0 0.0 0.0
+#> 3 0.3 1.0 0.3 0.3 0.3
+#> 4 0.3 1.0 0.3 0.3 0.3
 ```
 
 Now, to generate candidate sets, we sample from these probabilities:
 
 ``` r
 data <- data %>% md_cand_sampler()
-print(md_boolean_matrix_to_charsets(data,drop_set=TRUE),drop_latent=TRUE,n=6)
-#> Latent variables:  q1 q2 q3 q4 q5 t1 t2 t3 t4 t5 
-#> # A tibble: 7,500 × 3
-#>        t delta x        
-#>    <dbl> <lgl> <chr>    
-#> 1 0.0476 TRUE  {1, 4}   
-#> 2 0.262  FALSE {}       
-#> 3 0.0956 TRUE  {2, 4}   
-#> 4 0.0460 TRUE  {1, 2, 3}
-#> 5 0.0290 TRUE  {4, 5}   
-#> 6 0.160  TRUE  {2, 5}   
-#> # ℹ 7,494 more rows
+data$omega <- ifelse(data$delta, "exact", "right")
+display <- md_boolean_matrix_to_charsets(data, drop_set = TRUE)
+latent <- attr(display, "latent")
+head(display[, !colnames(display) %in% latent], 6)
+#>      t1      t2     t3      t4     t5       t delta  q1  q2  q3  q4  q5 omega
+#> 1 2.953 1.67343 0.7765 0.04761 0.3798 0.04761  TRUE 0.3 0.3 0.3 1.0 0.3 exact
+#> 2 1.099 2.20079 2.5923 3.26549 0.6260 0.26156 FALSE 0.0 0.0 0.0 0.0 0.0 right
+#> 3 1.202 0.09557 3.7371 1.80056 2.1282 0.09557  TRUE 0.3 1.0 0.3 0.3 0.3 exact
+#> 4 1.443 0.04595 0.1229 0.52177 0.1025 0.04595  TRUE 0.3 1.0 0.3 0.3 0.3 exact
+#> 5 2.409 0.46744 0.5819 0.02899 0.2009 0.02899  TRUE 0.3 0.3 0.3 1.0 0.3 exact
+#> 6 4.400 1.92722 0.3933 1.56782 0.1597 0.15967  TRUE 0.3 0.3 0.3 0.3 1.0 exact
+#>           x
+#> 1    {1, 4}
+#> 2        {}
+#> 3    {2, 4}
+#> 4 {1, 2, 3}
+#> 5    {4, 5}
+#> 6    {2, 5}
 ```
 
 We see that after dropping latent (unobserved) columns, we only have the
@@ -272,7 +270,7 @@ right censoring time, right censoring indicator, and the candidate sets.
 (Note that this time we showed the candidate sets in a more friendly way
 using `md_boolean_matrix_to_charsets`.)
 
-## Likelihood Model
+## Constructing the Likelihood Model
 
 The likelihood model is a statistical model that describes the
 distribution of the observed data as a function of the parameters of
@@ -287,8 +285,9 @@ model <- exp_series_md_c1_c2_c3()
 
 ## Maximum likelihood estimation
 
-The log-likelihood for our masked data model when we assume Conditions ,
-, and is given by
+The log-likelihood for our masked data model under masking conditions C1
+(failed component in candidate set), C2 (uniform candidate set
+probability), and C3 (masking independent of parameters) is given by
 $$\ell(\lambda) = \sum\limits_{i = 1}^{n}\left( 1 - \delta_{i} \right)\log(\sum\limits_{j \in c_{i}}\lambda_{j}) - (\sum\limits_{i = 1}^{n}s_{i})(\sum\limits_{j = 1}^{m}\lambda_{j}).$$
 
 The set of solutions to the MLE equations must be stationary points,
@@ -297,11 +296,11 @@ $\left. {\mathbb{R}}^{m}\mapsto{\mathbb{R}}^{m} \right.$ is zero. The
 $j$-th component of the output of the score function is given by
 $$\frac{\partial\ell}{\partial\lambda_{p}} = \sum\limits_{i = 1}^{n}(\sum\limits_{j \in c_{i}}\lambda_{j})^{- 1}1_{\{ p \in c_{i}{\mspace{6mu}\text{and}\mspace{6mu}}\delta_{i} = 0\}} - \sum\limits_{i = 1}^{n}s_{i}.$$
 
-We may find an MLE by solving the maximum likelihood equation , i.e., a
-set of (stationary) points satisfying
+We may find an MLE by solving the score equation, i.e., finding
+stationary points satisfying
 $$\frac{\partial\ell}{\partial\lambda_{j}}|_{{\widehat{\lambda}}_{j}} = 0$$
 for $j = 1,\ldots,m$. We approximate a solution to this problem by using
-the iterative Newton-Raphson method as described in Section .
+the iterative Newton-Raphson method.
 
 The Newton-Raphson method needs the observed information matrix, which
 is a function of $\lambda$ of type
@@ -432,6 +431,128 @@ reasonably close. We may measure this sampling variability using the
 variance-covariance matrix, bias, mean squared error (MSE), and
 confidence intervals.
 
+## Observation Types and Censoring
+
+The likelihood model supports four observation types. Each arises from a
+different monitoring scheme:
+
+- **Exact** ($\omega = \text{exact}$): The system failure time $t$ is
+  observed directly, e.g., continuous monitoring.
+- **Right-censored** ($\omega = \text{right}$): The system is known to
+  have survived past $t$, e.g., study ends before failure.
+- **Left-censored** ($\omega = \text{left}$): The system is known to
+  have failed before $t$, e.g., a single inspection finds it failed.
+- **Interval-censored** ($\omega = \text{interval}$): The failure
+  occurred in $\left( t,t_{\text{upper}} \right)$, e.g., periodic
+  inspections bracket the failure.
+
+For the exponential series system, the individual-observation
+log-likelihood contributions are: $$\begin{aligned}
+{\text{Exact:}\quad} & {\log\lambda_{c} - \lambda_{\text{sys}}t} \\
+{\text{Right:}\quad} & {- \lambda_{\text{sys}}t} \\
+{\text{Left:}\quad} & {\log\lambda_{c} + \log\left( 1 - e^{- \lambda_{\text{sys}}\tau} \right) - \log\lambda_{\text{sys}}} \\
+{\text{Interval:}\quad} & {\log\lambda_{c} - \lambda_{\text{sys}}a + \log\left( 1 - e^{- \lambda_{\text{sys}}{(b - a)}} \right) - \log\lambda_{\text{sys}}}
+\end{aligned}$$ where $\lambda_{c} = \sum_{j \in c_{i}}\lambda_{j}$ and
+$\lambda_{\text{sys}} = \sum_{j}\lambda_{j}$.
+
+The left-censored contribution can be interpreted as
+$\log w_{c} + \log F(\tau)$, where
+$w_{c} = \lambda_{c}/\lambda_{\text{sys}}$ is the candidate cause weight
+and $F(\tau)$ is the system CDF.
+
+**The exponential model is the only one where all four types have fully
+analytical loglik, score, AND Hessian.** The Weibull models require
+numerical integration or `numDeriv` for left/interval types.
+
+### Observe functors
+
+The package provides composable observation functors for generating data
+under different monitoring schemes:
+
+``` r
+# Periodic inspection every 0.5 time units, study ends at tau = 5
+obs_periodic <- observe_periodic(delta = 0.5, tau = 5)
+
+# Single inspection at tau = 3
+obs_left <- observe_left_censor(tau = 3)
+
+# Mix of continuous and periodic monitoring
+obs_mixed <- observe_mixture(
+  observe_right_censor(tau = 5),
+  observe_left_censor(tau = 3),
+  weights = c(0.7, 0.3)
+)
+```
+
+### Generating mixed-censoring data
+
+``` r
+gen <- rdata(model)
+
+# Periodic inspections
+set.seed(7231)
+df_periodic <- gen(theta, n = 500, p = 0.3,
+                   observe = observe_periodic(delta = 0.5, tau = 5))
+cat("Periodic inspection observation types:\n")
+#> Periodic inspection observation types:
+print(table(df_periodic$omega))
+#> 
+#> interval 
+#>      500
+
+# Mixed monitoring
+set.seed(7231)
+df_mixed <- gen(theta, n = 500, p = 0.3,
+                observe = observe_mixture(
+                  observe_right_censor(tau = 5),
+                  observe_left_censor(tau = 3),
+                  weights = c(0.7, 0.3)
+                ))
+cat("\nMixed monitoring observation types:\n")
+#> 
+#> Mixed monitoring observation types:
+print(table(df_mixed$omega))
+#> 
+#> exact  left 
+#>   344   156
+```
+
+### Likelihood evaluation on mixed-censoring data
+
+All four observation types contribute analytically to the loglik, score,
+and Hessian for the exponential model:
+
+``` r
+ll_fn <- loglik(model)
+scr_fn <- score(model)
+hess_fn <- hess_loglik(model)
+
+# Evaluate at true parameters
+ll_val <- ll_fn(df_periodic, theta)
+scr_val <- scr_fn(df_periodic, theta)
+hess_val <- hess_fn(df_periodic, theta)
+
+cat("Log-likelihood (periodic):", round(ll_val, 4), "\n")
+#> Log-likelihood (periodic): -589.4
+cat("Score (periodic):", round(scr_val, 4), "\n")
+#> Score (periodic): -21.95 12.48 -8.39 -8.58 4.447
+cat("Hessian eigenvalues:", round(eigen(hess_val)$values, 4), "\n")
+#> Hessian eigenvalues: -24.44 -34.03 -35.33 -43.87 -56.17
+```
+
+We verify that the analytical score is consistent with numerical
+differentiation:
+
+``` r
+scr_numerical <- numDeriv::grad(
+  func = function(th) ll_fn(df_periodic, th),
+  x = theta
+)
+cat("Max |analytical - numerical| score:",
+    formatC(max(abs(scr_val - scr_numerical)), format = "e", digits = 2), "\n")
+#> Max |analytical - numerical| score: 5.39e-07
+```
+
 ### Monte Carlo simulation study
 
 To understand the sampling properties of the MLE, we conduct a Monte
@@ -479,6 +600,7 @@ for (b in 1:B) {
         md_series_lifetime_right_censoring(tau) %>%
         md_bernoulli_cand_c1_c2_c3(p) %>%
         md_cand_sampler()
+    data_b$omega <- ifelse(data_b$delta, "exact", "right")
 
     # Fit model
     tryCatch({
@@ -677,6 +799,7 @@ for (p_idx in seq_along(p_values)) {
             md_series_lifetime_right_censoring(tau_sens) %>%
             md_bernoulli_cand_c1_c2_c3(p_curr) %>%
             md_cand_sampler()
+        data_b$omega <- ifelse(data_b$delta, "exact", "right")
 
         tryCatch({
             fit_b <- solver(data_b, par = theta0, method = "Nelder-Mead")
@@ -808,6 +931,7 @@ for (q_idx in seq_along(q_values)) {
             md_series_lifetime_right_censoring(tau_curr) %>%
             md_bernoulli_cand_c1_c2_c3(p_cens) %>%
             md_cand_sampler()
+        data_b$omega <- ifelse(data_b$delta, "exact", "right")
 
         tryCatch({
             fit_b <- solver(data_b, par = theta0, method = "Nelder-Mead")
@@ -817,7 +941,7 @@ for (q_idx in seq_along(q_values)) {
 
     # Compute statistics
     valid_q <- !is.na(est_q[, 1])
-    cens_rate <- 1 - mean(data_b$delta)  # Actual censoring rate
+    cens_rate <- mean(data_b$omega == "right")  # Actual censoring rate
     cens_results[[q_idx]] <- list(
         q = q_curr,
         cens_rate = cens_rate,
@@ -890,11 +1014,12 @@ information loss in this model:
   failure time and the candidate set, whereas masking only dilutes the
   candidate set.
 
-- **Clear inflection around 50% censoring.** MSE is still manageable at
-  50% ($0.040$) but jumps to $0.059$ at 70% and $0.183$ at 90%. The
-  relationship between censoring rate and MSE is convex — each
-  additional percentage point of censoring is more damaging than the
-  last.
+- **Convex MSE growth, accelerating sharply above 70%.** MSE grows
+  gradually from 10% to 70% censoring
+  ($\left. 0.019\rightarrow 0.059 \right.$, roughly linear), then
+  accelerates: $0.088$ at 80% and $0.183$ at 90%. The inflection point
+  is near 70–80% censoring, beyond which each additional percentage
+  point of censoring is dramatically more damaging.
 
 - **Bias remains modest even under extreme censoring.** Mean
   $\left| \text{bias} \right|$ grows from 0.005 (10% censoring) to 0.034
@@ -923,10 +1048,10 @@ Based on these sensitivity analyses:
     expensive diagnostic equipment, the incremental benefit may not
     justify the cost.
 
-3.  **The 50% censoring threshold.** Below $\sim 50\%$ censoring,
-    estimation quality degrades gradually. Above it, MSE grows convexly
-    — avoid experimental designs where more than half the systems
-    survive past the observation window.
+3.  **The 70% censoring threshold.** Below $\sim 70\%$ censoring, MSE
+    growth is roughly linear and moderate. Above 70%, MSE accelerates
+    sharply — avoid experimental designs where more than two-thirds of
+    systems survive past the observation window.
 
 4.  **CI widths for sample size planning.** At $n = 7500$ with $p = 0.3$
     and 25% censoring, 95% CI widths are $\sim 0.17$ for rates near 1.0.
