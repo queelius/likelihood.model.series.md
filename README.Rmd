@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# R Package: `likelihood.model.series.md`
+# R Package: `maskedcauses`
 
 This is an R package for estimating the parameters of a series system model from
 masked data. It provides a flexible and intuitive interface for specifying the
@@ -55,7 +55,7 @@ Masked data comes in a variety of forms:
 You can install the development version from GitHub with:
 
 ```{r install, eval=FALSE}
-devtools::install_github("queelius/likelihood.model.series.md")
+devtools::install_github("queelius/maskedcauses")
 ```
 
 ## Usage
@@ -155,7 +155,7 @@ confint(fit)
 sample(fit, method = "asymptotic", n = 1000)
 ```
 
-Note that the `likelihood.model.series.md` package provides a number of
+Note that the `maskedcauses` package provides a number of
 likelihood contributions for common observation types. These are described
 in the package documentation. You can also provide your own likelihood
 contributions, and we provide a number of functions to make this easier.
@@ -187,7 +187,7 @@ is well-designed, then the components should be more or less on the same scale
 # Bootstrapping Statistics of the MLE and Likleihood Mode
 
 To estimate various characteiristcs, such as the bias, BCa confidence intervals,
-etc, then bootstraping may be used. The `likelihood.md.series.systems` package
+etc, then bootstraping may be used. The `maskedcauses` package
 relies upon the bootstrapping functionality in `boot` and `likelihood.model`,
 but provide special functions and methods that are particular to the masked data
 series system context.

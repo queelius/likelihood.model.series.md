@@ -1,7 +1,7 @@
-# likelihood.model.series.md
+# maskedcauses
 
 <!-- badges: start -->
-[![R-universe](https://queelius.r-universe.dev/badges/likelihood.model.series.md)](https://queelius.r-universe.dev/likelihood.model.series.md)
+[![R-universe](https://queelius.r-universe.dev/badges/maskedcauses)](https://queelius.r-universe.dev/maskedcauses)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 <!-- badges: end -->
 
@@ -14,7 +14,7 @@ and interval-censored observations with composable observation schemes.
 From [r-universe](https://queelius.r-universe.dev):
 
 ```r
-install.packages("likelihood.model.series.md",
+install.packages("maskedcauses",
                  repos = "https://queelius.r-universe.dev")
 ```
 
@@ -22,7 +22,7 @@ Or from GitHub:
 
 ```r
 # install.packages("devtools")
-devtools::install_github("queelius/likelihood.model.series.md")
+devtools::install_github("queelius/maskedcauses")
 ```
 
 ## Models
@@ -42,7 +42,7 @@ Each model implements S3 methods for: `loglik()`, `score()`, `hess_loglik()`, `r
 ## Quick Start
 
 ```r
-library(likelihood.model.series.md)
+library(maskedcauses)
 
 # Create model and generate data
 model <- exp_series_md_c1_c2_c3()
@@ -117,13 +117,13 @@ in place of `omega` for exact/right-censored data.
 Four tutorial vignettes with worked examples and Monte Carlo studies:
 
 ```r
-vignette("exponential_series", package = "likelihood.model.series.md")
-vignette("weibull_homogeneous_series", package = "likelihood.model.series.md")
-vignette("weibull_series", package = "likelihood.model.series.md")
-vignette("censoring_comparison", package = "likelihood.model.series.md")
+vignette("exponential_series", package = "maskedcauses")
+vignette("weibull_homogeneous_series", package = "maskedcauses")
+vignette("weibull_series", package = "maskedcauses")
+vignette("censoring_comparison", package = "maskedcauses")
 ```
 
-Browse online at <https://queelius.github.io/likelihood.model.series.md/articles/>.
+Browse online at <https://queelius.github.io/maskedcauses/articles/>.
 
 ## Related Packages
 
