@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 # Set to TRUE to regenerate long-running simulation results
 run_long <- FALSE
 
-library(likelihood.model.series.md)
+library(maskedcauses)
 library(dplyr)
 options(digits = 4)
 ```
@@ -195,7 +195,7 @@ This is the `w_c` factorization that the homogeneous model exploits.
 
 When shapes differ, no such factorization exists, and `stats::integrate` is
 used internally. The integrand is accessible (for advanced use) via
-`likelihood.model.series.md:::wei_series_integrand`:
+`maskedcauses:::wei_series_integrand`:
 
 ```{r integrand-demo}
 shapes <- theta[seq(1, 6, 2)]
@@ -204,7 +204,7 @@ cind <- c(TRUE, TRUE, FALSE)  # candidate set = {1, 2}
 
 # Evaluate the integrand h_c(t) * S(t) at a few time points
 t_eval <- c(10, 50, 100)
-vals <- likelihood.model.series.md:::wei_series_integrand(
+vals <- maskedcauses:::wei_series_integrand(
   t_eval, shapes, scales, cind
 )
 names(vals) <- paste0("t=", t_eval)
@@ -215,7 +215,7 @@ vals
 t_fine <- seq(0.5, 150, length.out = 500)
 
 # Full candidate set: all components
-vals_full <- likelihood.model.series.md:::wei_series_integrand(
+vals_full <- maskedcauses:::wei_series_integrand(
   t_fine, shapes, scales, cind = rep(TRUE, 3)
 )
 

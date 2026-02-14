@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 # Set to TRUE to regenerate long-running simulation results
 run_long <- FALSE
 
-library(likelihood.model.series.md)
+library(maskedcauses)
 library(dplyr)
 options(digits = 4)
 ```

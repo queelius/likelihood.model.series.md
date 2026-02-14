@@ -1,0 +1,1069 @@
+---
+title: "A Likelihood Framework for Masked Series Systems"
+output:
+    rmarkdown::html_vignette:
+        toc: true
+vignette: >
+  %\VignetteIndexEntry{A Likelihood Framework for Masked Series Systems}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+header-includes:
+- \renewcommand{\v}[1]{\boldsymbol{#1}}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  echo = TRUE,
+  comment = "#>")
+
+# Set to TRUE to regenerate long-running simulation results
+run_long <- FALSE
+
+library(maskedcauses)
+library(dplyr)
+options(digits = 4)
+```
+
+
+Introduction {#introduction}
+============================
+
+In reliability engineering, many systems are designed as **series systems**:
+the system functions only when all of its $m$ components function. When
+the system fails, the failure time is observed, but the *component* that
+caused the failure is often unknown or only partially identified. This
+situation --- where the failed component is hidden behind incomplete
+diagnostic information --- is called **masked failure cause data**.
+
+This vignette develops a self-contained mathematical framework for
+estimating component lifetime parameters from masked series system data.
+Everything is derived from first principles; no external paper is required.
+The framework is then instantiated for three distribution families
+implemented in `maskedcauses`:
+
+1. **Exponential** (`exp_series_md_c1_c2_c3`) --- constant failure rates
+2. **Homogeneous Weibull** (`wei_series_homogeneous_md_c1_c2_c3`) ---
+   shared shape, individual scales
+3. **Heterogeneous Weibull** (`wei_series_md_c1_c2_c3`) --- individual
+   shapes and scales
+
+Each section pairs the mathematical derivation with live R code that
+demonstrates the corresponding package functions.
+
+
+Series System Model {#series-system}
+=====================================
+
+## Definition
+
+Consider a system of $m$ independent components. The lifetime of
+component $j$ in the $i$-th system is $T_{ij}$, with reliability
+(survival) function $R_j(t) = P(T_{ij} > t)$, pdf $f_j(t)$, and hazard
+function
+$$
+  h_j(t) = \frac{f_j(t)}{R_j(t)}.
+$$
+
+In a series configuration ("weakest link"), the system fails as soon as
+any component fails:
+$$
+  T_i = \min(T_{i1}, \ldots, T_{im}).
+$$
+
+**Assumption (independence).**
+Component lifetimes $T_{i1}, \ldots, T_{im}$ are mutually independent
+given the parameter vector $\theta$.
+
+## System reliability
+
+The system reliability is the product of component reliabilities:
+\begin{equation}
+\label{eq:sys_reliability}
+R(t \mid \theta) = P(T_i > t \mid \theta) = \prod_{j=1}^m R_j(t \mid \theta_j).
+\end{equation}
+\begin{proof}
+$P(\min_j T_{ij} > t) = P(T_{i1} > t, \ldots, T_{im} > t) = \prod_j P(T_{ij} > t)$,
+where the last equality uses independence.
+\end{proof}
+
+## Additive hazards
+
+The system hazard is the sum of component hazards:
+\begin{equation}
+\label{eq:sys_hazard}
+h(t \mid \theta) = \sum_{j=1}^m h_j(t \mid \theta_j).
+\end{equation}
+\begin{proof}
+By definition, $h(t) = f(t) / R(t)$. The system pdf satisfies
+$f(t) = -R'(t) = R(t) \sum_j h_j(t)$, from differentiating the log of
+Eq.\ \eqref{eq:sys_reliability}. Dividing by $R(t)$ yields the result.
+\end{proof}
+
+The additive hazard decomposition is the central structural result for
+series systems. It means that each component contributes independently
+to the instantaneous system failure risk at every time $t$.
+
+The system pdf follows immediately:
+$$
+  f(t \mid \theta) = h(t \mid \theta) \cdot R(t \mid \theta)
+    = \left[\sum_{j=1}^m h_j(t)\right]
+      \prod_{l=1}^m R_l(t).
+$$
+
+### R code: Exponential example
+
+We demonstrate with a 3-component exponential series system. Each
+component has a constant hazard (failure rate) $\lambda_j$:
+
+```{r sys-demo}
+model_exp <- exp_series_md_c1_c2_c3()
+
+# Component failure rates
+theta_exp <- c(1.0, 1.1, 0.95)
+m <- length(theta_exp)
+
+# Extract hazard closures
+h1 <- component_hazard(model_exp, 1)
+h2 <- component_hazard(model_exp, 2)
+h3 <- component_hazard(model_exp, 3)
+
+t_grid <- seq(0.01, 3, length.out = 200)
+h_sys <- h1(t_grid, theta_exp) + h2(t_grid, theta_exp) + h3(t_grid, theta_exp)
+
+cat("System hazard (constant):", h_sys[1], "\n")
+cat("Sum of component rates:  ", sum(theta_exp), "\n")
+```
+
+For exponential components, the system hazard is constant and equals the
+sum of the individual rates --- consistent with the additive hazard
+theorem.
+
+
+Component Cause of Failure {#cause-of-failure}
+===============================================
+
+## Definition
+
+Let $K_i$ denote the index of the component that caused the $i$-th
+system failure:
+$$
+  K_i = \arg\min_{j \in \{1,\ldots,m\}} T_{ij}.
+$$
+
+$K_i$ is a discrete random variable on $\{1, \ldots, m\}$ that, in
+general, depends on the failure time $T_i$.
+
+## Conditional cause probability
+
+The probability that component $j$ caused the system failure, given that
+the failure occurred at time $t$, is:
+\begin{equation}
+\label{eq:cond_cause}
+P(K_i = j \mid T_i = t, \theta)
+  = \frac{h_j(t \mid \theta_j)}{\sum_{l=1}^m h_l(t \mid \theta_l)}
+  = \frac{h_j(t)}{h(t)}.
+\end{equation}
+\begin{proof}
+The joint density of $(K_i, T_i)$ is $f_{K,T}(j, t) = f_j(t) \prod_{l \neq j} R_l(t)$.
+The marginal density of $T_i$ is $f_T(t) = \sum_j f_{K,T}(j, t) = R(t) \sum_j h_j(t)$.
+Then $P(K = j \mid T = t) = f_{K,T}(j,t) / f_T(t) = h_j(t) / \sum_l h_l(t)$.
+\end{proof}
+
+**Intuition.** At any instant $t$, the component with the highest hazard
+is the most likely cause. The cause probability is the component's
+*share* of the total instantaneous risk --- a proportional allocation.
+
+### R code: Exponential vs Weibull cause probabilities
+
+For exponential components, the cause probability is *constant* in time
+(because all hazards are constant). For heterogeneous Weibull components,
+the cause probability *varies* with time:
+
+```{r cause-prob-demo, fig.width=7, fig.height=4.5}
+# Exponential: constant cause probabilities
+ccp_exp <- conditional_cause_probability(model_exp)
+probs_exp <- ccp_exp(t_grid, theta_exp)
+
+# Heterogeneous Weibull: time-varying
+theta_wei <- c(0.7, 200,   # DFR electronics
+               1.0, 150,   # CFR seals
+               2.0, 100)   # IFR bearing
+model_wei <- wei_series_md_c1_c2_c3(
+  shapes = theta_wei[seq(1, 6, 2)],
+  scales = theta_wei[seq(2, 6, 2)]
+)
+ccp_wei <- conditional_cause_probability(model_wei)
+
+t_wei <- seq(0.5, 120, length.out = 200)
+probs_wei <- ccp_wei(t_wei, theta_wei)
+
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+
+# Exponential
+plot(t_grid, probs_exp[, 1], type = "l", col = "steelblue", lwd = 2,
+     ylim = c(0, 0.6), xlab = "Time", ylab = "P(K = j | T = t)",
+     main = "Exponential (constant)")
+lines(t_grid, probs_exp[, 2], col = "forestgreen", lwd = 2, lty = 2)
+lines(t_grid, probs_exp[, 3], col = "firebrick", lwd = 2, lty = 3)
+legend("right", paste("Comp", 1:3),
+       col = c("steelblue", "forestgreen", "firebrick"),
+       lty = 1:3, lwd = 2, cex = 0.8)
+
+# Heterogeneous Weibull
+plot(t_wei, probs_wei[, 1], type = "l", col = "steelblue", lwd = 2,
+     ylim = c(0, 1), xlab = "Time", ylab = "P(K = j | T = t)",
+     main = "Heterogeneous Weibull (time-varying)")
+lines(t_wei, probs_wei[, 2], col = "forestgreen", lwd = 2, lty = 2)
+lines(t_wei, probs_wei[, 3], col = "firebrick", lwd = 2, lty = 3)
+legend("right", c("DFR (k=0.7)", "CFR (k=1.0)", "IFR (k=2.0)"),
+       col = c("steelblue", "forestgreen", "firebrick"),
+       lty = 1:3, lwd = 2, cex = 0.8)
+```
+
+In the right panel, the DFR component (high infant-mortality hazard)
+dominates at early times, but the IFR component (wear-out) takes over as
+the system ages. This crossover cannot be captured by models that force
+a common shape parameter.
+
+
+The Observational Model {#observational-model}
+===============================================
+
+In practice, we do not observe the latent component lifetimes
+$(T_{i1}, \ldots, T_{im})$ directly. Instead, for each of $n$ systems
+we observe a triple $(s_i, \omega_i, c_i)$:
+
+- $s_i$: a time value (possibly censored)
+- $\omega_i$: the observation type
+- $c_i \subseteq \{1, \ldots, m\}$: the candidate set of possibly-failed
+  components
+
+## Four observation types
+
+The package supports four types, each arising from a different monitoring
+scheme:
+
+| Type | $\omega_i$ | What we know | Likelihood contribution |
+|------|-----------|--------------|------------------------|
+| Exact | `"exact"` | System failed at $s_i$ | $R(s_i) \cdot h_c(s_i)$ |
+| Right-censored | `"right"` | System survived past $s_i$ | $R(s_i)$ |
+| Left-censored | `"left"` | System failed before $s_i$ | $\int_0^{s_i} h_c(u) R(u)\, du$ |
+| Interval-censored | `"interval"` | Failure in $(s_i, s_i^{\mathrm{upper}})$ | $\int_{s_i}^{s_i^{\mathrm{upper}}} h_c(u) R(u)\, du$ |
+
+Here $h_c(t) = \sum_{j \in c_i} h_j(t)$ is the candidate-set hazard.
+
+## Masking
+
+When $|c_i| = 1$, the failed component is known exactly. When
+$|c_i| > 1$, the cause of failure is **masked**: the diagnostic
+identifies a set of possible culprits but not the specific one.
+
+## Observe functors
+
+The package provides composable observation functors for generating data
+under different monitoring schemes:
+
+```{r observe-demo}
+# Continuous monitoring with right-censoring at tau
+obs_right <- observe_right_censor(tau = 5)
+obs_right(3.2)   # failure before tau -> exact
+obs_right(7.1)   # survival past tau  -> right-censored
+
+# Single inspection at tau (left-censoring)
+obs_left <- observe_left_censor(tau = 5)
+obs_left(3.2)    # failed before inspection -> left-censored
+obs_left(7.1)    # surviving at inspection  -> right-censored
+
+# Periodic inspections every delta time units
+obs_periodic <- observe_periodic(delta = 1, tau = 5)
+obs_periodic(3.2)  # failure in (3, 4) -> interval-censored
+
+# Mixture: random assignment to schemes
+obs_mixed <- observe_mixture(
+  observe_right_censor(tau = 5),
+  observe_left_censor(tau = 3),
+  observe_periodic(delta = 0.5, tau = 5),
+  weights = c(0.5, 0.2, 0.3)
+)
+```
+
+All `rdata()` methods accept an `observe` argument to generate data under
+a specified monitoring scheme:
+
+```{r observe-rdata}
+gen_exp <- rdata(model_exp)
+
+set.seed(42)
+df_demo <- gen_exp(theta_exp, n = 500, p = 0.3,
+                   observe = observe_mixture(
+                     observe_right_censor(tau = 5),
+                     observe_left_censor(tau = 3),
+                     weights = c(0.7, 0.3)
+                   ))
+cat("Observation type counts:\n")
+print(table(df_demo$omega))
+```
+
+
+The C1--C2--C3 Likelihood {#c1-c2-c3}
+=======================================
+
+This is the core contribution: three conditions on the masking process
+that reduce the full joint likelihood to a tractable form that depends
+only on the lifetime parameters $\theta$.
+
+## The three conditions
+
+**C1 (containment).** The candidate set always contains the true failed
+component:
+$$
+  P(K_i \in c_i) = 1.
+$$
+This is a minimal accuracy requirement on the diagnostic. Without C1,
+the candidate set could be misleading, and the likelihood would need to
+model diagnostic errors explicitly.
+
+*Example:* An on-board diagnostic (OBD) system reports a set of
+possibly-failed modules. C1 requires that the truly failed module is
+always in this set --- the OBD may include false positives but never a
+false negative.
+
+**C2 (symmetric masking).** The masking probability is the same for all
+components in the candidate set:
+$$
+  P(c_i \mid K_i = j, T_i = t_i, \theta)
+    = P(c_i \mid K_i = j', T_i = t_i, \theta)
+    \quad \text{for all } j, j' \in c_i.
+$$
+Intuitively, the diagnostic cannot distinguish among the candidates ---
+if it could, it would narrow the candidate set.
+
+*Example:* A line-replaceable unit (LRU) grouping replaces all
+components in a subsystem together. The grouping is determined by
+physical layout, not by which component failed, so C2 holds by
+construction.
+
+**C3 (parameter independence).** The masking probabilities do not depend
+on the lifetime parameters $\theta$:
+$$
+  P(c_i \mid K_i = j, T_i = t_i) \text{ is not a function of } \theta.
+$$
+
+*Example:* Diagnostic accuracy depends on sensor calibration and
+technician skill, not on component failure rates. If the diagnostic
+equipment was calibrated before the study, C3 holds.
+
+## Deriving the likelihood
+
+We derive the likelihood step by step. Consider observation $i$ with
+failure time $t_i$ and candidate set $c_i$.
+
+**Step 1: Full joint density.** The observed-data density includes a sum
+over the latent cause $K_i$:
+$$
+  L_i(\theta) = \sum_{j=1}^m f_{K,T}(j, t_i) \cdot P(c_i \mid K_i = j, T_i = t_i, \theta).
+$$
+
+**Step 2: Apply C1.** Since $P(K_i \in c_i) = 1$, contributions from
+$j \notin c_i$ are zero:
+$$
+  L_i(\theta) = \sum_{j \in c_i} f_{K,T}(j, t_i) \cdot P(c_i \mid K_i = j, T_i = t_i, \theta).
+$$
+
+**Step 3: Apply C2.** Symmetric masking means
+$P(c_i \mid K_i = j, T_i = t_i, \theta) = \beta_i$ for all $j \in c_i$:
+$$
+  L_i(\theta) = \beta_i \sum_{j \in c_i} f_{K,T}(j, t_i).
+$$
+
+**Step 4: Apply C3.** Since $\beta_i$ does not depend on $\theta$, it is
+a constant with respect to the parameters and drops from the
+maximization:
+$$
+  L_i(\theta) \propto \sum_{j \in c_i} f_{K,T}(j, t_i)
+    = \sum_{j \in c_i} h_j(t_i) \cdot R(t_i)
+    = R(t_i) \cdot h_c(t_i).
+$$
+
+The **exact-failure likelihood contribution** is therefore:
+\begin{equation}
+\label{eq:exact_contrib}
+  \ell_i^{\text{exact}}(\theta)
+    = \log R(t_i \mid \theta) + \log h_c(t_i \mid \theta),
+\end{equation}
+where $h_c(t) = \sum_{j \in c_i} h_j(t)$ is the candidate-set hazard.
+
+## Censored observations
+
+**Right-censored.** The system survived past $t_i$. No failure was
+observed, so there is no candidate set and the contribution is simply:
+$$
+  \ell_i^{\text{right}}(\theta) = \log R(t_i \mid \theta).
+$$
+
+**Left-censored.** The system was found failed at inspection time
+$\tau_i$, but the exact failure time is unknown. Applying C1--C3 to the
+integrated likelihood:
+$$
+  \ell_i^{\text{left}}(\theta)
+    = \log \int_0^{\tau_i} h_c(u) \, R(u) \, du.
+$$
+
+**Interval-censored.** The failure occurred in $(a_i, b_i)$:
+$$
+  \ell_i^{\text{interval}}(\theta)
+    = \log \int_{a_i}^{b_i} h_c(u) \, R(u) \, du.
+$$
+
+## Combined log-likelihood
+
+The full log-likelihood decomposes as:
+\begin{equation}
+\label{eq:full_loglik}
+  \ell(\theta) = \ell_E + \ell_R + \ell_L + \ell_I,
+\end{equation}
+where
+\begin{align}
+  \ell_E &= \sum_{i : \omega_i = \text{exact}}
+    \bigl[\log R(t_i) + \log h_{c_i}(t_i)\bigr], \\
+  \ell_R &= \sum_{i : \omega_i = \text{right}} \log R(t_i), \\
+  \ell_L &= \sum_{i : \omega_i = \text{left}}
+    \log \int_0^{\tau_i} h_{c_i}(u) R(u) \, du, \\
+  \ell_I &= \sum_{i : \omega_i = \text{interval}}
+    \log \int_{a_i}^{b_i} h_{c_i}(u) R(u) \, du.
+\end{align}
+
+### R code: Log-likelihood evaluation
+
+The `loglik()` generic returns a closure that evaluates this
+log-likelihood for any model:
+
+```{r loglik-demo}
+ll_exp <- loglik(model_exp)
+
+# Evaluate at true parameters on the mixed-censoring demo data
+ll_val <- ll_exp(df_demo, theta_exp)
+cat("Log-likelihood at true theta:", round(ll_val, 4), "\n")
+
+# Perturb parameters and compare
+theta_bad <- c(2, 2, 2)
+cat("Log-likelihood at wrong theta:", round(ll_exp(df_demo, theta_bad), 4), "\n")
+```
+
+
+Distribution Families {#families}
+==================================
+
+The C1--C2--C3 framework applies to *any* component lifetime distribution.
+The following table lists common families with their hazard, reliability,
+and pdf:
+
+| Family | Parameters | $h_j(t)$ | $R_j(t)$ |
+|--------|-----------|-----------|-----------|
+| Exponential | $\lambda_j$ | $\lambda_j$ | $e^{-\lambda_j t}$ |
+| Weibull | $k_j, \beta_j$ | $\frac{k_j}{\beta_j}\left(\frac{t}{\beta_j}\right)^{k_j-1}$ | $\exp\!\left(-\left(\frac{t}{\beta_j}\right)^{k_j}\right)$ |
+| Pareto | $\alpha_j, x_{m,j}$ | $\frac{\alpha_j}{t}$ | $\left(\frac{x_{m,j}}{t}\right)^{\alpha_j}$ |
+| Log-normal | $\mu_j, \sigma_j$ | $\frac{\phi(z_j)}{t\sigma_j \Phi(-z_j)}$ | $\Phi(-z_j)$ |
+| Gamma | $\alpha_j, \beta_j$ | $f_j(t)/R_j(t)$ | $1 - \frac{\gamma(\alpha_j, t/\beta_j)}{\Gamma(\alpha_j)}$ |
+
+where $z_j = (\log t - \mu_j)/\sigma_j$.
+The package currently implements the first two families (Exponential and
+Weibull). The framework extends to any family by substituting the
+appropriate $h_j$ and $R_j$ into the general log-likelihood.
+
+
+Worked Example: Exponential Components {#exponential}
+=====================================================
+
+The exponential model is the simplest instantiation: all hazards are
+constant, yielding closed-form expressions for every quantity.
+
+## Setup
+
+```{r exp-setup}
+theta <- c(1.0, 1.1, 0.95, 1.15, 1.1)
+m <- length(theta)
+model <- exp_series_md_c1_c2_c3()
+
+cat("True rates:", theta, "\n")
+cat("System rate:", sum(theta), "\n")
+```
+
+## Specializing the likelihood
+
+For exponential components with $h_j(t) = \lambda_j$ and
+$R_j(t) = e^{-\lambda_j t}$:
+
+\begin{align}
+\text{Exact:}     \quad & \log\!\left(\sum_{j \in c_i} \lambda_j\right)
+  - \left(\sum_{j=1}^m \lambda_j\right) t_i, \\
+\text{Right:}     \quad & -\lambda_{\text{sys}} t_i, \\
+\text{Left:}      \quad & \log \lambda_c + \log(1 - e^{-\lambda_{\text{sys}} \tau_i})
+  - \log \lambda_{\text{sys}}, \\
+\text{Interval:}  \quad & \log \lambda_c - \lambda_{\text{sys}} a_i
+  + \log(1 - e^{-\lambda_{\text{sys}}(b_i - a_i)}) - \log \lambda_{\text{sys}},
+\end{align}
+where $\lambda_c = \sum_{j \in c_i} \lambda_j$ and
+$\lambda_{\text{sys}} = \sum_j \lambda_j$.
+
+All four observation types have **closed-form** log-likelihood, score,
+*and* Hessian --- the exponential model is unique in this respect.
+
+## Data generation and fitting
+
+```{r exp-generate}
+gen <- rdata(model)
+set.seed(7231)
+
+df <- gen(theta, n = 2000, p = 0.3,
+          observe = observe_right_censor(tau = 3))
+
+cat("Observation types:\n")
+print(table(df$omega))
+```
+
+```{r exp-fit, warning=FALSE}
+solver <- fit(model)
+theta0 <- rep(1, m)
+estimate <- solver(df, par = theta0, method = "Nelder-Mead")
+```
+
+```{r exp-results}
+recovery <- data.frame(
+  Component = 1:m,
+  True = theta,
+  MLE = estimate$par,
+  SE = sqrt(diag(estimate$vcov)),
+  Rel_Error_Pct = 100 * (estimate$par - theta) / theta
+)
+
+knitr::kable(recovery, digits = 4,
+             caption = "Exponential MLE: parameter recovery",
+             col.names = c("Component", "True", "MLE", "SE", "Rel. Error %"))
+```
+
+## Score and Hessian verification
+
+The analytical score should vanish at the MLE. We also verify it
+against numerical differentiation:
+
+```{r exp-score-verify}
+ll_fn <- loglik(model)
+scr_fn <- score(model)
+hess_fn <- hess_loglik(model)
+
+scr_at_mle <- scr_fn(df, estimate$par)
+cat("Score at MLE:", round(scr_at_mle, 4), "\n")
+
+scr_num <- numDeriv::grad(function(th) ll_fn(df, th), estimate$par)
+cat("Max |analytical - numerical| score:",
+    formatC(max(abs(scr_at_mle - scr_num)), format = "e", digits = 2), "\n")
+
+# Hessian eigenvalues (should all be negative for concavity)
+H <- hess_fn(df, estimate$par)
+cat("Hessian eigenvalues:", round(eigen(H)$values, 2), "\n")
+```
+
+## Fisher information and confidence intervals
+
+The observed Fisher information is $I(\hat\theta) = -H(\hat\theta)$.
+Asymptotic $(1-\alpha)$% Wald confidence intervals are:
+$$
+  \hat\theta_j \pm z_{1-\alpha/2} \sqrt{I(\hat\theta)^{-1}_{jj}}.
+$$
+
+```{r exp-ci}
+alpha <- 0.05
+z <- qnorm(1 - alpha / 2)
+se <- sqrt(diag(estimate$vcov))
+
+ci_df <- data.frame(
+  Component = 1:m,
+  Lower = estimate$par - z * se,
+  MLE = estimate$par,
+  Upper = estimate$par + z * se,
+  True = theta,
+  Covered = (estimate$par - z * se <= theta) & (theta <= estimate$par + z * se)
+)
+
+knitr::kable(ci_df, digits = 4,
+             caption = "95% Wald confidence intervals",
+             col.names = c("Comp.", "Lower", "MLE", "Upper", "True", "Covered?"))
+```
+
+
+Homogeneous Weibull {#homogeneous-weibull}
+==========================================
+
+The **homogeneous Weibull** model constrains all $m$ components to share
+a common shape parameter $k$, while allowing individual scale parameters
+$\beta_1, \ldots, \beta_m$. The parameter vector is
+$\theta = (k, \beta_1, \ldots, \beta_m) \in \mathbb{R}^{m+1}_{> 0}$.
+
+## Key properties
+
+**Property 1: The system lifetime is Weibull.**
+Because all shapes are equal, the system reliability simplifies:
+$$
+  R(t) = \prod_{j=1}^m \exp\!\left(-\left(\frac{t}{\beta_j}\right)^k\right)
+       = \exp\!\left(-\left(\frac{t}{\beta_{\text{sys}}}\right)^k\right),
+$$
+where
+$\beta_{\text{sys}} = \bigl(\sum_{j=1}^m \beta_j^{-k}\bigr)^{-1/k}$.
+This closure under the minimum is the structural advantage of the
+homogeneous model.
+
+**Property 2: Constant cause probabilities.**
+The time dependence $t^{k-1}$ cancels in the hazard ratio:
+$$
+  P(K = j \mid T = t) = \frac{\beta_j^{-k}}{\sum_l \beta_l^{-k}}
+    \eqqcolon w_j.
+$$
+Just as in the exponential case, the conditional cause probability does
+not depend on $t$.
+
+**Property 3: Closed-form censored contributions.**
+Left- and interval-censored terms factor as $\log w_{c_i} + \log [\text{Weibull CDF difference}]$ --- no numerical integration needed.
+
+## R code: Setup and hazard visualization
+
+```{r hom-setup, fig.width=7, fig.height=4.5}
+theta_hom <- c(k = 1.5, beta1 = 100, beta2 = 150, beta3 = 200)
+k <- theta_hom[1]
+scales <- theta_hom[-1]
+m_hom <- length(scales)
+
+model_hom <- wei_series_homogeneous_md_c1_c2_c3()
+
+# System scale
+beta_sys <- wei_series_system_scale(k, scales)
+cat("System scale:", round(beta_sys, 2), "\n")
+
+# Plot component hazards
+t_grid <- seq(0.1, 200, length.out = 300)
+cols <- c("steelblue", "forestgreen", "firebrick")
+
+plot(NULL, xlim = c(0, 200), ylim = c(0, 0.06),
+     xlab = "Time", ylab = "Hazard h_j(t)",
+     main = "Homogeneous Weibull: component hazards (k = 1.5)")
+for (j in seq_len(m_hom)) {
+  h_j <- component_hazard(model_hom, j)
+  lines(t_grid, h_j(t_grid, theta_hom), col = cols[j], lwd = 2)
+}
+legend("topleft", paste0("Comp ", 1:m_hom, " (beta=", scales, ")"),
+       col = cols, lwd = 2, cex = 0.9)
+grid()
+```
+
+All hazards are increasing ($k > 1$), sharing the same shape but
+differing in magnitude. Component 1 (smallest $\beta$) dominates at all
+times.
+
+## Cause probabilities
+
+```{r hom-cause-prob}
+# Analytical cause weights
+w <- scales^(-k) / sum(scales^(-k))
+names(w) <- paste0("Component ", 1:m_hom)
+cat("Time-invariant cause weights:\n")
+print(round(w, 4))
+
+# Verify with package function (pass scales so model knows m)
+ccp_fn <- conditional_cause_probability(
+  wei_series_homogeneous_md_c1_c2_c3(scales = scales)
+)
+probs <- ccp_fn(c(10, 50, 100, 150), theta_hom)
+knitr::kable(probs, digits = 4,
+             caption = "P(K=j | T=t) at four time points (should be constant)",
+             col.names = paste0("Comp ", 1:m_hom))
+```
+
+## Data generation and MLE
+
+```{r hom-generate}
+gen_hom <- rdata(model_hom)
+set.seed(2024)
+
+df_hom <- gen_hom(theta_hom, n = 500, p = 0.3,
+                  observe = observe_periodic(delta = 20, tau = 250))
+
+cat("Observation types:\n")
+print(table(df_hom$omega))
+```
+
+```{r hom-fit, warning=FALSE}
+solver_hom <- fit(model_hom)
+theta0_hom <- c(1.2, 110, 140, 180)
+
+est_hom <- solver_hom(df_hom, par = theta0_hom, method = "Nelder-Mead")
+
+recovery_hom <- data.frame(
+  Parameter = c("k", paste0("beta_", 1:m_hom)),
+  True = theta_hom,
+  MLE = est_hom$par,
+  SE = sqrt(diag(est_hom$vcov)),
+  Rel_Error_Pct = 100 * (est_hom$par - theta_hom) / theta_hom
+)
+
+knitr::kable(recovery_hom, digits = 3,
+             caption = paste0("Homogeneous Weibull MLE (n = 500)"),
+             col.names = c("Parameter", "True", "MLE", "SE", "Rel. Error %"))
+```
+
+
+Heterogeneous Weibull {#heterogeneous-weibull}
+===============================================
+
+The **heterogeneous Weibull** model allows each component to have its own
+shape $k_j$ and scale $\beta_j$, giving a $2m$-dimensional parameter
+vector $\theta = (k_1, \beta_1, \ldots, k_m, \beta_m)$.
+
+## Differences from the homogeneous model
+
+| Property | Homogeneous | Heterogeneous |
+|----------|-------------|---------------|
+| Parameters | $m + 1$ | $2m$ |
+| System lifetime | Weibull($k$, $\beta_{\text{sys}}$) | **Not** Weibull |
+| Cause probabilities | Constant in $t$ | Time-varying |
+| Left/interval likelihood | Closed form | Numerical integration |
+
+The additional flexibility comes at a cost: the system lifetime
+$T = \min(T_1, \ldots, T_m)$ is no longer Weibull when shapes differ,
+and left-censored or interval-censored likelihood contributions require
+numerical integration (`stats::integrate`).
+
+## R code: Mixed failure regimes
+
+We construct a 3-component system with DFR (infant mortality), CFR
+(random), and IFR (wear-out) components:
+
+```{r het-setup, fig.width=7, fig.height=4.5}
+theta_het <- c(0.7, 200,   # DFR electronics
+               1.0, 150,   # CFR seals
+               2.0, 100)   # IFR bearing
+m_het <- length(theta_het) / 2
+
+model_het <- wei_series_md_c1_c2_c3(
+  shapes = theta_het[seq(1, 6, 2)],
+  scales = theta_het[seq(2, 6, 2)]
+)
+
+# Component hazard functions
+t_het <- seq(0.5, 120, length.out = 300)
+
+h_fns <- lapply(1:m_het, function(j) component_hazard(model_het, j))
+h_vals <- sapply(h_fns, function(hf) hf(t_het, theta_het))
+
+plot(t_het, h_vals[, 1], type = "l", col = "steelblue", lwd = 2,
+     ylim = c(0, 0.05),
+     xlab = "Time", ylab = "Hazard h_j(t)",
+     main = "Heterogeneous Weibull: mixed failure regimes")
+lines(t_het, h_vals[, 2], col = "forestgreen", lwd = 2, lty = 2)
+lines(t_het, h_vals[, 3], col = "firebrick", lwd = 2, lty = 3)
+legend("topright",
+       c("Comp 1: DFR (k=0.7)", "Comp 2: CFR (k=1.0)", "Comp 3: IFR (k=2.0)"),
+       col = c("steelblue", "forestgreen", "firebrick"),
+       lty = 1:3, lwd = 2, cex = 0.85)
+grid()
+```
+
+## Time-varying cause probabilities
+
+```{r het-cause-prob, fig.width=7, fig.height=4.5}
+ccp_het <- conditional_cause_probability(model_het)
+probs_het <- ccp_het(t_het, theta_het)
+
+plot(t_het, probs_het[, 1], type = "l", col = "steelblue", lwd = 2,
+     ylim = c(0, 1), xlab = "Time", ylab = "P(K = j | T = t)",
+     main = "Heterogeneous Weibull: time-varying cause probabilities")
+lines(t_het, probs_het[, 2], col = "forestgreen", lwd = 2, lty = 2)
+lines(t_het, probs_het[, 3], col = "firebrick", lwd = 2, lty = 3)
+legend("right",
+       c("DFR (k=0.7)", "CFR (k=1.0)", "IFR (k=2.0)"),
+       col = c("steelblue", "forestgreen", "firebrick"),
+       lty = 1:3, lwd = 2, cex = 0.85)
+grid()
+```
+
+The crossover pattern is characteristic of bathtub-curve behavior at the
+system level: early failures are dominated by infant-mortality mechanisms,
+while late failures are dominated by wear-out.
+
+## Data generation and MLE
+
+```{r het-generate}
+gen_het <- rdata(model_het)
+set.seed(7231)
+
+df_het <- gen_het(theta_het, n = 300, tau = 120, p = 0.3,
+                  observe = observe_right_censor(tau = 120))
+
+cat("Observation types:\n")
+print(table(df_het$omega))
+```
+
+We use right-censoring for speed --- exact and right-censored observations
+have closed-form likelihood contributions. Left- and interval-censored
+observations require numerical integration per observation per
+optimization iteration.
+
+```{r het-fit, warning=FALSE}
+solver_het <- fit(model_het)
+theta0_het <- rep(c(1, 150), m_het)
+
+est_het <- solver_het(df_het, par = theta0_het, method = "Nelder-Mead")
+
+par_names <- paste0(
+  rep(c("k", "beta"), m_het), "_",
+  rep(1:m_het, each = 2)
+)
+
+recovery_het <- data.frame(
+  Parameter = par_names,
+  True = theta_het,
+  MLE = est_het$par,
+  SE = sqrt(diag(est_het$vcov)),
+  Rel_Error_Pct = 100 * (est_het$par - theta_het) / theta_het
+)
+
+knitr::kable(recovery_het, digits = 3,
+             caption = paste0("Heterogeneous Weibull MLE (n = 300)"),
+             col.names = c("Parameter", "True", "MLE", "SE", "Rel. Error %"))
+```
+
+## Model comparison: heterogeneous vs homogeneous
+
+When the true DGP has heterogeneous shapes, the homogeneous model is
+misspecified. We compare the two on the same data:
+
+```{r het-comparison, warning=FALSE}
+# Refit on larger dataset for sharper comparison
+set.seed(999)
+df_comp <- gen_het(theta_het, n = 800, tau = 150, p = 0.2,
+                   observe = observe_right_censor(tau = 150))
+
+# Heterogeneous (6 params)
+fit_het <- solver_het(df_comp, par = theta0_het, method = "Nelder-Mead")
+
+# Homogeneous (4 params)
+model_hom2 <- wei_series_homogeneous_md_c1_c2_c3()
+solver_hom2 <- fit(model_hom2)
+fit_hom2 <- solver_hom2(df_comp, par = c(1, 150, 150, 150),
+                        method = "Nelder-Mead")
+
+# Likelihood ratio test
+LRT <- 2 * (fit_het$loglik - fit_hom2$loglik)
+df_lrt <- 6 - 4
+p_val <- pchisq(LRT, df = df_lrt, lower.tail = FALSE)
+
+comp_df <- data.frame(
+  Model = c("Heterogeneous (2m = 6)", "Homogeneous (m+1 = 4)"),
+  Params = c(6, 4),
+  LogLik = c(fit_het$loglik, fit_hom2$loglik),
+  AIC = c(-2 * fit_het$loglik + 2 * 6, -2 * fit_hom2$loglik + 2 * 4)
+)
+
+knitr::kable(comp_df, digits = 2,
+             caption = "Model comparison",
+             col.names = c("Model", "# Params", "Log-Lik", "AIC"))
+
+cat(sprintf("\nLRT statistic: %.2f (df = %d, p = %.4f)\n",
+            LRT, df_lrt, p_val))
+```
+
+Both AIC and the likelihood ratio test favor the heterogeneous model when
+the true DGP has unequal shapes. The common-shape estimate from the
+homogeneous fit represents a compromise value between 0.7, 1.0, and 2.0,
+leading to biased estimates of the scale parameters.
+
+
+Monte Carlo Assessment {#monte-carlo}
+======================================
+
+We briefly assess finite-sample properties of the MLE for each model
+family. Full Monte Carlo studies with sensitivity analyses are provided in
+the dedicated vignettes (`exponential_series`, `weibull_series`,
+`weibull_homogeneous_series`).
+
+```{r load-precomputed-mc, include=FALSE, eval=!run_long}
+list2env(readRDS("precomputed_framework.rds"), envir = environment())
+```
+
+```{r mc-setup, eval=run_long}
+set.seed(42)
+B <- 100
+alpha <- 0.05
+
+# Exponential: 5 components
+theta_mc_exp <- c(1.0, 1.1, 0.95, 1.15, 1.1)
+m_mc_exp <- length(theta_mc_exp)
+n_mc <- 1000
+
+model_mc_exp <- exp_series_md_c1_c2_c3()
+gen_mc_exp <- rdata(model_mc_exp)
+solver_mc_exp <- fit(model_mc_exp)
+
+est_exp <- matrix(NA, B, m_mc_exp)
+conv_exp <- logical(B)
+
+for (b in seq_len(B)) {
+  df_b <- gen_mc_exp(theta_mc_exp, n = n_mc, p = 0.3,
+                     observe = observe_right_censor(tau = 3))
+  tryCatch({
+    fit_b <- solver_mc_exp(df_b, par = rep(1, m_mc_exp),
+                           method = "Nelder-Mead")
+    est_exp[b, ] <- fit_b$par
+    conv_exp[b] <- fit_b$converged
+  }, error = function(e) conv_exp[b] <<- FALSE)
+}
+
+# Homogeneous Weibull: 3 components
+theta_mc_hom <- c(1.5, 100, 150, 200)
+m_mc_hom <- 3
+model_mc_hom <- wei_series_homogeneous_md_c1_c2_c3()
+gen_mc_hom <- rdata(model_mc_hom)
+solver_mc_hom <- fit(model_mc_hom)
+
+beta_sys_mc <- wei_series_system_scale(theta_mc_hom[1], theta_mc_hom[-1])
+tau_mc_hom <- qweibull(0.75, shape = theta_mc_hom[1], scale = beta_sys_mc)
+
+est_hom <- matrix(NA, B, m_mc_hom + 1)
+conv_hom <- logical(B)
+
+for (b in seq_len(B)) {
+  df_b <- gen_mc_hom(theta_mc_hom, n = n_mc, p = 0.3,
+                     observe = observe_right_censor(tau = tau_mc_hom))
+  tryCatch({
+    fit_b <- solver_mc_hom(df_b, par = c(1, 120, 120, 120),
+                           method = "L-BFGS-B",
+                           lower = rep(1e-6, m_mc_hom + 1))
+    est_hom[b, ] <- fit_b$par
+    conv_hom[b] <- fit_b$converged
+  }, error = function(e) conv_hom[b] <<- FALSE)
+}
+
+# Heterogeneous Weibull: 3 components
+theta_mc_het <- c(0.8, 150, 1.5, 120, 2.0, 100)
+m_mc_het <- 3
+model_mc_het <- wei_series_md_c1_c2_c3()
+gen_mc_het <- rdata(model_mc_het)
+solver_mc_het <- fit(model_mc_het)
+
+est_het <- matrix(NA, B, 2 * m_mc_het)
+conv_het <- logical(B)
+
+for (b in seq_len(B)) {
+  df_b <- gen_mc_het(theta_mc_het, n = n_mc, tau = 200, p = 0.2,
+                     observe = observe_right_censor(tau = 200))
+  tryCatch({
+    fit_b <- solver_mc_het(df_b, par = rep(c(1, 130), m_mc_het),
+                           method = "L-BFGS-B",
+                           lower = rep(1e-6, 2 * m_mc_het))
+    est_het[b, ] <- fit_b$par
+    conv_het[b] <- fit_b$converged
+  }, error = function(e) conv_het[b] <<- FALSE)
+}
+```
+
+```{r mc-save, eval=run_long, include=FALSE}
+saveRDS(list(
+  est_exp = est_exp, conv_exp = conv_exp, theta_mc_exp = theta_mc_exp,
+  est_hom = est_hom, conv_hom = conv_hom, theta_mc_hom = theta_mc_hom,
+  est_het = est_het, conv_het = conv_het, theta_mc_het = theta_mc_het,
+  B = B, n_mc = n_mc, alpha = alpha,
+  m_mc_exp = m_mc_exp, m_mc_hom = m_mc_hom, m_mc_het = m_mc_het
+), "precomputed_framework.rds")
+```
+
+```{r mc-summary}
+mc_summary <- function(estimates, converged, theta, par_names) {
+  valid <- converged & !is.na(estimates[, 1])
+  ev <- estimates[valid, , drop = FALSE]
+  bias <- colMeans(ev) - theta
+  rmse <- sqrt(bias^2 + apply(ev, 2, var))
+  data.frame(
+    Parameter = par_names,
+    True = theta,
+    Mean_Est = colMeans(ev),
+    Bias = bias,
+    RMSE = rmse,
+    Rel_Bias_Pct = 100 * bias / theta,
+    stringsAsFactors = FALSE
+  )
+}
+
+# Exponential
+cat("=== Exponential ===\n")
+cat("Convergence:", mean(conv_exp), "\n\n")
+exp_table <- mc_summary(est_exp, conv_exp, theta_mc_exp,
+                        paste0("lambda_", 1:m_mc_exp))
+knitr::kable(exp_table, digits = 4,
+             caption = "Exponential MC (B=100, n=1000)",
+             col.names = c("Parameter", "True", "Mean Est.", "Bias",
+                          "RMSE", "Rel. Bias %"))
+```
+
+```{r mc-hom-table}
+cat("\n=== Homogeneous Weibull ===\n")
+cat("Convergence:", mean(conv_hom), "\n\n")
+hom_table <- mc_summary(est_hom, conv_hom, theta_mc_hom,
+                        c("k", paste0("beta_", 1:m_mc_hom)))
+knitr::kable(hom_table, digits = 4,
+             caption = "Homogeneous Weibull MC (B=100, n=1000)",
+             col.names = c("Parameter", "True", "Mean Est.", "Bias",
+                          "RMSE", "Rel. Bias %"))
+```
+
+```{r mc-het-table}
+cat("\n=== Heterogeneous Weibull ===\n")
+cat("Convergence:", mean(conv_het), "\n\n")
+het_names <- paste0(rep(c("k", "beta"), m_mc_het), "_",
+                    rep(1:m_mc_het, each = 2))
+het_table <- mc_summary(est_het, conv_het, theta_mc_het, het_names)
+knitr::kable(het_table, digits = 4,
+             caption = "Heterogeneous Weibull MC (B=100, n=1000)",
+             col.names = c("Parameter", "True", "Mean Est.", "Bias",
+                          "RMSE", "Rel. Bias %"))
+```
+
+
+Practical Considerations {#practical}
+======================================
+
+**Starting values.** For the exponential model, starting at $\lambda_j = 1$
+for all $j$ generally works. For Weibull models, start with shapes near 1
+(the exponential case) and scales estimated from sample quantiles. An
+exponential fit can provide good initial scale values via
+$\hat\beta_j = 1/\hat\lambda_j$.
+
+**Identifiability.** If two components are *always* masked together (i.e.,
+they appear in every candidate set as a pair), their individual parameters
+are not identifiable --- only their sum (exponential) or combined
+contribution (Weibull) can be estimated. This is a structural limitation
+of the observational design, not the estimation method.
+
+**Computational cost.** The three models differ substantially in
+computation time:
+
+- **Exponential**: $O(n)$ per log-likelihood evaluation. All four
+  observation types have closed-form loglik, score, and Hessian.
+- **Homogeneous Weibull**: $O(n)$ for loglik (closed form for all types).
+  Score uses `numDeriv::grad` for left/interval observations.
+- **Heterogeneous Weibull**: $O(n_{\text{exact}} + n_{\text{right}})$ for
+  closed-form terms, plus $O(n_{\text{left}} + n_{\text{interval}})$ calls
+  to `stats::integrate` for numerical integration terms.
+
+For datasets with many left- or interval-censored observations under the
+heterogeneous model, each optimization iteration involves hundreds of
+numerical integrations. Strategies to manage this include using the
+homogeneous model as a warm start, or extending the study period to
+convert more observations to exact/right-censored.
+
+**Bootstrap confidence intervals.** As an alternative to asymptotic Wald
+intervals (based on the observed Fisher information), parametric bootstrap
+confidence intervals can be constructed by repeatedly simulating from the
+fitted model and refitting. This is more computationally expensive but
+avoids reliance on large-sample normality approximations, which can be
+inaccurate when the sample size is small or the likelihood surface is
+asymmetric.
