@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Likelihood Models for Series Systems with Masked Component Cause of Failure • likelihood.model.series.md</title>
+<title>Likelihood Models for Systems with Masked Component Cause of Failure • maskedcauses</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Likelihood Models for Series Systems with Masked Component Cause of Failure">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Likelihood Models for Systems with Masked Component Cause of Failure">
 <meta name="description" content="Likelihood model API for lifetime systems with latent components in series using data with masked component cause of failures.">
 <meta property="og:description" content="Likelihood model API for lifetime systems with latent components in series using data with masked component cause of failures.">
 </head>
@@ -20,7 +20,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="index.html">likelihood.model.series.md</a>
+    <a class="navbar-brand me-2" href="index.html">maskedcauses</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9</small>
 
@@ -38,7 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/queelius/likelihood.model.series.md/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/queelius/maskedcauses/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -47,7 +47,7 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="likelihoodmodelseriesmd">likelihood.model.series.md<a class="anchor" aria-label="anchor" href="#likelihoodmodelseriesmd"></a>
+<div class="page-header"><h1 id="maskedcauses">maskedcauses<a class="anchor" aria-label="anchor" href="#maskedcauses"></a>
 </h1></div>
 <!-- badges: start -->
 
@@ -57,12 +57,12 @@
 </h2>
 <p>From <a href="https://queelius.r-universe.dev" class="external-link">r-universe</a>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"likelihood.model.series.md"</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"maskedcauses"</span>,</span>
 <span>                 repos <span class="op">=</span> <span class="st">"https://queelius.r-universe.dev"</span><span class="op">)</span></span></code></pre></div>
 <p>Or from GitHub:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"queelius/likelihood.model.series.md"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"queelius/maskedcauses"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="models">Models<a class="anchor" aria-label="anchor" href="#models"></a>
@@ -103,7 +103,7 @@
 <h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://queelius.github.io/likelihood.model.series.md/">likelihood.model.series.md</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://queelius.github.io/maskedcauses/">maskedcauses</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Create model and generate data</span></span>
 <span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/exp_series_md_c1_c2_c3.html">exp_series_md_c1_c2_c3</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -230,11 +230,11 @@
 </h2>
 <p>Four tutorial vignettes with worked examples and Monte Carlo studies:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"exponential_series"</span>, package <span class="op">=</span> <span class="st">"likelihood.model.series.md"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"weibull_homogeneous_series"</span>, package <span class="op">=</span> <span class="st">"likelihood.model.series.md"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"weibull_series"</span>, package <span class="op">=</span> <span class="st">"likelihood.model.series.md"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"censoring_comparison"</span>, package <span class="op">=</span> <span class="st">"likelihood.model.series.md"</span><span class="op">)</span></span></code></pre></div>
-<p>Browse online at <a href="https://queelius.github.io/likelihood.model.series.md/articles/" class="uri">https://queelius.github.io/likelihood.model.series.md/articles/</a>.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"exponential_series"</span>, package <span class="op">=</span> <span class="st">"maskedcauses"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"weibull_homogeneous_series"</span>, package <span class="op">=</span> <span class="st">"maskedcauses"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"weibull_series"</span>, package <span class="op">=</span> <span class="st">"maskedcauses"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"censoring_comparison"</span>, package <span class="op">=</span> <span class="st">"maskedcauses"</span><span class="op">)</span></span></code></pre></div>
+<p>Browse online at <a href="https://queelius.github.io/maskedcauses/articles/" class="uri">https://queelius.github.io/maskedcauses/articles/</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="related-packages">Related Packages<a class="anchor" aria-label="anchor" href="#related-packages"></a>
@@ -259,8 +259,8 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/queelius/likelihood.model.series.md/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/queelius/likelihood.model.series.md/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/queelius/maskedcauses/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/queelius/maskedcauses/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -276,7 +276,7 @@
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing likelihood.model.series.md</a></li>
+<li><a href="authors.html#citation">Citing maskedcauses</a></li>
 </ul>
 </div>
 
@@ -290,6 +290,7 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
+<li><a href="https://queelius.r-universe.dev/maskedcauses" class="external-link"><img src="https://queelius.r-universe.dev/badges/maskedcauses" alt="R-universe"></a></li>
 <li><a href="https://www.gnu.org/licenses/gpl-3.0" class="external-link"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a></li>
 </ul>
 </div>

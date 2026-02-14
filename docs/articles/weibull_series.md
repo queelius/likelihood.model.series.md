@@ -169,7 +169,7 @@ homogeneous model exploits.
 When shapes differ, no such factorization exists, and
 [`stats::integrate`](https://rdrr.io/r/stats/integrate.html) is used
 internally. The integrand is accessible (for advanced use) via
-`likelihood.model.series.md:::wei_series_integrand`:
+`maskedcauses:::wei_series_integrand`:
 
 ``` r
 shapes <- theta[seq(1, 6, 2)]
@@ -178,7 +178,7 @@ cind <- c(TRUE, TRUE, FALSE)  # candidate set = {1, 2}
 
 # Evaluate the integrand h_c(t) * S(t) at a few time points
 t_eval <- c(10, 50, 100)
-vals <- likelihood.model.series.md:::wei_series_integrand(
+vals <- maskedcauses:::wei_series_integrand(
   t_eval, shapes, scales, cind
 )
 names(vals) <- paste0("t=", t_eval)
@@ -191,7 +191,7 @@ vals
 t_fine <- seq(0.5, 150, length.out = 500)
 
 # Full candidate set: all components
-vals_full <- likelihood.model.series.md:::wei_series_integrand(
+vals_full <- maskedcauses:::wei_series_integrand(
   t_fine, shapes, scales, cind = rep(TRUE, 3)
 )
 
@@ -251,11 +251,11 @@ t_mixed <- system.time(replicate(5, ll_fn(df_mixed, theta)))["elapsed"]
 
 cat(sprintf("\nLoglik time (exact/right only): %.4f s per eval\n", t_exact / 5))
 #> 
-#> Loglik time (exact/right only): 0.0012 s per eval
+#> Loglik time (exact/right only): 0.0020 s per eval
 cat(sprintf("Loglik time (mixed censoring):  %.4f s per eval\n", t_mixed / 5))
-#> Loglik time (mixed censoring):  0.0318 s per eval
+#> Loglik time (mixed censoring):  0.0550 s per eval
 cat(sprintf("Slowdown factor: %.1fx\n", t_mixed / t_exact))
-#> Slowdown factor: 26.5x
+#> Slowdown factor: 27.5x
 ```
 
 The slowdown is proportional to the number of left/interval

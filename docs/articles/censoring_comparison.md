@@ -1,11 +1,11 @@
 # Censoring Types in Series System Masked Data
 
 This vignette compares the four observation types supported by the
-`likelihood.model.series.md` package across all three likelihood models:
-exponential, homogeneous Weibull, and heterogeneous Weibull. We study
-how the choice of monitoring scheme—and hence the mix of censoring
-types—affects the information content of the data and the quality of
-maximum likelihood estimates.
+`maskedcauses` package across all three likelihood models: exponential,
+homogeneous Weibull, and heterogeneous Weibull. We study how the choice
+of monitoring scheme—and hence the mix of censoring types—affects the
+information content of the data and the quality of maximum likelihood
+estimates.
 
 ## Overview of Observation Types
 
@@ -653,9 +653,9 @@ knitr::kable(timing_df, caption = "Log-likelihood evaluation time (10 evaluation
 
 | Model                 | Time (s) | Left/Interval Method  |
 |:----------------------|---------:|:----------------------|
-| Exponential           |    0.069 | Closed-form           |
-| Homogeneous Weibull   |    0.099 | Closed-form           |
-| Heterogeneous Weibull |    0.690 | Numerical integration |
+| Exponential           |    0.095 | Closed-form           |
+| Homogeneous Weibull   |    0.116 | Closed-form           |
+| Heterogeneous Weibull |    0.940 | Numerical integration |
 
 Log-likelihood evaluation time (10 evaluations, n=1000)
 

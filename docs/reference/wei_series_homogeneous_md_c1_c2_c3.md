@@ -77,7 +77,7 @@ for any `j, j' in c[i]`. C3: masking probabilities are independent of
 
 ## See also
 
-[`wei_series_md_c1_c2_c3()`](https://queelius.github.io/likelihood.model.series.md/reference/wei_series_md_c1_c2_c3.md)
+[`wei_series_md_c1_c2_c3()`](https://queelius.github.io/maskedcauses/reference/wei_series_md_c1_c2_c3.md)
 for the full model with heterogeneous shapes
 
 ## Examples

@@ -99,7 +99,7 @@ cat("System mean lifetime:", round(beta_sys * gamma(1 + 1/k), 2), "\n")
 ### Component hazards
 
 The
-[`component_hazard()`](https://queelius.github.io/likelihood.model.series.md/reference/component_hazard.md)
+[`component_hazard()`](https://queelius.github.io/maskedcauses/reference/component_hazard.md)
 generic returns a closure for the $j$-th component hazard. We overlay
 all three to visualize how failure intensity changes over time:
 
@@ -139,7 +139,7 @@ print(round(w, 4))
 ```
 
 The
-[`conditional_cause_probability()`](https://queelius.github.io/likelihood.model.series.md/reference/conditional_cause_probability.md)
+[`conditional_cause_probability()`](https://queelius.github.io/maskedcauses/reference/conditional_cause_probability.md)
 generic confirms these are time-invariant:
 
 ``` r

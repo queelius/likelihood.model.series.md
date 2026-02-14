@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Heterogeneous Weibull Series Systems: Flexible Hazard Shapes • likelihood.model.series.md</title>
+<title>Heterogeneous Weibull Series Systems: Flexible Hazard Shapes • maskedcauses</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -18,7 +18,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">likelihood.model.series.md</a>
+    <a class="navbar-brand me-2" href="../index.html">maskedcauses</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9</small>
 
@@ -36,7 +36,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/queelius/likelihood.model.series.md/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/queelius/maskedcauses/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -53,7 +53,7 @@
       <h1>Heterogeneous Weibull Series Systems: Flexible Hazard Shapes</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/queelius/likelihood.model.series.md/blob/HEAD/vignettes/weibull_series.Rmd" class="external-link"><code>vignettes/weibull_series.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/queelius/maskedcauses/blob/HEAD/vignettes/weibull_series.Rmd" class="external-link"><code>vignettes/weibull_series.Rmd</code></a></small>
       <div class="d-none name"><code>weibull_series.Rmd</code></div>
     </div>
 
@@ -275,7 +275,7 @@ the homogeneous model exploits.</p>
 <p>When shapes differ, no such factorization exists, and
 <code><a href="https://rdrr.io/r/stats/integrate.html" class="external-link">stats::integrate</a></code> is used internally. The integrand is
 accessible (for advanced use) via
-<code>likelihood.model.series.md:::wei_series_integrand</code>:</p>
+<code>maskedcauses:::wei_series_integrand</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">shapes</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">6</span>, <span class="fl">2</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">scales</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">6</span>, <span class="fl">2</span><span class="op">)</span><span class="op">]</span></span>
@@ -283,7 +283,7 @@ accessible (for advanced use) via
 <span></span>
 <span><span class="co"># Evaluate the integrand h_c(t) * S(t) at a few time points</span></span>
 <span><span class="va">t_eval</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">50</span>, <span class="fl">100</span><span class="op">)</span></span>
-<span><span class="va">vals</span> <span class="op">&lt;-</span> <span class="fu">likelihood.model.series.md</span><span class="fu">:::</span><span class="fu"><a href="../reference/wei_series_integrand.html">wei_series_integrand</a></span><span class="op">(</span></span>
+<span><span class="va">vals</span> <span class="op">&lt;-</span> <span class="fu">maskedcauses</span><span class="fu">:::</span><span class="fu"><a href="../reference/wei_series_integrand.html">wei_series_integrand</a></span><span class="op">(</span></span>
 <span>  <span class="va">t_eval</span>, <span class="va">shapes</span>, <span class="va">scales</span>, <span class="va">cind</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">vals</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"t="</span>, <span class="va">t_eval</span><span class="op">)</span></span>
@@ -294,7 +294,7 @@ accessible (for advanced use) via
 <code class="sourceCode R"><span><span class="va">t_fine</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">150</span>, length.out <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Full candidate set: all components</span></span>
-<span><span class="va">vals_full</span> <span class="op">&lt;-</span> <span class="fu">likelihood.model.series.md</span><span class="fu">:::</span><span class="fu"><a href="../reference/wei_series_integrand.html">wei_series_integrand</a></span><span class="op">(</span></span>
+<span><span class="va">vals_full</span> <span class="op">&lt;-</span> <span class="fu">maskedcauses</span><span class="fu">:::</span><span class="fu"><a href="../reference/wei_series_integrand.html">wei_series_integrand</a></span><span class="op">(</span></span>
 <span>  <span class="va">t_fine</span>, <span class="va">shapes</span>, <span class="va">scales</span>, cind <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -354,11 +354,11 @@ data:</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"\nLoglik time (exact/right only): %.4f s per eval\n"</span>, <span class="va">t_exact</span> <span class="op">/</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Loglik time (exact/right only): 0.0012 s per eval</span></span>
+<span><span class="co">#&gt; Loglik time (exact/right only): 0.0020 s per eval</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Loglik time (mixed censoring):  %.4f s per eval\n"</span>, <span class="va">t_mixed</span> <span class="op">/</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loglik time (mixed censoring):  0.0318 s per eval</span></span>
+<span><span class="co">#&gt; Loglik time (mixed censoring):  0.0550 s per eval</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Slowdown factor: %.1fx\n"</span>, <span class="va">t_mixed</span> <span class="op">/</span> <span class="va">t_exact</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Slowdown factor: 26.5x</span></span></code></pre></div>
+<span><span class="co">#&gt; Slowdown factor: 27.5x</span></span></code></pre></div>
 <p>The slowdown is proportional to the number of left/interval
 observations, since each requires a call to
 <code><a href="https://rdrr.io/r/stats/integrate.html" class="external-link">stats::integrate</a></code>. For moderate sample sizes this is fast

@@ -4,9 +4,10 @@ pkgdown_sha: ~
 articles:
   censoring_comparison: censoring_comparison.html
   exponential_series: exponential_series.html
+  framework: framework.html
   weibull_homogeneous_series: weibull_homogeneous_series.html
   weibull_series: weibull_series.html
-last_built: 2026-02-13T12:53Z
+last_built: 2026-02-14T03:39Z
 urls:
-  reference: https://queelius.github.io/likelihood.model.series.md/reference
-  article: https://queelius.github.io/likelihood.model.series.md/articles
+  reference: https://queelius.github.io/maskedcauses/reference
+  article: https://queelius.github.io/maskedcauses/articles

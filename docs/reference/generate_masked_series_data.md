@@ -62,7 +62,7 @@ generate_masked_series_data(
 - observe:
 
   observation functor created by `observe_*` functions. When NULL, uses
-  [`observe_right_censor`](https://queelius.github.io/likelihood.model.series.md/reference/observe_right_censor.md)`(tau)`
+  [`observe_right_censor`](https://queelius.github.io/maskedcauses/reference/observe_right_censor.md)`(tau)`
   for backwards compatibility.
 
 ## Value

@@ -1,8 +1,8 @@
 # Masked Data Likelihood Model: Components with Exponentially Distributed Lifetimes Arranged In Series Configuration
 
-The R package `likelihood.model.series.md` is a framework for estimating
-the parameters of latent component lifetimes from *masked data* in a
-series system.
+The R package `maskedcauses` is a framework for estimating the
+parameters of latent component lifetimes from *masked data* in a series
+system.
 
 ## Exponentially Distributed Component Lifetimes
 

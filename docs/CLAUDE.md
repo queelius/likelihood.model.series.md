@@ -63,10 +63,10 @@ Each model implements S3 methods:
 [`assumptions()`](https://queelius.github.io/likelihood.model/reference/assumptions.html),
 [`rdata()`](https://queelius.github.io/likelihood.model/reference/rdata.html),
 [`fit()`](https://generics.r-lib.org/reference/fit.html),
-[`ncomponents()`](https://queelius.github.io/likelihood.model.series.md/reference/ncomponents.md),
-[`component_hazard()`](https://queelius.github.io/likelihood.model.series.md/reference/component_hazard.md),
-[`conditional_cause_probability()`](https://queelius.github.io/likelihood.model.series.md/reference/conditional_cause_probability.md),
-[`cause_probability()`](https://queelius.github.io/likelihood.model.series.md/reference/cause_probability.md)
+[`ncomponents()`](https://queelius.github.io/maskedcauses/reference/ncomponents.md),
+[`component_hazard()`](https://queelius.github.io/maskedcauses/reference/component_hazard.md),
+[`conditional_cause_probability()`](https://queelius.github.io/maskedcauses/reference/conditional_cause_probability.md),
+[`cause_probability()`](https://queelius.github.io/maskedcauses/reference/cause_probability.md)
 
 **S3 class hierarchy** (multiple inheritance for dispatch):
 
@@ -244,6 +244,25 @@ regenerate).
 | `weibull_homogeneous_series.Rmd` | Shared-shape Weibull: DFR/CFR/IFR regimes, closed-form left/interval |
 | `weibull_series.Rmd`             | Heterogeneous Weibull: mixed hazard shapes, numerical integration    |
 | `censoring_comparison.Rmd`       | Cross-model analysis of censoring type effects on estimation quality |
+
+## Vignette Prose Verification
+
+All numerical claims in vignette prose are verified against precomputed
+`.rds` data. When editing vignette commentary:
+
+1.  Extract actual values: `readRDS("vignettes/precomputed_*.rds")`
+2.  Compute metrics (RMSE, bias, coverage) from raw `estimates` and
+    `theta`/`true_params`
+3.  Round consistently (3 decimal places for RMSE, 1 for percentages)
+4.  Update prose only after confirming exact values — never speculate
+
+Known data structure differences across .rds files: -
+`precomputed_results.rds` (exponential): flat list with `$estimates`,
+`$true_params`, `$converged` - `precomputed_weibull_homogeneous.rds`:
+nested by scenario (DFR/CFR/IFR), SE field is `$se_est` -
+`precomputed_weibull.rds`: flat list with `$theta_mc` -
+`precomputed_censoring_comparison.rds`: `$sim_results` nested by config
+(A-E), pre-aggregated summaries
 
 ## Deployment
 

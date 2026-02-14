@@ -1,4 +1,4 @@
-# likelihood.model.series.md
+# maskedcauses
 
 Maximum likelihood estimation for series system parameters from masked
 component failure data. Supports exact, right-censored, left-censored,
@@ -9,7 +9,7 @@ and interval-censored observations with composable observation schemes.
 From [r-universe](https://queelius.r-universe.dev):
 
 ``` r
-install.packages("likelihood.model.series.md",
+install.packages("maskedcauses",
                  repos = "https://queelius.r-universe.dev")
 ```
 
@@ -17,7 +17,7 @@ Or from GitHub:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("queelius/likelihood.model.series.md")
+devtools::install_github("queelius/maskedcauses")
 ```
 
 ## Models
@@ -36,15 +36,15 @@ Each model implements S3 methods for:
 [`hess_loglik()`](https://queelius.github.io/likelihood.model/reference/hess_loglik.html),
 [`rdata()`](https://queelius.github.io/likelihood.model/reference/rdata.html),
 [`assumptions()`](https://queelius.github.io/likelihood.model/reference/assumptions.html),
-[`component_hazard()`](https://queelius.github.io/likelihood.model.series.md/reference/component_hazard.md),
-[`cause_probability()`](https://queelius.github.io/likelihood.model.series.md/reference/cause_probability.md),
-[`conditional_cause_probability()`](https://queelius.github.io/likelihood.model.series.md/reference/conditional_cause_probability.md),
-[`ncomponents()`](https://queelius.github.io/likelihood.model.series.md/reference/ncomponents.md)
+[`component_hazard()`](https://queelius.github.io/maskedcauses/reference/component_hazard.md),
+[`cause_probability()`](https://queelius.github.io/maskedcauses/reference/cause_probability.md),
+[`conditional_cause_probability()`](https://queelius.github.io/maskedcauses/reference/conditional_cause_probability.md),
+[`ncomponents()`](https://queelius.github.io/maskedcauses/reference/ncomponents.md)
 
 ## Quick Start
 
 ``` r
-library(likelihood.model.series.md)
+library(maskedcauses)
 
 # Create model and generate data
 model <- exp_series_md_c1_c2_c3()
@@ -121,14 +121,13 @@ accepted in place of `omega` for exact/right-censored data.
 Four tutorial vignettes with worked examples and Monte Carlo studies:
 
 ``` r
-vignette("exponential_series", package = "likelihood.model.series.md")
-vignette("weibull_homogeneous_series", package = "likelihood.model.series.md")
-vignette("weibull_series", package = "likelihood.model.series.md")
-vignette("censoring_comparison", package = "likelihood.model.series.md")
+vignette("exponential_series", package = "maskedcauses")
+vignette("weibull_homogeneous_series", package = "maskedcauses")
+vignette("weibull_series", package = "maskedcauses")
+vignette("censoring_comparison", package = "maskedcauses")
 ```
 
-Browse online at
-<https://queelius.github.io/likelihood.model.series.md/articles/>.
+Browse online at <https://queelius.github.io/maskedcauses/articles/>.
 
 ## Related Packages
 
