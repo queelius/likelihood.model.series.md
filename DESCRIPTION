@@ -1,5 +1,5 @@
-Package: likelihood.model.series.md
-Title: Likelihood Models for Series Systems with Masked Component Cause of Failure
+Package: maskedcauses
+Title: Likelihood Models for Systems with Masked Component Cause of Failure
 Version: 0.9
 Authors@R: 
     person("Alexander", "Towell", , "lex@metafunctor.com", role = c("aut", "cre"),
@@ -25,13 +25,9 @@ Imports:
     likelihood.model,
     generics,
     numDeriv
-Remotes:
-    github::queelius/algebraic.mle,
-    github::queelius/algebraic.dist,
-    github::queelius/likelihood.model
 Depends: 
     R (>= 2.10)
 LazyData: true
 VignetteBuilder: knitr
-URL: https://queelius.github.io/likelihood.model.series.md/
-BugReports: https://github.com/queelius/likelihood.model.series.md/issues
+URL: https://queelius.github.io/maskedcauses/
+BugReports: https://github.com/queelius/maskedcauses/issues
