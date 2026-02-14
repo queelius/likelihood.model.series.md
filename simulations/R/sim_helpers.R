@@ -5,13 +5,13 @@
 # Provides data generation, model fitting, checkpointing, progress display,
 # and summary statistics.
 #
-# Dependencies: likelihood.model.series.md, md.tools, dplyr
+# Dependencies: maskedcauses, md.tools, dplyr
 #
 # Usage: source("R/sim_helpers.R")
 # =============================================================================
 
 suppressPackageStartupMessages({
-    library(likelihood.model.series.md)
+    library(maskedcauses)
     library(md.tools)
     library(dplyr)
 })

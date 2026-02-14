@@ -101,7 +101,7 @@ Experiments 4–5 are included in the export under separate keys
 
 ## Dependencies
 
-- `likelihood.model.series.md` (this package)
+- `maskedcauses` (this package)
 - `md.tools` (for `md_encode_matrix`)
 - `dplyr` (for `%>%`)
 
