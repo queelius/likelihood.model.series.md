@@ -1,5 +1,5 @@
 TEX = pdflatex
-MAIN = likelihood_model_series_md
+MAIN = maskedcauses
 
 all: $(MAIN).pdf
 

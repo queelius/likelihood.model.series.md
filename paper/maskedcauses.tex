@@ -68,7 +68,7 @@
 \maketitle
 
 \begin{abstract}
-This technical report introduces the \pkg{likelihood.model.series.md} \R{} package for maximum likelihood estimation in series systems with masked component cause of failure data. The package provides a unified framework for exponential and Weibull series systems, implementing log-likelihood functions, score vectors, and Hessian matrices under specific masking conditions (C1, C2, C3). We describe the mathematical foundation, software architecture, and integration with the broader \pkg{likelihood.model} ecosystem. The package enables practitioners to perform parameter estimation, construct confidence intervals, and conduct hypothesis tests for series system reliability problems where component failure causes are only partially observable.
+This technical report introduces the \pkg{maskedcauses} \R{} package for maximum likelihood estimation in series systems with masked component cause of failure data. The package provides a unified framework for exponential and Weibull series systems, implementing log-likelihood functions, score vectors, and Hessian matrices under specific masking conditions (C1, C2, C3). We describe the mathematical foundation, software architecture, and integration with the broader \pkg{likelihood.model} ecosystem. The package enables practitioners to perform parameter estimation, construct confidence intervals, and conduct hypothesis tests for series system reliability problems where component failure causes are only partially observable.
 \end{abstract}
 
 \section{Introduction}
@@ -83,7 +83,7 @@ This situation arises in many practical contexts:
     \item Accelerated life testing where failure modes may be ambiguous
 \end{itemize}
 
-The \pkg{likelihood.model.series.md} package provides tools for maximum likelihood estimation (MLE) from such \emph{masked} failure data. This report describes the mathematical foundation, software design, and usage of the package.
+The \pkg{maskedcauses} package provides tools for maximum likelihood estimation (MLE) from such \emph{masked} failure data. This report describes the mathematical foundation, software design, and usage of the package.
 
 \section{Mathematical Framework}
 
@@ -216,7 +216,7 @@ This reduced model offers several advantages:
 
 \subsection{Design Philosophy}
 
-The \pkg{likelihood.model.series.md} package follows several design principles:
+The \pkg{maskedcauses} package follows several design principles:
 
 \begin{enumerate}
     \item \textbf{Generic Interface}: Implements S3 methods conforming to the \pkg{likelihood.model} package API, enabling use with generic MLE fitting functions.
@@ -277,7 +277,7 @@ The package integrates with several related packages:
 \subsection{Creating a Likelihood Model}
 
 \begin{lstlisting}
-library(likelihood.model.series.md)
+library(maskedcauses)
 
 # Create exponential series model
 model_exp <- exp_series_md_c1_c2_c3()
@@ -370,7 +370,7 @@ Extensive simulation studies (see package vignette) demonstrate that:
 
 \section{Conclusion}
 
-The \pkg{likelihood.model.series.md} package provides a principled, well-documented implementation for likelihood-based inference in series systems with masked component failure data. By integrating with the broader \pkg{likelihood.model} ecosystem, the package enables practitioners to leverage sophisticated MLE infrastructure while focusing on their specific reliability analysis problems.
+The \pkg{maskedcauses} package provides a principled, well-documented implementation for likelihood-based inference in series systems with masked component failure data. By integrating with the broader \pkg{likelihood.model} ecosystem, the package enables practitioners to leverage sophisticated MLE infrastructure while focusing on their specific reliability analysis problems.
 
 Future extensions may include:
 \begin{itemize}
@@ -380,7 +380,7 @@ Future extensions may include:
     \item Bayesian inference methods
 \end{itemize}
 
-The package is available at \url{https://github.com/queelius/likelihood.model.series.md} with documentation at \url{https://queelius.github.io/likelihood.model.series.md/}.
+The package is available at \url{https://github.com/queelius/maskedcauses} with documentation at \url{https://queelius.github.io/maskedcauses/}.
 
 \section*{Acknowledgments}
 
