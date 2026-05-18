@@ -17,7 +17,12 @@ surv.exp_series(t, rates, log.p = FALSE)
 The survival function evaluated at the specified lifetimes.
 }
 \description{
-Survival function for exponential series.
+Thin wrapper. Equivalent to
+\code{algebraic.dist::surv(dist.structure::exp_series(rates))(t)}.
+}
+\note{
+Preserved for backwards compatibility. New code: use
+\code{\link[dist.structure:exp_series]{dist.structure::exp_series()}} then \code{\link[algebraic.dist:surv]{algebraic.dist::surv()}}.
 }
 \examples{
 rates <- c(0.5, 0.3, 0.2)

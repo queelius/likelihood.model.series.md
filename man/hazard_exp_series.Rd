@@ -17,7 +17,13 @@ hazard_exp_series(t, rates, log.p = FALSE)
 The hazard function evaluated at the specified lifetimes.
 }
 \description{
-Hazard function for exponential series.
+Thin wrapper. The series of m independent exponentials has constant
+system hazard \code{sum(rates)}. Equivalent to
+\code{algebraic.dist::hazard(dist.structure::exp_series(rates))(t)}.
+}
+\note{
+Preserved for backwards compatibility. New code: use
+\code{\link[dist.structure:exp_series]{dist.structure::exp_series()}} then \code{\link[algebraic.dist:hazard]{algebraic.dist::hazard()}}.
 }
 \examples{
 rates <- c(0.5, 0.3, 0.2)

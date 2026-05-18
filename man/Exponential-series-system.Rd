@@ -2,17 +2,16 @@
 % Please edit documentation in R/exp_series.R
 \name{Exponential-series-system}
 \alias{Exponential-series-system}
-\title{Exponential series systems}
+\title{Exponential series systems (legacy convenience API)}
 \description{
-This file contains functions related to the Exponential series distribution.
-Functions include simulation, pdf, cdf, quantile, and other related
-functions for the Exponential series distribution.
+These functions provide a base-R-style distribution API
+(\code{d}/\code{p}/\code{q}/\code{r}/hazard/surv/mean) for exponential series systems and
+are preserved for backwards compatibility. New code should construct
+a \code{\link[dist.structure:exp_series]{dist.structure::exp_series()}} object, which provides the same dist
+interface plus broader interop (importance measures, structural
+importance, system signature, dual, compositional operations).
 }
 \details{
-Exponential series system distribution
-
-Density, distribution, quantile, random generation, hazard, survival,
-and mean functions for the exponential series system distribution.
 A series system of m independent exponential components with rates
 \eqn{\lambda_1, \ldots, \lambda_m} has an exponential system lifetime
 with rate \eqn{\lambda = \sum \lambda_j}.

@@ -20,7 +20,12 @@ otherwise, P(X > x).}
 The cumulative probabilities evaluated at the specified lifetimes.
 }
 \description{
-Cumulative distribution function for exponential series.
+Thin wrapper. Equivalent to
+\code{algebraic.dist::cdf(dist.structure::exp_series(rates))(t)}.
+}
+\note{
+Preserved for backwards compatibility. New code: use
+\code{\link[dist.structure:exp_series]{dist.structure::exp_series()}} then \code{\link[algebraic.dist:cdf]{algebraic.dist::cdf()}}.
 }
 \examples{
 rates <- c(0.5, 0.3, 0.2)

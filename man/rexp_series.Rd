@@ -24,6 +24,14 @@ in columns 2 through m+1.
 }
 \description{
 Generates random variates from an exponential series distribution.
+The default path (\code{keep_latent = FALSE}) is equivalent to
+\code{algebraic.dist::sampler(dist.structure::exp_series(rates))(n)}. The
+\code{keep_latent = TRUE} path additionally returns the latent component
+lifetimes (sampled independently from each component).
+}
+\note{
+Preserved for backwards compatibility. New code: use
+\code{\link[dist.structure:exp_series]{dist.structure::exp_series()}} with \code{\link[algebraic.dist:sampler]{algebraic.dist::sampler()}}.
 }
 \examples{
 set.seed(123)

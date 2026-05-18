@@ -9,3 +9,4 @@ simulations/results/*.rds
 vignettes/*_cache/
 /doc/
 *.tar.gz
+*.Rcheck/

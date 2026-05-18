@@ -20,7 +20,12 @@ otherwise, P(X > x).}
 Quantiles corresponding to the given probabilities \code{p}.
 }
 \description{
-Quantile function for exponential series.
+Thin wrapper around \code{\link[stats:Exponential]{stats::qexp()}} with \code{rate = sum(rates)}. Equivalent
+to \code{algebraic.dist::inv_cdf(dist.structure::exp_series(rates))(p)}.
+}
+\note{
+Preserved for backwards compatibility. New code: use
+\code{\link[dist.structure:exp_series]{dist.structure::exp_series()}} then \code{\link[algebraic.dist:inv_cdf]{algebraic.dist::inv_cdf()}}.
 }
 \examples{
 rates <- c(0.5, 0.3, 0.2)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_series.R
 \name{dexp_series}
 \alias{dexp_series}
-\title{pdf for exponential series.}
+\title{Density function for exponential series.}
 \usage{
 dexp_series(t, rates, log = FALSE)
 }
@@ -17,7 +17,12 @@ dexp_series(t, rates, log = FALSE)
 Density values for the exponential series distribution.
 }
 \description{
-pdf for exponential series.
+Thin wrapper. Equivalent to
+\code{algebraic.dist::density(dist.structure::exp_series(rates))(t, log = log)}.
+}
+\note{
+Preserved for backwards compatibility. New code: use
+\code{\link[dist.structure:exp_series]{dist.structure::exp_series()}} then \code{algebraic.dist::density()}.
 }
 \examples{
 rates <- c(0.5, 0.3, 0.2)

@@ -91,7 +91,7 @@ rexp_series <- function(n, rates, keep_latent = FALSE) {
 #' @param log return the log of the pdf
 #' @return Density values for the exponential series distribution.
 #' @note Preserved for backwards compatibility. New code: use
-#'   [dist.structure::exp_series()] then [algebraic.dist::density()].
+#'   [dist.structure::exp_series()] then `algebraic.dist::density()`.
 #' @importFrom stats dexp
 #' @export
 #' @examples

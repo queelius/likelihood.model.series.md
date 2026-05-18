@@ -30,7 +30,6 @@ Imports:
     likelihood.model,
     generics,
     numDeriv,
-    algebraic.dist,
     dist.structure
 Depends:
     R (>= 4.1.0)

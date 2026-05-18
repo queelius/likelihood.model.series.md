@@ -7,7 +7,9 @@
 \method{mean}{exp_series}(x, ...)
 }
 \arguments{
-\item{x}{An object of class \code{exp_series} (a vector of rate parameters).}
+\item{x}{An \code{exp_series} object. Either a numeric vector of rate
+parameters (legacy maskedcauses convention) or a list returned by
+\code{\link[dist.structure:exp_series]{dist.structure::exp_series()}}.}
 
 \item{...}{Additional arguments (ignored, for S3 generic compatibility).}
 }
@@ -15,12 +17,27 @@
 The mean of the exponential series distribution (1/sum of rates).
 }
 \description{
-Computes the expected value of a series system with exponentially distributed
-component lifetimes. For a series system with component rates
-\eqn{\lambda_1, \ldots, \lambda_m}, the system lifetime is exponential
-with rate \eqn{\sum \lambda_j}, so \eqn{E[T] = 1 / \sum \lambda_j}.
+Computes the expected value of a series system with exponentially
+distributed component lifetimes. For a series system with component
+rates \eqn{\lambda_1, \ldots, \lambda_m}, the system lifetime is
+exponential with rate \eqn{\sum \lambda_j}, so \eqn{E[T] = 1 /
+\sum \lambda_j}.
+}
+\details{
+This method is polymorphic: it accepts both the legacy
+maskedcauses shape (a numeric vector of rates with class attribute
+\code{"exp_series"}) and the current \code{dist.structure::exp_series()}
+shape (a list with a \verb{$total_rate} field). This prevents a breaking
+S3 dispatch collision when both packages are attached.
+}
+\note{
+Preserved for backwards compatibility. New code: construct
+with \code{dist.structure::exp_series(rates)} and call \code{mean()} on it.
 }
 \examples{
+# Legacy shape
 rates <- structure(c(0.5, 0.3, 0.2), class = "exp_series")
 mean(rates)
+# Modern shape (dist.structure list) works via the same method
+mean(dist.structure::exp_series(c(0.5, 0.3, 0.2)))
 }
