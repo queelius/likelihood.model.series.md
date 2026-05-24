@@ -690,20 +690,30 @@ test_that("fim is approximately positive semi-definite", {
 })
 
 test_that("fim accepts additional DGP parameters", {
+  # The Monte Carlo FIM in likelihood.model (>= 1.0.1) forwards the inner
+  # `...` to rdata only, not to hess_loglik. The likelihood layer does not
+  # depend on DGP kwargs (under masking condition C3, p is independent of
+  # the system parameters, and tau enters the likelihood through the per-
+  # row omega/t columns, not as a separate argument). Earlier versions of
+  # likelihood.model forwarded `...` to hess_loglik as well, where R's
+  # partial-argument-matching mapped `p` to the `par` formal and corrupted
+  # the parameter vector. This test pins that contract.
+  skip_if_not_installed("likelihood.model", minimum_version = "1.0.1")
+
   model <- exp_series_md_c1_c2_c3()
   fim_fn <- fim(model)
 
   set.seed(123)
-  I <- tryCatch(
-    fim_fn(theta = c(0.5, 0.3, 0.2), n_obs = 50, n_samples = 200,
-           tau = 5, p = 0.3),
-    error = function(e) {
-      skip(paste("MC FIM estimation failed:", conditionMessage(e)))
-    }
-  )
+  I <- fim_fn(theta = c(0.5, 0.3, 0.2), n_obs = 50, n_samples = 200,
+              tau = 5, p = 0.3)
 
   expect_true(is.matrix(I))
   expect_equal(dim(I), c(3, 3))
+  # Positive-definite: the FIM is the negative expected Hessian, and at
+  # the true parameter the score has finite variance, so I(theta) >> 0.
+  expect_true(all(eigen(I, symmetric = TRUE)$values > 0))
+  # Symmetric up to Monte Carlo error.
+  expect_equal(I, t(I), tolerance = 1e-8)
 })
 
 
